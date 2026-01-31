@@ -1,9 +1,7 @@
-
-
-# Precious Metals Tracker - Implementation Plan
+# InvestTracker - Multi-Asset Portfolio Manager
 
 ## Overview
-A complete investment tracking application for Gold (XAU) and Silver (XAG) in AED with full Supabase authentication, accurate unit conversions, Weighted Average Cost (WAC) P/L calculations, and a beautiful Gold & Emerald visual theme.
+A complete multi-asset investment tracking application supporting Precious Metals, Real Estate, Fixed Deposits, SIP, Mutual Funds, and Shares. Built with full Supabase authentication, multi-currency support (AED/INR), live metal price fetching, and a beautiful Gold & Emerald visual theme.
 
 ---
 
@@ -18,209 +16,141 @@ A complete investment tracking application for Gold (XAU) and Silver (XAG) in AE
 
 ---
 
-## 🔐 Phase 1: Authentication & Database
+## 🔐 Authentication & Database
 
-### Supabase Setup
-- Enable email/password authentication
-- Configure password reset flow
-- Set up user profiles table linked to auth.users
+### Supabase Setup ✅
+- Email/password authentication
+- Password reset flow
+- User profiles table linked to auth.users
 
-### Database Schema (5 Tables)
+### Database Schema ✅
 1. **portfolios** - User portfolios with base currency (AED)
 2. **instruments** - XAU/XAG reference data with conversion constant
-3. **transactions** - All buys/sells with quantity/price units
-4. **price_snapshots** - Manual price history
+3. **transactions** - Precious metals buys/sells with quantity/price units
+4. **price_snapshots** - Metal price history
 5. **user_roles** - Secure role management for RLS
+6. **assets** - Multi-asset tracking table (NEW)
+7. **user_settings** - User preferences for FX rates, etc. (NEW)
 
-### Row-Level Security
-- Users can only access their own portfolios and transactions
-- Security definer functions for role checks
-- Proper RLS policies on all tables
-
----
-
-## 📊 Phase 2: Core Calculation Engine
-
-### Utility Functions (TypeScript)
-- **Unit Conversions**: `gramsToOz()`, `ozToGrams()` using 31.1035 constant
-- **Canonical Normalization**: Convert any transaction to OZ and AED/oz
-- **WAC Engine**: Weighted Average Cost calculator with running totals
-- **P/L Calculator**: Realized, unrealized, and total P/L
-- **Position Tracker**: Holdings after each transaction in date order
-- **Validation**: Oversell prevention, price deviation warnings (>30%)
-
-### Precision Rules
-- Quantities: 4 decimals (oz), 2 decimals (grams)
-- Money: 2 decimals (AED)
-- Internal calculations: Full precision
+### Asset Types Supported ✅
+- `precious_metals` - Gold & Silver
+- `real_estate` - Land, House/Villa
+- `fixed_deposit` - Bank FDs
+- `sip` - Systematic Investment Plans
+- `mutual_fund` - Mutual Funds
+- `shares` - Stocks/Shares
 
 ---
 
-## 🏠 Phase 3: Dashboard Page
+## 💼 Portfolio Dashboard (NEW) ✅
 
-### Portfolio Summary Cards
-- Net Cash Invested (Total Buys - Total Sells)
-- Current Portfolio Value
-- Total P/L (with color: green/red)
-- Total Return %
-- Realized P/L
-- Unrealized P/L
+### Summary Cards
+- Total Invested (across all assets)
+- Total Current Value
+- Total P/L (AED and %)
+- Asset Count
 
-### Visual Elements
-- **Allocation Chart**: Donut/pie showing Gold vs Silver by current value
-- **Live Prices Panel**: XAU and XAG in AED/oz and AED/gram
-- **Quick Actions**: "Add Transaction" and "Update Prices" buttons
-- **Portfolio Selector**: Dropdown for multiple portfolios
+### Allocation Breakdown
+- Pie chart showing allocation by asset type
+- Detailed breakdown with P/L per category
+
+### Asset List
+- All assets with quick P/L indicators
+- Link to detailed asset view
+
+### Live Metal Prices
+- Real-time gold/silver prices from API
+- USD to AED conversion
+- Refresh button
 
 ---
 
-## 📝 Phase 4: Transactions (Ledger) Page
+## 📝 Add Asset Flow (NEW) ✅
 
-### Add/Edit Transaction Form
-- Portfolio selector
-- Metal picker (Gold/Silver)
-- Side toggle (BUY/SELL)
-- Date picker
-- Quantity input + Unit dropdown (OZ/GRAM)
-- Price input + Unit dropdown (AED/oz, AED/gram)
-- Fees input
-- Notes textarea
+### Step-Based Form
+1. **Select Asset Type** - Choose from 6 asset categories
+2. **Basic Information** - Name, currency, date, cost, quantity
+3. **Type-Specific Details** - Conditional fields per asset type
 
-### Live Preview Box
-Real-time calculation showing:
-- Canonical quantity in oz
-- Canonical price in AED/oz
-- Expected invested/proceeds amount
-- Warning if price deviates >30% from latest snapshot
+### Conditional Fields
+- **Precious Metals**: Metal type (XAU/XAG)
+- **Real Estate**: Location, area, rental income
+- **Fixed Deposit**: Bank, interest rate, maturity date
+- **SIP/MF/Shares**: Instrument name, broker, NAV
 
-### Ledger Table
-Full transaction history with columns:
-- Date | Metal | Side | Qty | Unit | Canonical Qty (oz) | Price | Price Unit | Canonical Price (AED/oz) | Fees | Invested/Proceeds | Holdings After | Avg Cost After | Realized P/L
+---
+
+## 💹 Live Price Fetching (NEW) ✅
+
+### Edge Function
+- `fetch-metal-prices` - Proxies goldprice.org API
+- Returns USD prices, converted to AED
 
 ### Features
-- Filter by: instrument, date range, side
-- Sticky headers for scrolling
-- Row click → Details drawer with conversions, notes, audit trail
-- Edit/Delete with automatic recalculation
-- Backdated transaction support (recomputes in date order)
+- Refresh button for manual update
+- Auto-fetch on page load
+- Save to history button
+- Fallback to manual entry if API fails
+
+### Conversion Rate
+- Default USD→AED: 3.6725
+- Default INR→AED: 0.044
+- Configurable in user settings
 
 ---
 
-## 💰 Phase 5: Holdings Page
+## 📊 Precious Metals Module (Original) ✅
 
-### Per-Instrument Cards (Gold & Silver)
-- Current Holdings: oz and grams
-- Average Cost: AED/oz and AED/gram
-- Break-even Price: AED/oz and AED/gram
-- Current Value: AED
-- Unrealized P/L: AED and %
+### Features Preserved
+- WAC (Weighted Average Cost) calculations
+- Transaction ledger with running balances
+- Holdings page with break-even analysis
+- Price history charts
+- CSV export for reports
 
-### Explanation Tooltips
-"Explain this number" info icons showing:
-- Formula used
-- Input values
-- Step-by-step calculation
-
----
-
-## 💹 Phase 6: Prices Page
-
-### Manual Price Update Form
-- XAU price (AED/oz) with auto-convert to AED/gram display
-- XAG price (AED/oz) with auto-convert to AED/gram display
-- Timestamp auto-set to now (editable)
-- Source field (default: "manual")
-
-### Price History
-- Simple line chart showing historical prices
-- Toggle between XAU and XAG
-- Time range selector (1W, 1M, 3M, YTD, All)
+### Calculation Engine
+- Unit conversions (oz ↔ grams) using 31.1035
+- Canonical normalization to OZ and AED/oz
+- Realized, unrealized, and total P/L
 
 ---
 
-## 📈 Phase 7: Reports Page
+## 📱 Navigation
 
-### Monthly Performance Table
-Columns per month:
-- Net Invested
-- Realized P/L
-- Unrealized P/L
-- End Value
-- Monthly Return %
-
-### Export Features
-- **Export CSV**: Transactions with all columns
-- **Export Holdings CSV**: Current positions summary
-- **Print-Friendly Summary**: Styled view for printing
+| Page | Route | Description |
+|------|-------|-------------|
+| **Portfolio** | `/portfolio` | Unified investment overview (NEW) |
+| **Add Asset** | `/assets/new` | Step-based asset creation (NEW) |
+| **Asset Detail** | `/assets/:id` | View/delete individual asset (NEW) |
+| **Precious Metals** | `/` | Gold & Silver dashboard |
+| **Transactions** | `/transactions` | Metal transaction ledger |
+| **Holdings** | `/holdings` | Metal positions |
+| **Prices** | `/prices` | Live + manual price updates |
+| **Reports** | `/reports` | Performance & exports |
 
 ---
 
-## 🌱 Phase 8: Seed Data
+## ✅ Completed Features
 
-### Instruments
-- XAU (Gold) - ounce_to_gram: 31.1035
-- XAG (Silver) - ounce_to_gram: 31.1035
-
-### Default Portfolio
-- "Main" portfolio with AED base currency
-
-### Sample Transactions
-1. Gold: 0.100 XAU @ 14,816.07 AED/oz on 2025-11-09
-2. Gold: 0.500 XAU @ 15,603.14 AED/oz on 2025-12-03
-3. Gold: 0.400 XAU @ 16,154.60 AED/oz on 2025-12-30
-4. Silver: 11.560 XAG @ 433.53 AED/oz on 2026-01-29
-5. Gold: 8.27 grams @ 603.96 AED/gram on 2026-01-30
-
-### Initial Prices
-- XAU: 18,785.50 AED/oz
-- XAG: 376.078 AED/oz
+- [x] Multi-asset database schema
+- [x] Portfolio overview dashboard
+- [x] Asset allocation chart
+- [x] Step-based add asset form
+- [x] Asset detail page with delete
+- [x] Live metal price API integration
+- [x] Edge function for price fetching
+- [x] Multi-currency support (AED/INR)
+- [x] Preserved precious metals functionality
+- [x] Updated navigation and branding
 
 ---
 
-## ✅ Phase 9: Quality & Testing
+## 🔜 Future Enhancements
 
-### Unit Tests
-- Conversion functions (oz↔grams)
-- WAC calculation scenarios
-- Sell logic with partial positions
-- P/L calculations
-- Oversell prevention
-
-### Validation & Safeguards
-- Prevent negative holdings (oversell error message)
-- Price deviation warnings (>30% difference)
-- Form validation (quantity > 0, price > 0, fees ≥ 0)
-
----
-
-## 📱 Phase 10: Mobile & Polish
-
-### Responsive Design
-- Mobile-first card layouts
-- Collapsible filters on small screens
-- Touch-friendly inputs
-- Swipe gestures for table rows
-
-### Performance
-- Optimized for 10k+ transactions
-- Virtual scrolling for large tables
-- Efficient recalculation on edit/delete
-
-### Dark/Light Mode
-- System preference detection
-- Manual toggle in header
-- Gold & Emerald colors adapted for both modes
-
----
-
-## Page Summary
-
-| Page | Description |
-|------|-------------|
-| **Login/Signup** | Email/password auth with password reset |
-| **Dashboard** | Portfolio overview with P/L cards, allocation chart, quick actions |
-| **Transactions** | Full ledger with add/edit forms, filters, running calculations |
-| **Holdings** | Current positions with break-even and unrealized P/L |
-| **Prices** | Manual price updates and history chart |
-| **Reports** | Monthly performance and CSV exports |
-
+- [ ] Edit asset functionality
+- [ ] Asset value history tracking
+- [ ] Automatic value updates for shares/MF via APIs
+- [ ] Currency conversion on display
+- [ ] Performance charts over time
+- [ ] Mobile-optimized asset forms
+- [ ] Attachment support for documents
