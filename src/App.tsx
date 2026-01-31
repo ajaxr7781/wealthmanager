@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
+import Portfolio from "./pages/Portfolio";
+import AddAsset from "./pages/AddAsset";
+import AssetDetail from "./pages/AssetDetail";
 import Transactions from "./pages/Transactions";
 import Holdings from "./pages/Holdings";
 import Prices from "./pages/Prices";
@@ -30,6 +33,9 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+              <Route path="/assets/new" element={<ProtectedRoute><AddAsset /></ProtectedRoute>} />
+              <Route path="/assets/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
               <Route path="/holdings" element={<ProtectedRoute><Holdings /></ProtectedRoute>} />

@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      assets: {
+        Row: {
+          area_sqft: number | null
+          asset_name: string
+          asset_type: Database["public"]["Enums"]["asset_type"]
+          bank_name: string | null
+          broker_platform: string | null
+          created_at: string
+          currency: Database["public"]["Enums"]["currency"]
+          current_price_per_unit: number | null
+          current_value: number | null
+          id: string
+          instrument_name: string | null
+          interest_rate: number | null
+          is_current_value_manual: boolean | null
+          location: string | null
+          maturity_amount: number | null
+          maturity_date: string | null
+          metal_type: string | null
+          nav_or_price: number | null
+          notes: string | null
+          portfolio_id: string | null
+          principal: number | null
+          purchase_date: string
+          purchase_price_per_unit: number | null
+          quantity: number | null
+          quantity_unit: string | null
+          rental_income_monthly: number | null
+          sip_frequency: string | null
+          total_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_sqft?: number | null
+          asset_name: string
+          asset_type: Database["public"]["Enums"]["asset_type"]
+          bank_name?: string | null
+          broker_platform?: string | null
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency"]
+          current_price_per_unit?: number | null
+          current_value?: number | null
+          id?: string
+          instrument_name?: string | null
+          interest_rate?: number | null
+          is_current_value_manual?: boolean | null
+          location?: string | null
+          maturity_amount?: number | null
+          maturity_date?: string | null
+          metal_type?: string | null
+          nav_or_price?: number | null
+          notes?: string | null
+          portfolio_id?: string | null
+          principal?: number | null
+          purchase_date: string
+          purchase_price_per_unit?: number | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          rental_income_monthly?: number | null
+          sip_frequency?: string | null
+          total_cost: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_sqft?: number | null
+          asset_name?: string
+          asset_type?: Database["public"]["Enums"]["asset_type"]
+          bank_name?: string | null
+          broker_platform?: string | null
+          created_at?: string
+          currency?: Database["public"]["Enums"]["currency"]
+          current_price_per_unit?: number | null
+          current_value?: number | null
+          id?: string
+          instrument_name?: string | null
+          interest_rate?: number | null
+          is_current_value_manual?: boolean | null
+          location?: string | null
+          maturity_amount?: number | null
+          maturity_date?: string | null
+          metal_type?: string | null
+          nav_or_price?: number | null
+          notes?: string | null
+          portfolio_id?: string | null
+          principal?: number | null
+          purchase_date?: string
+          purchase_price_per_unit?: number | null
+          quantity?: number | null
+          quantity_unit?: string | null
+          rental_income_monthly?: number | null
+          sip_frequency?: string | null
+          total_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       instruments: {
         Row: {
           created_at: string
@@ -211,6 +318,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          auto_refresh_prices: boolean | null
+          created_at: string
+          id: string
+          inr_to_aed_rate: number | null
+          updated_at: string
+          usd_to_aed_rate: number | null
+          user_id: string
+        }
+        Insert: {
+          auto_refresh_prices?: boolean | null
+          created_at?: string
+          id?: string
+          inr_to_aed_rate?: number | null
+          updated_at?: string
+          usd_to_aed_rate?: number | null
+          user_id: string
+        }
+        Update: {
+          auto_refresh_prices?: boolean | null
+          created_at?: string
+          id?: string
+          inr_to_aed_rate?: number | null
+          updated_at?: string
+          usd_to_aed_rate?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -227,6 +364,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      asset_type:
+        | "precious_metals"
+        | "real_estate"
+        | "fixed_deposit"
+        | "sip"
+        | "mutual_fund"
+        | "shares"
+      currency: "AED" | "INR"
       price_unit: "AED_PER_OZ" | "AED_PER_GRAM"
       quantity_unit: "OZ" | "GRAM"
       transaction_side: "BUY" | "SELL"
@@ -358,6 +503,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      asset_type: [
+        "precious_metals",
+        "real_estate",
+        "fixed_deposit",
+        "sip",
+        "mutual_fund",
+        "shares",
+      ],
+      currency: ["AED", "INR"],
       price_unit: ["AED_PER_OZ", "AED_PER_GRAM"],
       quantity_unit: ["OZ", "GRAM"],
       transaction_side: ["BUY", "SELL"],

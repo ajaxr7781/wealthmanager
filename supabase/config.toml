@@ -1,1 +1,4 @@
 project_id = "hqorwwhnnvixyvbcogcz"
+
+[functions.fetch-metal-prices]
+verify_jwt = false

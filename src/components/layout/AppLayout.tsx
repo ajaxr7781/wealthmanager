@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { 
-  Coins, 
+  Briefcase, 
   LayoutDashboard, 
   Receipt, 
   Wallet, 
@@ -14,6 +14,7 @@ import {
   X,
   Moon,
   Sun,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
@@ -23,7 +24,8 @@ interface AppLayoutProps {
 }
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
+  { href: '/', label: 'Precious Metals', icon: LayoutDashboard },
   { href: '/transactions', label: 'Transactions', icon: Receipt },
   { href: '/holdings', label: 'Holdings', icon: Wallet },
   { href: '/prices', label: 'Prices', icon: TrendingUp },
@@ -50,11 +52,11 @@ export function AppLayout({ children }: AppLayoutProps) {
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
             <div className="p-2 rounded-lg gold-gradient">
-              <Coins className="h-6 w-6 text-sidebar-primary-foreground" />
+              <Briefcase className="h-6 w-6 text-sidebar-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-sidebar-foreground">Precious Metals</h1>
-              <p className="text-xs text-sidebar-foreground/60">Tracker</p>
+              <h1 className="font-bold text-sidebar-foreground">InvestTracker</h1>
+              <p className="text-xs text-sidebar-foreground/60">Portfolio Manager</p>
             </div>
           </div>
 
@@ -113,9 +115,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg gold-gradient">
-              <Coins className="h-5 w-5 text-primary-foreground" />
+              <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-bold">Precious Metals</span>
+            <span className="font-bold">InvestTracker</span>
           </div>
           <div className="flex items-center gap-2">
             <Button
