@@ -25,9 +25,8 @@ interface AppLayoutProps {
 
 const navItems = [
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
-  { href: '/', label: 'Precious Metals', icon: LayoutDashboard },
-  { href: '/transactions', label: 'Transactions', icon: Receipt },
-  { href: '/holdings', label: 'Holdings', icon: Wallet },
+  { href: '/transactions', label: 'Metal Trades', icon: Receipt },
+  { href: '/holdings', label: 'Metal Holdings', icon: Wallet },
   { href: '/prices', label: 'Prices', icon: TrendingUp },
   { href: '/reports', label: 'Reports', icon: FileText },
 ];
