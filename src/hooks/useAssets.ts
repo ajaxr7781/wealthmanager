@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { Asset, AssetFormData, AssetType, PortfolioOverview, Currency } from '@/types/assets';
-import { ASSET_TYPE_LABELS, DEFAULT_USD_TO_AED, DEFAULT_INR_TO_AED } from '@/types/assets';
+import { ASSET_TYPE_LABELS, DEFAULT_USD_TO_AED, DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 
 export function useAssets(assetType?: AssetType) {
   const { user } = useAuth();
@@ -135,16 +135,63 @@ export function usePortfolioOverview() {
   return useQuery({
     queryKey: ['portfolio-overview', user?.id],
     queryFn: async () => {
-      const { data: assets, error } = await supabase
-        .from('assets')
-        .select('*');
+      // Fetch both assets and transactions (precious metals legacy data)
+      const [assetsResult, transactionsResult, pricesResult, portfolioResult] = await Promise.all([
+        supabase.from('assets').select('*'),
+        supabase.from('transactions').select('*'),
+        supabase.from('price_snapshots').select('*').order('as_of', { ascending: false }).limit(10),
+        supabase.from('portfolios').select('id').limit(1),
+      ]);
 
-      if (error) throw error;
-      if (!assets || assets.length === 0) {
-        return null;
+      if (assetsResult.error) throw assetsResult.error;
+      if (transactionsResult.error) throw transactionsResult.error;
+
+      const assets = (assetsResult.data || []) as Asset[];
+      const transactions = transactionsResult.data || [];
+      const priceSnapshots = pricesResult.data || [];
+
+      // Get latest prices for XAU and XAG
+      const goldPrice = priceSnapshots.find(p => p.instrument_symbol === 'XAU');
+      const silverPrice = priceSnapshots.find(p => p.instrument_symbol === 'XAG');
+
+      // Calculate precious metals summary from transactions (legacy data)
+      let goldHoldingOz = 0;
+      let goldCostBasisAed = 0;
+      let silverHoldingOz = 0;
+      let silverCostBasisAed = 0;
+
+      for (const tx of transactions) {
+        const quantityOz = tx.quantity_unit === 'OZ' ? tx.quantity : tx.quantity / OUNCE_TO_GRAM;
+        const pricePerOz = tx.price_unit === 'AED_PER_OZ' ? tx.price : tx.price * OUNCE_TO_GRAM;
+        const totalValue = quantityOz * pricePerOz + (tx.fees || 0);
+
+        if (tx.instrument_symbol === 'XAU') {
+          if (tx.side === 'BUY') {
+            goldHoldingOz += quantityOz;
+            goldCostBasisAed += totalValue;
+          } else {
+            goldHoldingOz -= quantityOz;
+            goldCostBasisAed -= (goldCostBasisAed / (goldHoldingOz + quantityOz)) * quantityOz;
+          }
+        } else if (tx.instrument_symbol === 'XAG') {
+          if (tx.side === 'BUY') {
+            silverHoldingOz += quantityOz;
+            silverCostBasisAed += totalValue;
+          } else {
+            silverHoldingOz -= quantityOz;
+            silverCostBasisAed -= (silverCostBasisAed / (silverHoldingOz + quantityOz)) * quantityOz;
+          }
+        }
       }
 
-      // Calculate totals by asset type
+      // Calculate current value for precious metals
+      const goldCurrentValue = goldPrice ? goldHoldingOz * Number(goldPrice.price_aed_per_oz) : goldCostBasisAed;
+      const silverCurrentValue = silverPrice ? silverHoldingOz * Number(silverPrice.price_aed_per_oz) : silverCostBasisAed;
+      const preciousMetalsInvested = goldCostBasisAed + silverCostBasisAed;
+      const preciousMetalsCurrentValue = goldCurrentValue + silverCurrentValue;
+      const preciousMetalsCount = (goldHoldingOz > 0 ? 1 : 0) + (silverHoldingOz > 0 ? 1 : 0);
+
+      // Calculate totals by asset type from assets table
       const assetsByType = new Map<AssetType, {
         total_invested: number;
         current_value: number;
@@ -160,7 +207,8 @@ export function usePortfolioOverview() {
       let total_invested = 0;
       let total_current_value = 0;
 
-      for (const asset of assets as Asset[]) {
+      // Process assets from assets table (non-precious-metals mostly)
+      for (const asset of assets) {
         const invested = Number(asset.total_cost) || 0;
         const currentVal = Number(asset.current_value) || invested;
         
@@ -192,6 +240,31 @@ export function usePortfolioOverview() {
           total_invested: currExisting.total_invested + invested,
           current_value: currExisting.current_value + currentVal,
         });
+      }
+
+      // Add precious metals from transactions to totals
+      if (preciousMetalsCount > 0) {
+        total_invested += preciousMetalsInvested;
+        total_current_value += preciousMetalsCurrentValue;
+        
+        const existingMetals = assetsByType.get('precious_metals') || { total_invested: 0, current_value: 0, count: 0 };
+        assetsByType.set('precious_metals', {
+          total_invested: existingMetals.total_invested + preciousMetalsInvested,
+          current_value: existingMetals.current_value + preciousMetalsCurrentValue,
+          count: existingMetals.count + preciousMetalsCount,
+        });
+
+        // Add to AED currency breakdown
+        const aedExisting = byCurrency.get('AED') || { total_invested: 0, current_value: 0 };
+        byCurrency.set('AED', {
+          total_invested: aedExisting.total_invested + preciousMetalsInvested,
+          current_value: aedExisting.current_value + preciousMetalsCurrentValue,
+        });
+      }
+
+      // Return null if no assets at all
+      if (assets.length === 0 && preciousMetalsCount === 0) {
+        return null;
       }
 
       const overview: PortfolioOverview = {
