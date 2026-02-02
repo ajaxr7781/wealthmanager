@@ -14,13 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_categories: {
+        Row: {
+          code: string
+          color: string | null
+          created_at: string
+          display_order: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      asset_types: {
+        Row: {
+          category_id: string
+          code: string
+          color: string | null
+          created_at: string
+          display_order: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          metadata_schema: Json | null
+          name: string
+          supports_price_feed: boolean
+          supports_transactions: boolean
+          unit_type: Database["public"]["Enums"]["unit_type"]
+          updated_at: string
+          valuation_method: Database["public"]["Enums"]["valuation_method"]
+        }
+        Insert: {
+          category_id: string
+          code: string
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          metadata_schema?: Json | null
+          name: string
+          supports_price_feed?: boolean
+          supports_transactions?: boolean
+          unit_type?: Database["public"]["Enums"]["unit_type"]
+          updated_at?: string
+          valuation_method?: Database["public"]["Enums"]["valuation_method"]
+        }
+        Update: {
+          category_id?: string
+          code?: string
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          metadata_schema?: Json | null
+          name?: string
+          supports_price_feed?: boolean
+          supports_transactions?: boolean
+          unit_type?: Database["public"]["Enums"]["unit_type"]
+          updated_at?: string
+          valuation_method?: Database["public"]["Enums"]["valuation_method"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assets: {
         Row: {
           area_sqft: number | null
           asset_name: string
           asset_type: Database["public"]["Enums"]["asset_type"]
+          asset_type_code: string | null
           bank_name: string | null
           broker_platform: string | null
+          category_code: string | null
           created_at: string
           currency: Database["public"]["Enums"]["currency"]
           current_price_per_unit: number | null
@@ -51,8 +154,10 @@ export type Database = {
           area_sqft?: number | null
           asset_name: string
           asset_type: Database["public"]["Enums"]["asset_type"]
+          asset_type_code?: string | null
           bank_name?: string | null
           broker_platform?: string | null
+          category_code?: string | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
           current_price_per_unit?: number | null
@@ -83,8 +188,10 @@ export type Database = {
           area_sqft?: number | null
           asset_name?: string
           asset_type?: Database["public"]["Enums"]["asset_type"]
+          asset_type_code?: string | null
           bank_name?: string | null
           broker_platform?: string | null
+          category_code?: string | null
           created_at?: string
           currency?: Database["public"]["Enums"]["currency"]
           current_price_per_unit?: number | null
@@ -375,6 +482,13 @@ export type Database = {
       price_unit: "AED_PER_OZ" | "AED_PER_GRAM"
       quantity_unit: "OZ" | "GRAM"
       transaction_side: "BUY" | "SELL"
+      unit_type: "currency" | "weight" | "units" | "area" | "quantity"
+      valuation_method:
+        | "live_price"
+        | "nav_based"
+        | "maturity_based"
+        | "manual"
+        | "cost_based"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -515,6 +629,14 @@ export const Constants = {
       price_unit: ["AED_PER_OZ", "AED_PER_GRAM"],
       quantity_unit: ["OZ", "GRAM"],
       transaction_side: ["BUY", "SELL"],
+      unit_type: ["currency", "weight", "units", "area", "quantity"],
+      valuation_method: [
+        "live_price",
+        "nav_based",
+        "maturity_based",
+        "manual",
+        "cost_based",
+      ],
     },
   },
 } as const

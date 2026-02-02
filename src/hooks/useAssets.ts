@@ -13,7 +13,7 @@ export function useAssets(assetType?: AssetType) {
     queryFn: async () => {
       let query = supabase
         .from('assets')
-        .select('*')
+        .select('*, asset_type_code, category_code')
         .order('purchase_date', { ascending: false });
       
       if (assetType) {
@@ -23,7 +23,12 @@ export function useAssets(assetType?: AssetType) {
       const { data, error } = await query;
       if (error) throw error;
       
-      return (data || []) as Asset[];
+      // Map database fields to Asset type
+      return (data || []).map(item => ({
+        ...item,
+        asset_type_code: item.asset_type_code || null,
+        category_code: item.category_code || null,
+      })) as Asset[];
     },
     enabled: !!user,
   });

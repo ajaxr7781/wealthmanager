@@ -4,32 +4,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { 
   Briefcase, 
-  LayoutDashboard, 
-  Receipt, 
-  Wallet, 
-  TrendingUp, 
-  FileText, 
   LogOut,
   Menu,
   X,
   Moon,
   Sun,
-  Plus,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import { DynamicSidebarNav } from './DynamicSidebar';
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
-
-const navItems = [
-  { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
-  { href: '/transactions', label: 'Metal Trades', icon: Receipt },
-  { href: '/holdings', label: 'Metal Holdings', icon: Wallet },
-  { href: '/prices', label: 'Prices', icon: TrendingUp },
-  { href: '/reports', label: 'Reports', icon: FileText },
-];
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, signOut } = useAuth();
@@ -59,27 +45,10 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-4 space-y-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-sidebar-accent text-sidebar-primary'
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Dynamic Navigation */}
+          <div className="flex-1 px-3 py-4 overflow-y-auto">
+            <DynamicSidebarNav />
+          </div>
 
           {/* Bottom section */}
           <div className="px-3 py-4 border-t border-sidebar-border space-y-2">
@@ -146,27 +115,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="px-4 py-3 border-t border-border bg-background">
-            <nav className="space-y-1">
-              {navItems.map((item) => {
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+          <div className="px-4 py-3 border-t border-border bg-background max-h-[70vh] overflow-y-auto">
+            <DynamicSidebarNav 
+              onItemClick={() => setMobileMenuOpen(false)} 
+              isMobile 
+            />
+            <div className="mt-4 pt-4 border-t border-border">
               <Button
                 variant="ghost"
                 size="sm"
@@ -176,7 +130,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <LogOut className="h-5 w-5 mr-3" />
                 Sign out
               </Button>
-            </nav>
+            </div>
           </div>
         )}
       </header>
