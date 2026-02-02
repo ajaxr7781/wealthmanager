@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -15,8 +14,11 @@ import AddAsset from "./pages/AddAsset";
 import AssetDetail from "./pages/AssetDetail";
 import Transactions from "./pages/Transactions";
 import Holdings from "./pages/Holdings";
+import HoldingsByCategory from "./pages/HoldingsByCategory";
 import Prices from "./pages/Prices";
 import Reports from "./pages/Reports";
+import AssetTypesSettings from "./pages/settings/AssetTypes";
+import PreferencesSettings from "./pages/settings/Preferences";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,15 +35,28 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              
+              {/* Main Routes */}
               <Route path="/" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
               <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+              
+              {/* Asset Routes */}
               <Route path="/assets/new" element={<ProtectedRoute><AddAsset /></ProtectedRoute>} />
               <Route path="/assets/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
-              <Route path="/precious-metals" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+              
+              {/* Holdings Routes */}
               <Route path="/holdings" element={<ProtectedRoute><Holdings /></ProtectedRoute>} />
+              <Route path="/holdings/:categoryCode" element={<ProtectedRoute><HoldingsByCategory /></ProtectedRoute>} />
+              
+              {/* Other Routes */}
+              <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
               <Route path="/prices" element={<ProtectedRoute><Prices /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              
+              {/* Settings Routes */}
+              <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />
+              <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

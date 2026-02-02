@@ -1,74 +1,254 @@
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useDefaultPortfolio } from '@/hooks/usePortfolios';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
+import { useAssets, usePortfolioOverview } from '@/hooks/useAssets';
+import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Coins, Circle, Info } from 'lucide-react';
-import { formatOz, formatGrams, formatCurrency, formatPercent, formatPL, ozToGrams, pricePerOzToPerGram } from '@/lib/calculations';
+import { Coins, Circle, Info, Plus, ChevronRight, Package } from 'lucide-react';
+import { formatOz, formatGrams, formatCurrency, formatPercent, formatPL } from '@/lib/calculations';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { getColorClass } from '@/types/assetConfig';
+import {
+  Landmark,
+  TrendingUp,
+  Building2,
+  Bitcoin,
+  Wallet,
+  Briefcase,
+  BarChart3,
+  PieChart,
+} from 'lucide-react';
+
+const IconMap: Record<string, typeof Coins> = {
+  Coins,
+  Landmark,
+  TrendingUp,
+  Building2,
+  Bitcoin,
+  Wallet,
+  Briefcase,
+  BarChart3,
+  PieChart,
+  Package,
+};
 
 export default function Holdings() {
   const { data: portfolio, isLoading: portfolioLoading } = useDefaultPortfolio();
-  const { data: summary, isLoading: summaryLoading } = usePortfolioSummary(portfolio?.id);
+  const { data: metalsSummary, isLoading: metalsLoading } = usePortfolioSummary(portfolio?.id);
+  const { data: assets, isLoading: assetsLoading } = useAssets();
+  const { data: overview } = usePortfolioOverview();
+  const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
 
-  const isLoading = portfolioLoading || summaryLoading;
+  const isLoading = portfolioLoading || metalsLoading || assetsLoading || categoriesLoading;
+
+  // Calculate category summaries
+  const categorySummaries = categories?.map(category => {
+    const categoryAssets = assets?.filter(a => a.category_code === category.code) || [];
+    const totalInvested = categoryAssets.reduce((sum, a) => sum + Number(a.total_cost), 0);
+    const totalValue = categoryAssets.reduce((sum, a) => sum + (Number(a.current_value) || Number(a.total_cost)), 0);
+    const count = categoryAssets.length;
+    
+    // For precious metals, also include legacy transaction-based holdings
+    if (category.code === 'precious_metals' && metalsSummary) {
+      const metalsValue = metalsSummary.current_value_aed ?? metalsSummary.net_cash_invested_aed;
+      const metalsInvested = metalsSummary.net_cash_invested_aed;
+      const metalsCount = metalsSummary.instruments.filter(i => i.holding_oz > 0).length;
+      
+      return {
+        ...category,
+        totalInvested: totalInvested + metalsInvested,
+        totalValue: totalValue + metalsValue,
+        count: count + metalsCount,
+        hasMetalsTransactions: metalsCount > 0,
+        metalsSummary,
+      };
+    }
+    
+    return {
+      ...category,
+      totalInvested,
+      totalValue,
+      count,
+      hasMetalsTransactions: false,
+      metalsSummary: null,
+    };
+  }).filter(c => c.count > 0) || [];
 
   return (
     <AppLayout>
       <div className="p-4 lg:p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Holdings</h1>
-          <p className="text-muted-foreground">Your current precious metals positions</p>
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">All Holdings</h1>
+            <p className="text-muted-foreground">Your complete investment portfolio</p>
+          </div>
+          <Link to="/assets/new">
+            <Button className="gold-gradient text-primary-foreground">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Asset
+            </Button>
+          </Link>
         </div>
 
-        {isLoading ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            <Skeleton className="h-80" />
-            <Skeleton className="h-80" />
+        {/* Portfolio Summary */}
+        {overview && (
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">AED {overview.total_current_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Invested</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">AED {overview.total_invested.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total P/L</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={cn(
+                  "text-2xl font-bold",
+                  overview.total_profit_loss >= 0 ? "text-positive" : "text-negative"
+                )}>
+                  {overview.total_profit_loss >= 0 ? '+' : ''}AED {overview.total_profit_loss.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Asset Count</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{overview.assets_by_type.reduce((sum, a) => sum + a.count, 0)}</p>
+              </CardContent>
+            </Card>
           </div>
-        ) : summary ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            {summary.instruments.map((inst) => {
-              const pl = formatPL(inst.unrealized_pl_aed);
-              const isGold = inst.symbol === 'XAU';
-              
-              return (
-                <Card key={inst.symbol} className="card-gold-border shadow-luxury">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-3">
-                      <div className={cn("p-2 rounded-lg", isGold ? "gold-gradient" : "bg-silver")}>
-                        {isGold ? <Coins className="h-5 w-5 text-white" /> : <Circle className="h-5 w-5 text-white fill-white" />}
-                      </div>
-                      <span>{inst.name} ({inst.symbol})</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <MetricRow label="Holdings (oz)" value={formatOz(inst.holding_oz)} />
-                      <MetricRow label="Holdings (g)" value={formatGrams(inst.holding_grams)} />
-                      <MetricRow label="Avg Cost (AED/oz)" value={formatCurrency(inst.average_cost_aed_per_oz, false)} tooltip={`Total cost basis: ${formatCurrency(inst.cost_basis_aed)}`} />
-                      <MetricRow label="Avg Cost (AED/g)" value={formatCurrency(inst.average_cost_aed_per_gram, false)} />
-                      <MetricRow label="Break-even (AED/oz)" value={formatCurrency(inst.break_even_aed_per_oz, false)} />
-                      <MetricRow label="Break-even (AED/g)" value={formatCurrency(inst.break_even_aed_per_gram, false)} />
-                    </div>
-                    <div className="border-t pt-4 space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Current Value</span>
-                        <span className="font-bold">{inst.current_value_aed !== null ? formatCurrency(inst.current_value_aed) : 'Price missing'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Unrealized P/L</span>
-                        <span className={cn("font-bold", pl.colorClass)}>{pl.text} {inst.unrealized_pl_pct !== null && `(${formatPercent(inst.unrealized_pl_pct)})`}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+        )}
+
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-40" />)}
+          </div>
+        ) : categorySummaries.length > 0 ? (
+          <div className="space-y-6">
+            {/* Category Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {categorySummaries.map((category) => {
+                const Icon = IconMap[category.icon || 'Package'] || Package;
+                const pl = category.totalValue - category.totalInvested;
+                const plPercent = category.totalInvested > 0 ? (pl / category.totalInvested) * 100 : 0;
+                const isProfit = pl >= 0;
+
+                return (
+                  <Link key={category.id} to={`/holdings/${category.code}`}>
+                    <Card className="shadow-luxury hover:shadow-lg transition-shadow cursor-pointer h-full">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "w-10 h-10 rounded-lg flex items-center justify-center",
+                              getColorClass(category.color)
+                            )}>
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <CardTitle className="text-base">{category.name}</CardTitle>
+                              <p className="text-sm text-muted-foreground">
+                                {category.count} holding{category.count !== 1 ? 's' : ''}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Value</span>
+                          <span className="font-medium">
+                            AED {category.totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">P/L</span>
+                          <span className={cn("font-medium", isProfit ? "text-positive" : "text-negative")}>
+                            {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Precious Metals Detail Section (if exists) */}
+            {metalsSummary && metalsSummary.instruments.some(i => i.holding_oz > 0) && (
+              <Card className="shadow-luxury">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-gold" />
+                    Precious Metals Detail
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {metalsSummary.instruments.filter(i => i.holding_oz > 0).map((inst) => {
+                      const pl = formatPL(inst.unrealized_pl_aed);
+                      const isGold = inst.symbol === 'XAU';
+                      
+                      return (
+                        <div key={inst.symbol} className="p-4 rounded-lg border space-y-4">
+                          <div className="flex items-center gap-3">
+                            <div className={cn("p-2 rounded-lg", isGold ? "gold-gradient" : "bg-silver")}>
+                              {isGold ? <Coins className="h-5 w-5 text-white" /> : <Circle className="h-5 w-5 text-white fill-white" />}
+                            </div>
+                            <span className="font-medium">{inst.name} ({inst.symbol})</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <MetricRow label="Holdings (oz)" value={formatOz(inst.holding_oz)} />
+                            <MetricRow label="Holdings (g)" value={formatGrams(inst.holding_grams)} />
+                            <MetricRow label="Avg Cost (AED/oz)" value={formatCurrency(inst.average_cost_aed_per_oz, false)} />
+                            <MetricRow label="Current Value" value={inst.current_value_aed !== null ? formatCurrency(inst.current_value_aed) : 'N/A'} />
+                          </div>
+                          <div className="flex justify-between pt-2 border-t">
+                            <span className="text-muted-foreground">Unrealized P/L</span>
+                            <span className={cn("font-bold", pl.colorClass)}>
+                              {pl.text} {inst.unrealized_pl_pct !== null && `(${formatPercent(inst.unrealized_pl_pct)})`}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : (
-          <Card><CardContent className="py-12 text-center text-muted-foreground">No holdings yet.</CardContent></Card>
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground mb-4">No holdings yet. Start tracking your investments!</p>
+              <Link to="/assets/new">
+                <Button className="gold-gradient text-primary-foreground">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Your First Asset
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         )}
       </div>
     </AppLayout>

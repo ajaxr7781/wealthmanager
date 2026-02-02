@@ -55,6 +55,8 @@ export interface Asset {
   
   // Common fields
   asset_type: AssetType;
+  asset_type_code: string | null; // New normalized type code
+  category_code: string | null;   // New category code
   asset_name: string;
   currency: Currency;
   purchase_date: string;
@@ -100,6 +102,8 @@ export interface Asset {
 
 export interface AssetFormData {
   asset_type: AssetType;
+  asset_type_code?: string;
+  category_code?: string;
   asset_name: string;
   currency: Currency;
   purchase_date: string;

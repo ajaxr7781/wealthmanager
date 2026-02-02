@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useCreateAsset } from '@/hooks/useAssets';
 import { useMetalPrices } from '@/hooks/useMetalPrices';
+import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Coins, 
   Building2, 
@@ -20,53 +22,150 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Bitcoin,
+  Wallet,
+  Briefcase,
+  MapPin,
+  Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AssetType, AssetFormData, Currency } from '@/types/assets';
-import { ASSET_TYPE_LABELS, QUANTITY_UNITS, DEFAULT_QUANTITY_UNIT, OUNCE_TO_GRAM } from '@/types/assets';
+import { OUNCE_TO_GRAM } from '@/types/assets';
+import { getColorClass } from '@/types/assetConfig';
+import type { AssetTypeConfig } from '@/types/assetConfig';
 
-const ASSET_TYPE_ICONS = {
-  precious_metals: Coins,
-  real_estate: Building2,
-  fixed_deposit: Landmark,
-  sip: TrendingUp,
-  mutual_fund: PieChart,
-  shares: BarChart3,
+// Map icon strings to components
+const IconMap: Record<string, typeof Coins> = {
+  Coins,
+  Landmark,
+  TrendingUp,
+  Building2,
+  Bitcoin,
+  Wallet,
+  Briefcase,
+  BarChart3,
+  PieChart,
+  MapPin,
+  Package,
+  FileText: Landmark,
+  HandCoins: Wallet,
 };
 
-const ASSET_TYPES: AssetType[] = [
-  'precious_metals',
-  'real_estate',
-  'fixed_deposit',
-  'sip',
-  'mutual_fund',
-  'shares',
-];
+// Map new asset type codes to legacy asset_type enum values
+const CODE_TO_LEGACY_TYPE: Record<string, AssetType> = {
+  gold: 'precious_metals',
+  silver: 'precious_metals',
+  fixed_deposit: 'fixed_deposit',
+  savings_account: 'fixed_deposit', // Map to closest legacy type
+  bonds: 'fixed_deposit',
+  stocks: 'shares',
+  mutual_fund: 'mutual_fund',
+  sip: 'sip',
+  real_estate: 'real_estate',
+  land: 'real_estate',
+  crypto: 'shares', // Map to closest legacy type
+  nps: 'mutual_fund',
+  business: 'shares',
+  loans_given: 'fixed_deposit',
+};
+
+// Get quantity units based on asset type
+const getQuantityUnits = (assetType: AssetTypeConfig | undefined): string[] => {
+  if (!assetType) return ['units'];
+  
+  switch (assetType.unit_type) {
+    case 'weight':
+      return ['grams', 'oz'];
+    case 'area':
+      return ['sqft', 'sqm', 'units'];
+    case 'units':
+      return ['units', 'shares'];
+    case 'quantity':
+      return ['units'];
+    default:
+      return ['units'];
+  }
+};
 
 export default function AddAsset() {
   const navigate = useNavigate();
   const createAsset = useCreateAsset();
   const { data: metalPrices } = useMetalPrices();
+  const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
   
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState<Partial<AssetFormData>>({
+  const [selectedCategoryCode, setSelectedCategoryCode] = useState<string | null>(null);
+  const [selectedTypeCode, setSelectedTypeCode] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Partial<AssetFormData> & { asset_type_code?: string; category_code?: string }>({
     currency: 'AED',
     purchase_date: new Date().toISOString().split('T')[0],
   });
+
+  // Get selected category and type
+  const selectedCategory = useMemo(() => 
+    categories?.find(c => c.code === selectedCategoryCode),
+    [categories, selectedCategoryCode]
+  );
+  
+  const selectedType = useMemo(() => 
+    selectedCategory?.asset_types.find(t => t.code === selectedTypeCode),
+    [selectedCategory, selectedTypeCode]
+  );
 
   const updateForm = (updates: Partial<AssetFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
   };
 
+  const handleCategorySelect = (categoryCode: string) => {
+    setSelectedCategoryCode(categoryCode);
+    setSelectedTypeCode(null);
+    
+    // If category has only one type, auto-select it
+    const category = categories?.find(c => c.code === categoryCode);
+    if (category?.asset_types.length === 1) {
+      const type = category.asset_types[0];
+      handleTypeSelect(type.code, categoryCode);
+    }
+  };
+
+  const handleTypeSelect = (typeCode: string, catCode?: string) => {
+    setSelectedTypeCode(typeCode);
+    const categoryCode = catCode || selectedCategoryCode;
+    const category = categories?.find(c => c.code === categoryCode);
+    const type = category?.asset_types.find(t => t.code === typeCode);
+    
+    if (type && category) {
+      const legacyType = CODE_TO_LEGACY_TYPE[typeCode] || 'shares';
+      const units = getQuantityUnits(type);
+      
+      updateForm({ 
+        asset_type: legacyType,
+        quantity_unit: units[0],
+        // Set metal_type for precious metals
+        metal_type: typeCode === 'gold' ? 'XAU' : typeCode === 'silver' ? 'XAG' : undefined,
+      });
+      
+      // Store new codes in form data for submission
+      setFormData(prev => ({
+        ...prev,
+        asset_type: legacyType,
+        asset_type_code: typeCode,
+        category_code: categoryCode || undefined,
+        quantity_unit: units[0],
+        metal_type: typeCode === 'gold' ? 'XAU' : typeCode === 'silver' ? 'XAG' : undefined,
+      }));
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!formData.asset_type || !formData.asset_name || !formData.total_cost) {
+    if (!selectedTypeCode || !formData.asset_name || !formData.total_cost) {
       return;
     }
 
     // Calculate current value if not set
     let currentValue = formData.current_value;
     
-    if (!currentValue && formData.asset_type === 'precious_metals' && formData.quantity && metalPrices) {
+    if (!currentValue && (selectedTypeCode === 'gold' || selectedTypeCode === 'silver') && formData.quantity && metalPrices) {
       const metalType = formData.metal_type as 'XAU' | 'XAG';
       const priceData = metalPrices[metalType];
       if (priceData) {
@@ -87,10 +186,21 @@ export default function AddAsset() {
   };
 
   const canProceed = () => {
-    if (step === 1) return !!formData.asset_type;
+    if (step === 1) return !!selectedTypeCode;
     if (step === 2) return !!formData.asset_name && !!formData.total_cost && formData.total_cost > 0;
     return true;
   };
+
+  if (categoriesLoading) {
+    return (
+      <AppLayout>
+        <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-4">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-64" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -153,19 +263,18 @@ export default function AddAsset() {
                 What kind of investment are you adding?
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {ASSET_TYPES.map((type) => {
-                  const Icon = ASSET_TYPE_ICONS[type];
-                  const isSelected = formData.asset_type === type;
+            <CardContent className="space-y-6">
+              {/* Category Selection */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {categories?.map((category) => {
+                  const Icon = IconMap[category.icon || 'Package'] || Package;
+                  const isSelected = selectedCategoryCode === category.code;
+                  
                   return (
                     <button
-                      key={type}
+                      key={category.code}
                       type="button"
-                      onClick={() => updateForm({ 
-                        asset_type: type,
-                        quantity_unit: DEFAULT_QUANTITY_UNIT[type],
-                      })}
+                      onClick={() => handleCategorySelect(category.code)}
                       className={cn(
                         'p-4 rounded-lg border-2 text-left transition-all hover:border-primary/50',
                         isSelected
@@ -173,26 +282,66 @@ export default function AddAsset() {
                           : 'border-border'
                       )}
                     >
-                      <Icon className={cn(
-                        'h-6 w-6 mb-2',
-                        isSelected ? 'text-primary' : 'text-muted-foreground'
-                      )} />
-                      <p className="font-medium text-sm">{ASSET_TYPE_LABELS[type]}</p>
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center mb-2",
+                        getColorClass(category.color)
+                      )}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <p className="font-medium text-sm">{category.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {category.asset_types.length} type{category.asset_types.length !== 1 ? 's' : ''}
+                      </p>
                     </button>
                   );
                 })}
               </div>
+
+              {/* Type Selection (if category has multiple types) */}
+              {selectedCategory && selectedCategory.asset_types.length > 1 && (
+                <div className="pt-4 border-t">
+                  <Label className="mb-3 block">Select specific type:</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {selectedCategory.asset_types.map((type) => {
+                      const Icon = IconMap[type.icon || 'Package'] || Package;
+                      const isSelected = selectedTypeCode === type.code;
+                      
+                      return (
+                        <button
+                          key={type.code}
+                          type="button"
+                          onClick={() => handleTypeSelect(type.code)}
+                          className={cn(
+                            'p-3 rounded-lg border-2 text-left transition-all hover:border-primary/50',
+                            isSelected
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border'
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className={cn(
+                              'h-4 w-4',
+                              isSelected ? 'text-primary' : 'text-muted-foreground'
+                            )} />
+                            <span className="font-medium text-sm">{type.name}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
 
         {/* Step 2: Common Fields */}
-        {step === 2 && (
+        {step === 2 && selectedType && (
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
               <CardDescription>
-                Enter the core details of your {ASSET_TYPE_LABELS[formData.asset_type!]}
+                Enter the core details of your {selectedType.name}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -247,8 +396,8 @@ export default function AddAsset() {
                 </div>
               </div>
 
-              {/* Quantity fields if applicable */}
-              {formData.asset_type && QUANTITY_UNITS[formData.asset_type].length > 0 && (
+              {/* Quantity fields based on unit type */}
+              {selectedType.unit_type !== 'currency' && (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="quantity">Quantity</Label>
@@ -265,14 +414,14 @@ export default function AddAsset() {
                   <div className="space-y-2">
                     <Label htmlFor="quantity_unit">Unit</Label>
                     <Select
-                      value={formData.quantity_unit || DEFAULT_QUANTITY_UNIT[formData.asset_type]}
+                      value={formData.quantity_unit || getQuantityUnits(selectedType)[0]}
                       onValueChange={(value) => updateForm({ quantity_unit: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {QUANTITY_UNITS[formData.asset_type].map((unit) => (
+                        {getQuantityUnits(selectedType).map((unit) => (
                           <SelectItem key={unit} value={unit}>
                             {unit}
                           </SelectItem>
@@ -307,51 +456,31 @@ export default function AddAsset() {
         )}
 
         {/* Step 3: Type-specific Fields */}
-        {step === 3 && (
+        {step === 3 && selectedType && (
           <Card>
             <CardHeader>
               <CardTitle>Additional Details</CardTitle>
               <CardDescription>
-                Optional fields specific to {ASSET_TYPE_LABELS[formData.asset_type!]}
+                Optional fields specific to {selectedType.name}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Precious Metals */}
-              {formData.asset_type === 'precious_metals' && (
+              {(selectedTypeCode === 'gold' || selectedTypeCode === 'silver') && (
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Metal Type</Label>
-                    <RadioGroup
-                      value={formData.metal_type || 'XAU'}
-                      onValueChange={(value) => updateForm({ metal_type: value })}
-                      className="flex gap-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="XAU" id="gold" />
-                        <Label htmlFor="gold" className="font-normal">Gold (XAU)</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="XAG" id="silver" />
-                        <Label htmlFor="silver" className="font-normal">Silver (XAG)</Label>
-                      </div>
-                    </RadioGroup>
+                  <div className="p-3 bg-muted rounded-lg text-sm">
+                    <p className="font-medium mb-1">Selected Metal: {selectedType.name}</p>
+                    {metalPrices && metalPrices[formData.metal_type as 'XAU' | 'XAG'] && (
+                      <p>
+                        Live Price: AED {metalPrices[formData.metal_type as 'XAU' | 'XAG']?.aed_per_gram.toFixed(2)}/g
+                      </p>
+                    )}
                   </div>
-                  {metalPrices && (
-                    <div className="p-3 bg-muted rounded-lg text-sm">
-                      <p className="font-medium mb-1">Live Prices:</p>
-                      {metalPrices.XAU && (
-                        <p>Gold: AED {metalPrices.XAU.aed_per_gram.toFixed(2)}/g</p>
-                      )}
-                      {metalPrices.XAG && (
-                        <p>Silver: AED {metalPrices.XAG.aed_per_gram.toFixed(2)}/g</p>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Real Estate */}
-              {formData.asset_type === 'real_estate' && (
+              {/* Real Estate / Land */}
+              {(selectedTypeCode === 'real_estate' || selectedTypeCode === 'land') && (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
@@ -373,16 +502,18 @@ export default function AddAsset() {
                         onChange={(e) => updateForm({ area_sqft: parseFloat(e.target.value) || 0 })}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="rental_income">Monthly Rental Income</Label>
-                      <Input
-                        id="rental_income"
-                        type="number"
-                        min="0"
-                        value={formData.rental_income_monthly || ''}
-                        onChange={(e) => updateForm({ rental_income_monthly: parseFloat(e.target.value) || 0 })}
-                      />
-                    </div>
+                    {selectedTypeCode === 'real_estate' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="rental_income">Monthly Rental Income</Label>
+                        <Input
+                          id="rental_income"
+                          type="number"
+                          min="0"
+                          value={formData.rental_income_monthly || ''}
+                          onChange={(e) => updateForm({ rental_income_monthly: parseFloat(e.target.value) || 0 })}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="current_value">Current Estimated Value ({formData.currency})</Label>
@@ -401,8 +532,8 @@ export default function AddAsset() {
                 </div>
               )}
 
-              {/* Fixed Deposit */}
-              {formData.asset_type === 'fixed_deposit' && (
+              {/* Fixed Deposit / Bonds / Savings */}
+              {['fixed_deposit', 'savings_account', 'bonds'].includes(selectedTypeCode || '') && (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="bank_name">Bank / Institution</Label>
@@ -437,49 +568,55 @@ export default function AddAsset() {
                       />
                     </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="maturity_date">Maturity Date</Label>
-                      <Input
-                        id="maturity_date"
-                        type="date"
-                        value={formData.maturity_date || ''}
-                        onChange={(e) => updateForm({ maturity_date: e.target.value })}
-                      />
+                  {selectedTypeCode !== 'savings_account' && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="maturity_date">Maturity Date</Label>
+                        <Input
+                          id="maturity_date"
+                          type="date"
+                          value={formData.maturity_date || ''}
+                          onChange={(e) => updateForm({ maturity_date: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="maturity_amount">Maturity Amount</Label>
+                        <Input
+                          id="maturity_amount"
+                          type="number"
+                          min="0"
+                          placeholder="Auto-calculated if blank"
+                          value={formData.maturity_amount || ''}
+                          onChange={(e) => updateForm({ maturity_amount: parseFloat(e.target.value) || 0 })}
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="maturity_amount">Maturity Amount</Label>
-                      <Input
-                        id="maturity_amount"
-                        type="number"
-                        min="0"
-                        placeholder="Auto-calculated if blank"
-                        value={formData.maturity_amount || ''}
-                        onChange={(e) => updateForm({ maturity_amount: parseFloat(e.target.value) || 0 })}
-                      />
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
 
-              {/* SIP / Mutual Fund / Shares */}
-              {['sip', 'mutual_fund', 'shares'].includes(formData.asset_type || '') && (
+              {/* Stocks / Mutual Funds / SIP / Crypto */}
+              {['stocks', 'mutual_fund', 'sip', 'crypto', 'nps'].includes(selectedTypeCode || '') && (
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="instrument_name">Instrument / Fund Name</Label>
+                    <Label htmlFor="instrument_name">
+                      {selectedTypeCode === 'crypto' ? 'Coin / Token Name' : 'Instrument / Fund Name'}
+                    </Label>
                     <Input
                       id="instrument_name"
-                      placeholder="e.g., HDFC Mid-Cap Opportunities, Apple Inc."
+                      placeholder={selectedTypeCode === 'crypto' ? 'e.g., Bitcoin, Ethereum' : 'e.g., HDFC Mid-Cap, Apple Inc.'}
                       value={formData.instrument_name || ''}
                       onChange={(e) => updateForm({ instrument_name: e.target.value })}
                     />
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="broker_platform">Broker / Platform</Label>
+                      <Label htmlFor="broker_platform">
+                        {selectedTypeCode === 'crypto' ? 'Exchange / Wallet' : 'Broker / Platform'}
+                      </Label>
                       <Input
                         id="broker_platform"
-                        placeholder="e.g., Zerodha, Interactive Brokers"
+                        placeholder={selectedTypeCode === 'crypto' ? 'e.g., Binance, MetaMask' : 'e.g., Zerodha, Interactive Brokers'}
                         value={formData.broker_platform || ''}
                         onChange={(e) => updateForm({ broker_platform: e.target.value })}
                       />
@@ -496,7 +633,7 @@ export default function AddAsset() {
                       />
                     </div>
                   </div>
-                  {formData.asset_type === 'sip' && (
+                  {selectedTypeCode === 'sip' && (
                     <div className="space-y-2">
                       <Label htmlFor="sip_frequency">SIP Frequency</Label>
                       <Select
@@ -517,8 +654,50 @@ export default function AddAsset() {
                 </div>
               )}
 
-              {/* Current Value Override */}
-              {!['real_estate', 'fixed_deposit'].includes(formData.asset_type || '') && (
+              {/* Business / Loans Given */}
+              {['business', 'loans_given'].includes(selectedTypeCode || '') && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="instrument_name">
+                      {selectedTypeCode === 'business' ? 'Business Name' : 'Borrower Name'}
+                    </Label>
+                    <Input
+                      id="instrument_name"
+                      placeholder={selectedTypeCode === 'business' ? 'e.g., ABC Enterprises' : 'e.g., John Doe'}
+                      value={formData.instrument_name || ''}
+                      onChange={(e) => updateForm({ instrument_name: e.target.value })}
+                    />
+                  </div>
+                  {selectedTypeCode === 'loans_given' && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="interest_rate">Interest Rate (% p.a.)</Label>
+                        <Input
+                          id="interest_rate"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          value={formData.interest_rate || ''}
+                          onChange={(e) => updateForm({ interest_rate: parseFloat(e.target.value) || 0 })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="maturity_date">Due Date</Label>
+                        <Input
+                          id="maturity_date"
+                          type="date"
+                          value={formData.maturity_date || ''}
+                          onChange={(e) => updateForm({ maturity_date: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Current Value Override for applicable types */}
+              {!['real_estate', 'land', 'fixed_deposit', 'bonds'].includes(selectedTypeCode || '') && (
                 <div className="space-y-2 pt-4 border-t">
                   <Label htmlFor="current_value_override">
                     Current Value Override ({formData.currency})

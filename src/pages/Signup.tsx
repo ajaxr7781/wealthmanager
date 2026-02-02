@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Coins, CheckCircle2 } from 'lucide-react';
+import { Loader2, Briefcase, CheckCircle2 } from 'lucide-react';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -75,12 +75,12 @@ export default function Signup() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="p-3 rounded-xl bg-primary">
-            <Coins className="h-8 w-8 text-primary-foreground" />
+          <div className="p-3 rounded-xl gold-gradient">
+            <Briefcase className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold gold-text-gradient">Precious Metals</h1>
-            <p className="text-sm text-muted-foreground">Investment Tracker</p>
+            <h1 className="text-2xl font-bold gold-text-gradient">InvestTracker</h1>
+            <p className="text-sm text-muted-foreground">Portfolio Manager</p>
           </div>
         </div>
 
@@ -88,7 +88,7 @@ export default function Signup() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
             <CardDescription>
-              Start tracking your precious metals portfolio
+              Start tracking your investment portfolio
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
