@@ -20,6 +20,11 @@ import Prices from "./pages/Prices";
 import Reports from "./pages/Reports";
 import AssetTypesSettings from "./pages/settings/AssetTypes";
 import PreferencesSettings from "./pages/settings/Preferences";
+import MfSchemesSettings from "./pages/settings/MfSchemes";
+import MfHoldingsPage from "./pages/mf/MfHoldings";
+import AddMfHolding from "./pages/mf/AddMfHolding";
+import SipListPage from "./pages/mf/SipList";
+import AddSipPage from "./pages/mf/AddSip";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +63,13 @@ const App = () => (
               {/* Settings Routes */}
               <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />
               <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
+              <Route path="/settings/mf-schemes" element={<ProtectedRoute><MfSchemesSettings /></ProtectedRoute>} />
+              
+              {/* Mutual Fund Routes */}
+              <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
+              <Route path="/mf/holdings/new" element={<ProtectedRoute><AddMfHolding /></ProtectedRoute>} />
+              <Route path="/mf/sips" element={<ProtectedRoute><SipListPage /></ProtectedRoute>} />
+              <Route path="/mf/sips/new" element={<ProtectedRoute><AddSipPage /></ProtectedRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

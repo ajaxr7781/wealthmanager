@@ -252,6 +252,303 @@ export type Database = {
         }
         Relationships: []
       }
+      mf_holdings: {
+        Row: {
+          absolute_return_pct: number | null
+          created_at: string
+          current_value: number | null
+          folio_no: string | null
+          id: string
+          invested_amount: number
+          is_active: boolean
+          scheme_id: string
+          units_held: number
+          unrealized_gain: number | null
+          updated_at: string
+          user_id: string
+          xirr: number | null
+        }
+        Insert: {
+          absolute_return_pct?: number | null
+          created_at?: string
+          current_value?: number | null
+          folio_no?: string | null
+          id?: string
+          invested_amount?: number
+          is_active?: boolean
+          scheme_id: string
+          units_held?: number
+          unrealized_gain?: number | null
+          updated_at?: string
+          user_id: string
+          xirr?: number | null
+        }
+        Update: {
+          absolute_return_pct?: number | null
+          created_at?: string
+          current_value?: number | null
+          folio_no?: string | null
+          id?: string
+          invested_amount?: number
+          is_active?: boolean
+          scheme_id?: string
+          units_held?: number
+          unrealized_gain?: number | null
+          updated_at?: string
+          user_id?: string
+          xirr?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mf_holdings_scheme_id_fkey"
+            columns: ["scheme_id"]
+            isOneToOne: false
+            referencedRelation: "mf_schemes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mf_nav_history: {
+        Row: {
+          fetched_at: string
+          id: string
+          nav_date: string
+          nav_value: number
+          raw_payload_hash: string | null
+          scheme_id: string
+          source: string
+        }
+        Insert: {
+          fetched_at?: string
+          id?: string
+          nav_date: string
+          nav_value: number
+          raw_payload_hash?: string | null
+          scheme_id: string
+          source: string
+        }
+        Update: {
+          fetched_at?: string
+          id?: string
+          nav_date?: string
+          nav_value?: number
+          raw_payload_hash?: string | null
+          scheme_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mf_nav_history_scheme_id_fkey"
+            columns: ["scheme_id"]
+            isOneToOne: false
+            referencedRelation: "mf_schemes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mf_scheme_master_cache: {
+        Row: {
+          cached_at: string
+          fund_house: string | null
+          id: string
+          isin: string | null
+          scheme_code: number
+          scheme_name: string
+          source: string
+        }
+        Insert: {
+          cached_at?: string
+          fund_house?: string | null
+          id?: string
+          isin?: string | null
+          scheme_code: number
+          scheme_name: string
+          source?: string
+        }
+        Update: {
+          cached_at?: string
+          fund_house?: string | null
+          id?: string
+          isin?: string | null
+          scheme_code?: number
+          scheme_name?: string
+          source?: string
+        }
+        Relationships: []
+      }
+      mf_schemes: {
+        Row: {
+          amfi_scheme_code: number | null
+          benchmark: string | null
+          category: string | null
+          created_at: string
+          fund_house: string | null
+          id: string
+          is_active: boolean
+          isin: string | null
+          latest_nav: number | null
+          latest_nav_date: string | null
+          nav_last_updated: string | null
+          nav_source: string | null
+          needs_verification: boolean
+          notes: string | null
+          option_type: string | null
+          plan_type: string | null
+          scheme_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amfi_scheme_code?: number | null
+          benchmark?: string | null
+          category?: string | null
+          created_at?: string
+          fund_house?: string | null
+          id?: string
+          is_active?: boolean
+          isin?: string | null
+          latest_nav?: number | null
+          latest_nav_date?: string | null
+          nav_last_updated?: string | null
+          nav_source?: string | null
+          needs_verification?: boolean
+          notes?: string | null
+          option_type?: string | null
+          plan_type?: string | null
+          scheme_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amfi_scheme_code?: number | null
+          benchmark?: string | null
+          category?: string | null
+          created_at?: string
+          fund_house?: string | null
+          id?: string
+          is_active?: boolean
+          isin?: string | null
+          latest_nav?: number | null
+          latest_nav_date?: string | null
+          nav_last_updated?: string | null
+          nav_source?: string | null
+          needs_verification?: boolean
+          notes?: string | null
+          option_type?: string | null
+          plan_type?: string | null
+          scheme_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mf_sips: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          folio_no: string | null
+          holding_id: string | null
+          id: string
+          notes: string | null
+          scheme_id: string
+          sip_amount: number
+          sip_day_of_month: number
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          folio_no?: string | null
+          holding_id?: string | null
+          id?: string
+          notes?: string | null
+          scheme_id: string
+          sip_amount: number
+          sip_day_of_month: number
+          start_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          folio_no?: string | null
+          holding_id?: string | null
+          id?: string
+          notes?: string | null
+          scheme_id?: string
+          sip_amount?: number
+          sip_day_of_month?: number
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mf_sips_holding_id_fkey"
+            columns: ["holding_id"]
+            isOneToOne: false
+            referencedRelation: "mf_holdings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mf_sips_scheme_id_fkey"
+            columns: ["scheme_id"]
+            isOneToOne: false
+            referencedRelation: "mf_schemes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mf_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          holding_id: string
+          id: string
+          nav_at_transaction: number | null
+          notes: string | null
+          transaction_date: string
+          transaction_type: string
+          units: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          holding_id: string
+          id?: string
+          nav_at_transaction?: number | null
+          notes?: string | null
+          transaction_date: string
+          transaction_type: string
+          units: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          holding_id?: string
+          id?: string
+          nav_at_transaction?: number | null
+          notes?: string | null
+          transaction_date?: string
+          transaction_type?: string
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mf_transactions_holding_id_fkey"
+            columns: ["holding_id"]
+            isOneToOne: false
+            referencedRelation: "mf_holdings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portfolios: {
         Row: {
           base_currency: string
@@ -460,6 +757,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_mf_holding_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_user_mf_scheme_ids: { Args: { _user_id: string }; Returns: string[] }
       get_user_portfolio_ids: { Args: { _user_id: string }; Returns: string[] }
       has_role: {
         Args: {
