@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Asset } from '@/types/assets';
+import type { Asset, PortfolioOverview } from '@/types/assets';
 import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
+import { useActiveMfHoldings } from '@/hooks/useMfHoldings';
+import { useActiveMfSips } from '@/hooks/useMfSips';
 import { 
   Coins, 
   Building2, 
@@ -14,11 +16,13 @@ import {
   BarChart3,
   ChevronRight,
   Plus,
+  CalendarClock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AssetListProps {
   assets: Asset[];
+  overview?: PortfolioOverview;
 }
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
@@ -39,14 +43,25 @@ const ASSET_COLORS: Record<string, string> = {
   shares: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
 };
 
-export function AssetList({ assets }: AssetListProps) {
+export function AssetList({ assets, overview }: AssetListProps) {
   const { data: settings } = useUserSettings();
+  const { data: mfHoldings } = useActiveMfHoldings();
+  const { data: activeSips } = useActiveMfSips();
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   const formatCurrencyAED = (value: number) => {
     return new Intl.NumberFormat('en-AE', {
       style: 'currency',
       currency: 'AED',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatCurrencyINR = (value: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
@@ -70,7 +85,18 @@ export function AssetList({ assets }: AssetListProps) {
     return asset.currency === 'INR' ? cost * inrToAed : cost;
   };
 
-  if (assets.length === 0) {
+  // Calculate MF totals
+  const mfTotalInvested = mfHoldings?.reduce((sum, h) => sum + h.invested_amount, 0) || 0;
+  const mfCurrentValue = mfHoldings?.reduce((sum, h) => sum + (h.current_value || h.invested_amount), 0) || 0;
+  const mfPL = mfCurrentValue - mfTotalInvested;
+  const mfPLPercent = mfTotalInvested > 0 ? (mfPL / mfTotalInvested) * 100 : 0;
+
+  // Calculate SIP monthly commitment
+  const sipMonthlyCommitment = activeSips?.reduce((sum, s) => sum + s.sip_amount, 0) || 0;
+
+  const hasAssets = assets.length > 0 || (mfHoldings && mfHoldings.length > 0);
+
+  if (!hasAssets) {
     return (
       <Card className="shadow-luxury">
         <CardHeader>
@@ -102,6 +128,7 @@ export function AssetList({ assets }: AssetListProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
+          {/* Regular assets */}
           {assets.map((asset) => {
             const Icon = ASSET_ICONS[asset.asset_type] || Coins;
             const { pl, plPercent } = calculatePL(asset);
@@ -155,6 +182,91 @@ export function AssetList({ assets }: AssetListProps) {
               </Link>
             );
           })}
+
+          {/* Mutual Funds summary row */}
+          {mfHoldings && mfHoldings.length > 0 && (
+            <Link
+              to="/mf/holdings"
+              className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center",
+                  ASSET_COLORS['mutual_fund']
+                )}>
+                  <PieChart className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">Mutual Funds</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {mfHoldings.length} holdings
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">INR</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {formatCurrencyINR(mfTotalInvested)} invested
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-medium">
+                    {formatCurrencyINR(mfCurrentValue)}
+                  </p>
+                  <p className={cn(
+                    "text-sm",
+                    mfPL >= 0 ? "text-positive" : "text-negative"
+                  )}>
+                    {mfPL >= 0 ? '+' : ''}{mfPLPercent.toFixed(1)}%
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+            </Link>
+          )}
+
+          {/* SIPs summary row */}
+          {activeSips && activeSips.length > 0 && (
+            <Link
+              to="/mf/sips"
+              className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center",
+                  ASSET_COLORS['sip']
+                )}>
+                  <CalendarClock className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">Active SIPs</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {activeSips.length} SIPs
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">INR</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Monthly commitment
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-medium">
+                    {formatCurrencyINR(sipMonthlyCommitment)}/mo
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    ≈ {formatCurrencyAED(sipMonthlyCommitment * inrToAed)}
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              </div>
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>
