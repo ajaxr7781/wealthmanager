@@ -153,10 +153,20 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
             <Link
               to="/mf/holdings"
               onClick={onItemClick}
-              className={getItemClass(isActive('/mf/holdings') || isActivePrefix('/mf/'))}
+              className={getItemClass(isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips')))}
             >
               <LineChart className="h-4 w-4" />
               Mutual Funds
+            </Link>
+
+            {/* SIPs under Assets */}
+            <Link
+              to="/mf/sips"
+              onClick={onItemClick}
+              className={getItemClass(isActive('/mf/sips'))}
+            >
+              <Calendar className="h-4 w-4" />
+              My SIPs
             </Link>
           </div>
         )}
@@ -194,16 +204,6 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
       >
         <FileText className="h-5 w-5" />
         Reports
-      </Link>
-
-      {/* SIPs as separate top-level item */}
-      <Link
-        to="/mf/sips"
-        onClick={onItemClick}
-        className={getItemClass(isActive('/mf/sips'))}
-      >
-        <Calendar className="h-5 w-5" />
-        My SIPs
       </Link>
 
       {/* Settings */}
