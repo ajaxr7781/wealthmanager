@@ -148,6 +148,23 @@ export interface PortfolioOverview {
     total_invested: number;
     current_value: number;
   }[];
+  // Mutual Fund summary (INR, converted to AED for totals)
+  mf_summary?: {
+    total_invested_inr: number;
+    current_value_inr: number;
+    total_invested_aed: number;
+    current_value_aed: number;
+    unrealized_gain_inr: number;
+    return_pct: number;
+    holdings_count: number;
+  };
+  // SIP summary (INR, converted to AED for totals)
+  sip_summary?: {
+    monthly_commitment_inr: number;
+    monthly_commitment_aed: number;
+    active_count: number;
+    total_count: number;
+  };
 }
 
 export interface MetalPrices {

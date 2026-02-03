@@ -144,12 +144,13 @@ export function usePortfolioOverview() {
   return useQuery({
     queryKey: ['portfolio-overview', user?.id, inrToAed],
     queryFn: async () => {
-      // Fetch both assets and transactions (precious metals legacy data)
-      const [assetsResult, transactionsResult, pricesResult, portfolioResult] = await Promise.all([
+      // Fetch assets, transactions, MF holdings, and SIPs in parallel
+      const [assetsResult, transactionsResult, pricesResult, mfHoldingsResult, sipsResult] = await Promise.all([
         supabase.from('assets').select('*'),
         supabase.from('transactions').select('*'),
         supabase.from('price_snapshots').select('*').order('as_of', { ascending: false }).limit(10),
-        supabase.from('portfolios').select('id').limit(1),
+        supabase.from('mf_holdings').select('*').eq('is_active', true),
+        supabase.from('mf_sips').select('*'),
       ]);
 
       if (assetsResult.error) throw assetsResult.error;
@@ -158,6 +159,8 @@ export function usePortfolioOverview() {
       const assets = (assetsResult.data || []) as Asset[];
       const transactions = transactionsResult.data || [];
       const priceSnapshots = pricesResult.data || [];
+      const mfHoldings = mfHoldingsResult.data || [];
+      const sips = sipsResult.data || [];
 
       // Get latest prices for XAU and XAG
       const goldPrice = priceSnapshots.find(p => p.instrument_symbol === 'XAU');
@@ -271,8 +274,28 @@ export function usePortfolioOverview() {
         });
       }
 
+      // Calculate MF holdings summary (in INR)
+      const mfInvestedINR = mfHoldings.reduce((sum, h) => sum + Number(h.invested_amount || 0), 0);
+      const mfCurrentValueINR = mfHoldings.reduce((sum, h) => sum + Number(h.current_value || h.invested_amount || 0), 0);
+      const mfInvestedAED = mfInvestedINR * inrToAed;
+      const mfCurrentValueAED = mfCurrentValueINR * inrToAed;
+      const mfUnrealizedGainINR = mfCurrentValueINR - mfInvestedINR;
+      const mfReturnPct = mfInvestedINR > 0 ? (mfUnrealizedGainINR / mfInvestedINR) * 100 : 0;
+
+      // Add MF to totals
+      if (mfHoldings.length > 0) {
+        total_invested += mfInvestedAED;
+        total_current_value += mfCurrentValueAED;
+      }
+
+      // Calculate SIP summary
+      const activeSips = sips.filter(s => s.status === 'ACTIVE');
+      const sipMonthlyINR = activeSips.reduce((sum, s) => sum + Number(s.sip_amount || 0), 0);
+      const sipMonthlyAED = sipMonthlyINR * inrToAed;
+
       // Return null if no assets at all
-      if (assets.length === 0 && preciousMetalsCount === 0) {
+      const hasAnyAssets = assets.length > 0 || preciousMetalsCount > 0 || mfHoldings.length > 0;
+      if (!hasAnyAssets) {
         return null;
       }
 
@@ -295,6 +318,21 @@ export function usePortfolioOverview() {
           currency,
           ...data,
         })),
+        mf_summary: mfHoldings.length > 0 ? {
+          total_invested_inr: mfInvestedINR,
+          current_value_inr: mfCurrentValueINR,
+          total_invested_aed: mfInvestedAED,
+          current_value_aed: mfCurrentValueAED,
+          unrealized_gain_inr: mfUnrealizedGainINR,
+          return_pct: mfReturnPct,
+          holdings_count: mfHoldings.length,
+        } : undefined,
+        sip_summary: sips.length > 0 ? {
+          monthly_commitment_inr: sipMonthlyINR,
+          monthly_commitment_aed: sipMonthlyAED,
+          active_count: activeSips.length,
+          total_count: sips.length,
+        } : undefined,
       };
 
       return overview;
