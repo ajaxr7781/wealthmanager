@@ -12,64 +12,52 @@ interface ParsedScheme {
   fund_house: string
 }
 
-// Parse AMFI scheme data CSV
+// Parse AMFI scheme data
+// Format: AMC,Code,Scheme Name,Scheme Type,Scheme Category,Scheme NAV Name,Scheme Minimum Amount,Launch Date,Closure Date,ISIN...
 function parseAmfiSchemeData(text: string): ParsedScheme[] {
   const schemes: ParsedScheme[] = []
   const lines = text.split('\n')
-  let currentFundHouse = ''
   
-  for (const line of lines) {
-    const trimmed = line.trim()
+  console.log(`Processing ${lines.length} lines from AMFI data`)
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const trimmed = line.trim().replace(/\r$/, '')
     
-    // Skip empty lines and headers
-    if (!trimmed || trimmed.startsWith('Scheme Code')) continue
+    // Skip empty lines and header row
+    if (!trimmed) continue
+    if (i === 0 && trimmed.startsWith('AMC,')) continue
     
-    // Check if this is a fund house header (no semicolons, all text)
-    if (!trimmed.includes(';') && trimmed.length > 5) {
-      // This might be a fund house name
-      if (trimmed.match(/^[A-Za-z\s]+Mutual Fund/i) || trimmed.match(/^[A-Za-z\s&]+$/)) {
-        currentFundHouse = trimmed
-        continue
-      }
-    }
+    // Parse CSV row
+    const parts = trimmed.split(',')
     
-    // Parse scheme row
-    // Format varies, but generally: Scheme Code;Scheme Name;ISIN;...
-    const parts = trimmed.split(';')
-    
-    if (parts.length >= 3) {
-      const schemeCodeStr = parts[0].trim()
+    if (parts.length >= 10) {
+      const fundHouse = parts[0]?.trim() || ''
+      const schemeCodeStr = parts[1]?.trim() || ''
       const schemeCode = parseInt(schemeCodeStr)
+      const schemeName = parts[5]?.trim() || parts[2]?.trim() || '' // NAV Name or Scheme Name
+      const isinField = parts[9]?.trim() || ''
       
-      if (!isNaN(schemeCode) && schemeCode > 0) {
-        // Find ISIN - it starts with INF
-        let isin = ''
-        let schemeName = ''
-        
-        for (let i = 1; i < parts.length; i++) {
-          const part = parts[i].trim()
-          if (part.startsWith('INF') && part.length >= 12) {
-            isin = part.substring(0, 12) // ISIN is 12 chars
-          } else if (part.length > 10 && !schemeName) {
-            schemeName = part
-          }
-        }
-        
-        // Alternative parsing: Scheme Name might be second column
-        if (!schemeName && parts[1]) {
-          schemeName = parts[1].trim()
-        }
-        
-        if (schemeName || isin) {
-          schemes.push({
-            scheme_code: schemeCode,
-            isin,
-            scheme_name: schemeName,
-            fund_house: currentFundHouse
-          })
-        }
+      // Extract ISIN (may have multiple ISINs concatenated)
+      let isin = ''
+      if (isinField.startsWith('INF') && isinField.length >= 12) {
+        isin = isinField.substring(0, 12)
+      }
+      
+      if (!isNaN(schemeCode) && schemeCode > 0 && schemeName) {
+        schemes.push({
+          scheme_code: schemeCode,
+          isin,
+          scheme_name: schemeName,
+          fund_house: fundHouse
+        })
       }
     }
+  }
+  
+  console.log(`Parsed ${schemes.length} schemes, ${schemes.filter(s => s.isin).length} with ISIN`)
+  if (schemes.length > 0) {
+    console.log('Sample scheme:', JSON.stringify(schemes[0]))
   }
   
   return schemes
@@ -146,7 +134,8 @@ Deno.serve(async (req) => {
       {
         signal: controller.signal,
         headers: {
-          'User-Agent': 'InvestTracker/1.0'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         }
       }
     )
@@ -158,6 +147,9 @@ Deno.serve(async (req) => {
     }
 
     const text = await response.text()
+    console.log(`AMFI response length: ${text.length} chars`)
+    console.log(`First 500 chars: ${text.substring(0, 500)}`)
+    
     const schemes = parseAmfiSchemeData(text)
     console.log(`Parsed ${schemes.length} schemes from AMFI data`)
 
