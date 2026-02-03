@@ -23,6 +23,8 @@ import PreferencesSettings from "./pages/settings/Preferences";
 import MfSchemesSettings from "./pages/settings/MfSchemes";
 import MfHoldingsPage from "./pages/mf/MfHoldings";
 import AddMfHolding from "./pages/mf/AddMfHolding";
+import MfHoldingDetail from "./pages/mf/MfHoldingDetail";
+import EditMfHolding from "./pages/mf/EditMfHolding";
 import SipListPage from "./pages/mf/SipList";
 import AddSipPage from "./pages/mf/AddSip";
 import NotFound from "./pages/NotFound";
@@ -68,6 +70,8 @@ const App = () => (
               {/* Mutual Fund Routes */}
               <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
               <Route path="/mf/holdings/new" element={<ProtectedRoute><AddMfHolding /></ProtectedRoute>} />
+              <Route path="/mf/holdings/:id" element={<ProtectedRoute><MfHoldingDetail /></ProtectedRoute>} />
+              <Route path="/mf/holdings/:id/edit" element={<ProtectedRoute><EditMfHolding /></ProtectedRoute>} />
               <Route path="/mf/sips" element={<ProtectedRoute><SipListPage /></ProtectedRoute>} />
               <Route path="/mf/sips/new" element={<ProtectedRoute><AddSipPage /></ProtectedRoute>} />
               
