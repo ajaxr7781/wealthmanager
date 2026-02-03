@@ -7,6 +7,7 @@ import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
 import { useActiveMfHoldings } from '@/hooks/useMfHoldings';
 import { useActiveMfSips } from '@/hooks/useMfSips';
+import { calculateSipCurrentValue } from '@/types/mutualFunds';
 import { 
   Coins, 
   Building2, 
@@ -91,8 +92,9 @@ export function AssetList({ assets, overview }: AssetListProps) {
   const mfPL = mfCurrentValue - mfTotalInvested;
   const mfPLPercent = mfTotalInvested > 0 ? (mfPL / mfTotalInvested) * 100 : 0;
 
-  // Calculate SIP monthly commitment
+  // Calculate SIP totals
   const sipMonthlyCommitment = activeSips?.reduce((sum, s) => sum + s.sip_amount, 0) || 0;
+  const sipCurrentValue = activeSips?.reduce((sum, s) => sum + calculateSipCurrentValue(s), 0) || 0;
 
   const hasAssets = assets.length > 0 || (mfHoldings && mfHoldings.length > 0);
 
@@ -249,7 +251,7 @@ export function AssetList({ assets, overview }: AssetListProps) {
                     <Badge variant="outline" className="text-xs">INR</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Monthly commitment
+                    {formatCurrencyINR(sipMonthlyCommitment)}/mo commitment
                   </p>
                 </div>
               </div>
@@ -257,10 +259,10 @@ export function AssetList({ assets, overview }: AssetListProps) {
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <p className="font-medium">
-                    {formatCurrencyINR(sipMonthlyCommitment)}/mo
+                    {formatCurrencyINR(sipCurrentValue)}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    ≈ {formatCurrencyAED(sipMonthlyCommitment * inrToAed)}
+                    ≈ {formatCurrencyAED(sipCurrentValue * inrToAed)}
                   </p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />

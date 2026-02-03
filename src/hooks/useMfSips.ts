@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { MfSip, MfSipInsert } from '@/types/mutualFunds';
-import { getNextSipDueDate, calculateSipTotalInvested } from '@/types/mutualFunds';
+import { getNextSipDueDate, calculateSipCurrentValue } from '@/types/mutualFunds';
 import { useToast } from '@/hooks/use-toast';
 
 // Fetch user's SIPs with scheme data
@@ -290,14 +290,14 @@ export function useSipSummary() {
       total_sips: 0,
       active_sips: 0,
       monthly_commitment: 0,
-      total_invested: 0,
+      total_current_value: 0,
       upcoming_this_month: []
     };
   }
   
   const activeSips = sips.filter(s => s.status === 'ACTIVE');
   const monthlyCommitment = activeSips.reduce((sum, s) => sum + s.sip_amount, 0);
-  const totalInvested = sips.reduce((sum, s) => sum + calculateSipTotalInvested(s), 0);
+  const totalCurrentValue = sips.reduce((sum, s) => sum + calculateSipCurrentValue(s), 0);
   
   // Get SIPs with due dates this month
   const today = new Date();
@@ -317,7 +317,7 @@ export function useSipSummary() {
     total_sips: sips.length,
     active_sips: activeSips.length,
     monthly_commitment: monthlyCommitment,
-    total_invested: totalInvested,
+    total_current_value: totalCurrentValue,
     upcoming_this_month: upcoming
   };
 }

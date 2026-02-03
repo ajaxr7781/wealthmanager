@@ -59,6 +59,19 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
     });
   }
 
+  // Add SIPs if present with current value
+  if (overview.sip_summary && overview.sip_summary.current_value_aed > 0) {
+    assetData.push({
+      name: 'SIP',
+      value: overview.sip_summary.current_value_aed,
+      color: ASSET_COLORS['sip'],
+      type: 'sip',
+      invested: 0, // SIP invested tracked separately
+      profit_loss: 0, // P/L not tracked for SIPs at summary level
+      count: overview.sip_summary.total_count,
+    });
+  }
+
   const data = assetData.filter(d => d.value > 0);
 
   const formatCurrency = (value: number) => {
