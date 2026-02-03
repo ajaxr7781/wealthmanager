@@ -2,15 +2,18 @@ import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets } from '@/hooks/useAssets';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
+import { useDefaultPortfolio } from '@/hooks/usePortfolios';
+import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Plus, ChevronRight, ArrowLeft, Coins, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
+import { formatOz, formatCurrency as formatCurrencyCalc, formatPL } from '@/lib/calculations';
+import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import {
-  Coins,
   Landmark,
   TrendingUp,
   Building2,
@@ -39,11 +42,17 @@ export default function HoldingsByCategory() {
   const { categoryCode } = useParams<{ categoryCode: string }>();
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
+  const { data: portfolio } = useDefaultPortfolio();
+  const { data: metalsSummary, isLoading: metalsLoading } = usePortfolioSummary(portfolio?.id);
 
-  const isLoading = assetsLoading || categoriesLoading;
+  const isLoading = assetsLoading || categoriesLoading || metalsLoading;
 
   const category = categories?.find(c => c.code === categoryCode);
   const categoryAssets = assets?.filter(a => a.category_code === categoryCode) || [];
+
+  // Special handling for precious metals - include transaction-based holdings
+  const isPreciousMetals = categoryCode === 'precious_metals';
+  const metalInstruments = isPreciousMetals && metalsSummary ? metalsSummary.instruments.filter(i => i.holding_oz > 0) : [];
 
   const formatCurrency = (value: number, currency: string = 'AED') => {
     return new Intl.NumberFormat('en-AE', {
@@ -87,11 +96,35 @@ export default function HoldingsByCategory() {
 
   const CategoryIcon = IconMap[category.icon || 'Package'] || Package;
 
-  // Calculate category totals
-  const totalInvested = categoryAssets.reduce((sum, a) => sum + Number(a.total_cost), 0);
-  const totalValue = categoryAssets.reduce((sum, a) => sum + (Number(a.current_value) || Number(a.total_cost)), 0);
+  // Calculate category totals - include FD calculations
+  let totalInvested = categoryAssets.reduce((sum, a) => sum + Number(a.total_cost), 0);
+  let totalValue = categoryAssets.reduce((sum, a) => {
+    // Special handling for Fixed Deposits
+    if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
+      const fdResult = getEffectiveFDValue({
+        principal: a.principal ? Number(a.principal) : null,
+        interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
+        purchase_date: a.purchase_date,
+        maturity_date: a.maturity_date,
+        maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
+        current_value: a.current_value ? Number(a.current_value) : null,
+        is_current_value_manual: a.is_current_value_manual,
+        total_cost: Number(a.total_cost),
+      });
+      return sum + fdResult.currentValue;
+    }
+    return sum + (Number(a.current_value) || Number(a.total_cost));
+  }, 0);
+
+  // Add precious metals values
+  if (isPreciousMetals && metalsSummary) {
+    totalInvested += metalsSummary.net_cash_invested_aed;
+    totalValue += metalsSummary.current_value_aed ?? metalsSummary.net_cash_invested_aed;
+  }
+
   const totalPL = totalValue - totalInvested;
   const plPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
+  const totalHoldingsCount = categoryAssets.length + metalInstruments.length;
 
   return (
     <AppLayout>
@@ -113,7 +146,7 @@ export default function HoldingsByCategory() {
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold">{category.name}</h1>
               <p className="text-muted-foreground">
-                {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
+                {totalHoldingsCount} holding{totalHoldingsCount !== 1 ? 's' : ''}
               </p>
             </div>
           </div>
@@ -126,7 +159,7 @@ export default function HoldingsByCategory() {
         </div>
 
         {/* Category Summary */}
-        {categoryAssets.length > 0 && (
+        {totalHoldingsCount > 0 && (
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardHeader className="pb-2">
@@ -167,7 +200,7 @@ export default function HoldingsByCategory() {
             <CardTitle>Holdings</CardTitle>
           </CardHeader>
           <CardContent>
-            {categoryAssets.length === 0 ? (
+            {totalHoldingsCount === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">No assets in this category</p>
                 <Link to="/assets/new">
@@ -179,8 +212,80 @@ export default function HoldingsByCategory() {
               </div>
             ) : (
               <div className="space-y-3">
+                {/* Precious Metals from Transactions */}
+                {isPreciousMetals && metalInstruments.map((inst) => {
+                  const pl = formatPL(inst.unrealized_pl_aed);
+                  const isGold = inst.symbol === 'XAU';
+                  const plPct = inst.unrealized_pl_pct ?? 0;
+                  
+                  return (
+                    <Link
+                      key={inst.symbol}
+                      to="/transactions"
+                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center",
+                          isGold ? "gold-gradient" : "bg-silver"
+                        )}>
+                          {isGold ? (
+                            <Coins className="h-5 w-5 text-white" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-white fill-white" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{inst.name}</p>
+                            <Badge variant="secondary" className="text-xs">
+                              {isGold ? 'Gold' : 'Silver'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {formatOz(inst.holding_oz)} • Avg: {formatCurrencyCalc(inst.average_cost_aed_per_oz, false)}/oz
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-medium">
+                            {inst.current_value_aed !== null 
+                              ? formatCurrencyCalc(inst.current_value_aed) 
+                              : formatCurrencyCalc(inst.cost_basis_aed)}
+                          </p>
+                          <p className={cn("text-sm", pl.colorClass)}>
+                            {plPct >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                          </p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </div>
+                    </Link>
+                  );
+                })}
+
+                {/* Regular Assets */}
                 {categoryAssets.map((asset) => {
-                  const currentValue = Number(asset.current_value) || Number(asset.total_cost);
+                  let currentValue: number;
+                  
+                  // Special handling for Fixed Deposits
+                  if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
+                    const fdResult = getEffectiveFDValue({
+                      principal: asset.principal ? Number(asset.principal) : null,
+                      interest_rate: asset.interest_rate ? Number(asset.interest_rate) : null,
+                      purchase_date: asset.purchase_date,
+                      maturity_date: asset.maturity_date,
+                      maturity_amount: asset.maturity_amount ? Number(asset.maturity_amount) : null,
+                      current_value: asset.current_value ? Number(asset.current_value) : null,
+                      is_current_value_manual: asset.is_current_value_manual,
+                      total_cost: Number(asset.total_cost),
+                    });
+                    currentValue = fdResult.currentValue;
+                  } else {
+                    currentValue = Number(asset.current_value) || Number(asset.total_cost);
+                  }
+                  
                   const pl = currentValue - Number(asset.total_cost);
                   const plPct = Number(asset.total_cost) > 0 
                     ? (pl / Number(asset.total_cost)) * 100 
@@ -194,7 +299,7 @@ export default function HoldingsByCategory() {
                   return (
                     <Link
                       key={asset.id}
-                      to={`/assets/${asset.id}`}
+                      to={`/asset/${asset.id}`}
                       className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
                     >
                       <div className="flex items-center gap-4">

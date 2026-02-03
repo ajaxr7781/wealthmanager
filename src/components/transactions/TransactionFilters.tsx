@@ -4,22 +4,40 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { TransactionFilter } from '@/pages/Transactions';
+import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
+
+export interface TransactionFilter {
+  assetType?: string;
+  assetName?: string;
+  side?: 'BUY' | 'SELL' | 'all';
+  dateFrom?: string;
+  dateTo?: string;
+}
 
 interface TransactionFiltersProps {
   filters: TransactionFilter;
   onFiltersChange: (filters: TransactionFilter) => void;
+  availableAssetNames?: string[];
 }
 
-export function TransactionFilters({ filters, onFiltersChange }: TransactionFiltersProps) {
-  const hasFilters = filters.instrument !== 'all' || 
+export function TransactionFilters({ filters, onFiltersChange, availableAssetNames = [] }: TransactionFiltersProps) {
+  const { data: categories } = useCategoriesWithTypes();
+  
+  // Get all transaction-supporting asset types
+  const transactionTypes = categories?.flatMap(cat => 
+    cat.asset_types.filter(t => t.supports_transactions && t.is_active)
+  ) || [];
+
+  const hasFilters = filters.assetType !== 'all' || 
+                     filters.assetName !== 'all' ||
                      filters.side !== 'all' || 
                      filters.dateFrom || 
                      filters.dateTo;
 
   const clearFilters = () => {
     onFiltersChange({
-      instrument: 'all',
+      assetType: 'all',
+      assetName: 'all',
       side: 'all',
       dateFrom: undefined,
       dateTo: undefined,
@@ -31,24 +49,56 @@ export function TransactionFilters({ filters, onFiltersChange }: TransactionFilt
       <CardContent className="pt-6">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-[140px]">
-            <Label className="text-xs text-muted-foreground">Metal</Label>
+            <Label className="text-xs text-muted-foreground">Asset Type</Label>
             <Select
-              value={filters.instrument || 'all'}
+              value={filters.assetType || 'all'}
               onValueChange={(value) => onFiltersChange({ 
                 ...filters, 
-                instrument: value as 'XAU' | 'XAG' | 'all' 
+                assetType: value,
+                assetName: 'all', // Reset asset name when type changes
               })}
             >
               <SelectTrigger className="mt-1">
                 <SelectValue placeholder="All" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Metals</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
+                {transactionTypes.map(type => (
+                  <SelectItem key={type.code} value={type.code}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+                {/* Legacy support for precious metals */}
                 <SelectItem value="XAU">Gold (XAU)</SelectItem>
                 <SelectItem value="XAG">Silver (XAG)</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {availableAssetNames.length > 0 && (
+            <div className="flex-1 min-w-[160px]">
+              <Label className="text-xs text-muted-foreground">Asset Name</Label>
+              <Select
+                value={filters.assetName || 'all'}
+                onValueChange={(value) => onFiltersChange({ 
+                  ...filters, 
+                  assetName: value 
+                })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assets</SelectItem>
+                  {availableAssetNames.map(name => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex-1 min-w-[120px]">
             <Label className="text-xs text-muted-foreground">Side</Label>
