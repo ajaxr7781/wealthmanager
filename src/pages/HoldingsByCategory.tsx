@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssets, useUserSettings } from '@/hooks/useAssets';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { useDefaultPortfolio } from '@/hooks/usePortfolios';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { formatOz, formatCurrency as formatCurrencyCalc, formatPL } from '@/lib/calculations';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
+import { DEFAULT_INR_TO_AED } from '@/types/assets';
 import {
   Landmark,
   TrendingUp,
@@ -44,7 +45,9 @@ export default function HoldingsByCategory() {
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
   const { data: portfolio } = useDefaultPortfolio();
   const { data: metalsSummary, isLoading: metalsLoading } = usePortfolioSummary(portfolio?.id);
+  const { data: settings } = useUserSettings();
 
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const isLoading = assetsLoading || categoriesLoading || metalsLoading;
 
   const category = categories?.find(c => c.code === categoryCode);
@@ -61,6 +64,19 @@ export default function HoldingsByCategory() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const formatINR = (value: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const convertToAed = (value: number, currency: string) => {
+    return currency === 'INR' ? value * inrToAed : value;
   };
 
   if (isLoading) {
@@ -96,9 +112,14 @@ export default function HoldingsByCategory() {
 
   const CategoryIcon = IconMap[category.icon || 'Package'] || Package;
 
-  // Calculate category totals - include FD calculations
-  let totalInvested = categoryAssets.reduce((sum, a) => sum + Number(a.total_cost), 0);
+  // Calculate category totals - include FD calculations, convert to AED
+  let totalInvested = categoryAssets.reduce((sum, a) => {
+    const cost = Number(a.total_cost);
+    return sum + convertToAed(cost, a.currency);
+  }, 0);
+  
   let totalValue = categoryAssets.reduce((sum, a) => {
+    let value: number;
     // Special handling for Fixed Deposits
     if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
       const fdResult = getEffectiveFDValue({
@@ -111,9 +132,11 @@ export default function HoldingsByCategory() {
         is_current_value_manual: a.is_current_value_manual,
         total_cost: Number(a.total_cost),
       });
-      return sum + fdResult.currentValue;
+      value = fdResult.currentValue;
+    } else {
+      value = Number(a.current_value) || Number(a.total_cost);
     }
-    return sum + (Number(a.current_value) || Number(a.total_cost));
+    return sum + convertToAed(value, a.currency);
   }, 0);
 
   // Add precious metals values
@@ -268,6 +291,7 @@ export default function HoldingsByCategory() {
                 {/* Regular Assets */}
                 {categoryAssets.map((asset) => {
                   let currentValue: number;
+                  const isINR = asset.currency === 'INR';
                   
                   // Special handling for Fixed Deposits
                   if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
@@ -286,9 +310,12 @@ export default function HoldingsByCategory() {
                     currentValue = Number(asset.current_value) || Number(asset.total_cost);
                   }
                   
-                  const pl = currentValue - Number(asset.total_cost);
-                  const plPct = Number(asset.total_cost) > 0 
-                    ? (pl / Number(asset.total_cost)) * 100 
+                  // Convert to AED for P/L calculation
+                  const currentValueAed = convertToAed(currentValue, asset.currency);
+                  const totalCostAed = convertToAed(Number(asset.total_cost), asset.currency);
+                  const pl = currentValueAed - totalCostAed;
+                  const plPct = totalCostAed > 0 
+                    ? (pl / totalCostAed) * 100 
                     : 0;
                   const isProfit = pl >= 0;
 
@@ -317,18 +344,33 @@ export default function HoldingsByCategory() {
                                 {assetType.name}
                               </Badge>
                             )}
+                            {isINR && (
+                              <Badge variant="outline" className="text-xs">INR</Badge>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {asset.currency} {formatCurrency(Number(asset.total_cost), asset.currency).replace(/[A-Z]+\s?/g, '')} invested
-                          </p>
+                          <div className="text-sm text-muted-foreground">
+                            {isINR ? (
+                              <>
+                                <span>{formatINR(Number(asset.total_cost))} invested</span>
+                                <span className="text-xs ml-1">(≈ {formatCurrency(totalCostAed)})</span>
+                              </>
+                            ) : (
+                              <span>{formatCurrency(Number(asset.total_cost))} invested</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="font-medium">
-                            {formatCurrency(currentValue, asset.currency)}
-                          </p>
+                          {isINR ? (
+                            <>
+                              <p className="font-medium">{formatINR(currentValue)}</p>
+                              <p className="text-xs text-muted-foreground">≈ {formatCurrency(currentValueAed)}</p>
+                            </>
+                          ) : (
+                            <p className="font-medium">{formatCurrency(currentValue)}</p>
+                          )}
                           <p className={cn(
                             "text-sm",
                             isProfit ? "text-positive" : "text-negative"
