@@ -60,14 +60,15 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
   }
 
   // Add SIPs if present with current value
-  if (overview.sip_summary && overview.sip_summary.current_value_aed > 0) {
+  if (overview.sip_summary && (overview.sip_summary.current_value_aed > 0 || overview.sip_summary.invested_aed > 0)) {
+    const sipProfitLoss = overview.sip_summary.current_value_aed - overview.sip_summary.invested_aed;
     assetData.push({
       name: 'SIP',
       value: overview.sip_summary.current_value_aed,
       color: ASSET_COLORS['sip'],
       type: 'sip',
-      invested: 0, // SIP invested tracked separately
-      profit_loss: 0, // P/L not tracked for SIPs at summary level
+      invested: overview.sip_summary.invested_aed,
+      profit_loss: sipProfitLoss,
       count: overview.sip_summary.total_count,
     });
   }

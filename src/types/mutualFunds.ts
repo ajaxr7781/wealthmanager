@@ -107,6 +107,7 @@ export interface MfSip {
   start_date: string;
   end_date: string | null;
   current_units: number;
+  invested_amount: number;
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   notes: string | null;
   created_at: string;
@@ -125,6 +126,7 @@ export interface MfSipInsert {
   start_date: string;
   end_date?: string;
   current_units?: number;
+  invested_amount?: number;
   status?: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   notes?: string;
 }
@@ -134,6 +136,20 @@ export function calculateSipCurrentValue(sip: MfSip): number {
   const units = sip.current_units || 0;
   const nav = sip.scheme?.latest_nav || 0;
   return units * nav;
+}
+
+// Calculate SIP returns
+export function calculateSipReturns(sip: MfSip): { 
+  currentValue: number; 
+  invested: number; 
+  gain: number; 
+  gainPercent: number;
+} {
+  const currentValue = calculateSipCurrentValue(sip);
+  const invested = sip.invested_amount || 0;
+  const gain = currentValue - invested;
+  const gainPercent = invested > 0 ? (gain / invested) * 100 : 0;
+  return { currentValue, invested, gain, gainPercent };
 }
 
 export interface MfNavHistory {

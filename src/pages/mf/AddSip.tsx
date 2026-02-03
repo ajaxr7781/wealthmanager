@@ -26,6 +26,7 @@ export default function AddSipPage() {
     start_date: format(new Date(), 'yyyy-MM-dd'),
     end_date: '',
     current_units: '',
+    invested_amount: '',
     notes: ''
   });
 
@@ -40,6 +41,7 @@ export default function AddSipPage() {
       start_date: formData.start_date,
       end_date: formData.end_date || undefined,
       current_units: formData.current_units ? parseFloat(formData.current_units) : 0,
+      invested_amount: formData.invested_amount ? parseFloat(formData.invested_amount) : 0,
       notes: formData.notes || undefined
     }, {
       onSuccess: () => {
@@ -165,13 +167,19 @@ export default function AddSipPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="folio_no">Folio Number (Optional)</Label>
+                  <Label htmlFor="invested_amount">Total Invested (₹)</Label>
                   <Input
-                    id="folio_no"
-                    value={formData.folio_no}
-                    onChange={(e) => setFormData(prev => ({ ...prev, folio_no: e.target.value }))}
-                    placeholder="e.g., 12345678/90"
+                    id="invested_amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.invested_amount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, invested_amount: e.target.value }))}
+                    placeholder="e.g., 50000"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Total amount invested so far
+                  </p>
                 </div>
 
                 <div>
@@ -179,16 +187,26 @@ export default function AddSipPage() {
                   <Input
                     id="current_units"
                     type="number"
-                    step="0.001"
+                    step="0.0001"
                     min="0"
                     value={formData.current_units}
                     onChange={(e) => setFormData(prev => ({ ...prev, current_units: e.target.value }))}
-                    placeholder="e.g., 125.456"
+                    placeholder="e.g., 125.4567"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     Total units held in this SIP
                   </p>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="folio_no">Folio Number (Optional)</Label>
+                <Input
+                  id="folio_no"
+                  value={formData.folio_no}
+                  onChange={(e) => setFormData(prev => ({ ...prev, folio_no: e.target.value }))}
+                  placeholder="e.g., 12345678/90"
+                />
               </div>
 
               <div>

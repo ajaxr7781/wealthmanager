@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMfSips, useSipSummary, usePauseMfSip, useResumeMfSip, useStopMfSip } from '@/hooks/useMfSips';
-import { formatINR, getNextSipDueDate, calculateSipCurrentValue } from '@/types/mutualFunds';
+import { formatINR, getNextSipDueDate, calculateSipReturns } from '@/types/mutualFunds';
+import { AddInstallmentDialog } from '@/components/mf/AddInstallmentDialog';
 import { 
   Plus, 
   Calendar,
@@ -15,7 +16,9 @@ import {
   StopCircle,
   Edit,
   Wallet,
-  TrendingUp
+  TrendingUp,
+  PlusCircle,
+  Banknote
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -29,6 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { MfSip } from '@/types/mutualFunds';
+import { cn } from '@/lib/utils';
 
 export default function SipListPage() {
   const { data: sips, isLoading } = useMfSips();
@@ -38,6 +42,7 @@ export default function SipListPage() {
   const stopSip = useStopMfSip();
   
   const [stoppingId, setStoppingId] = useState<string | null>(null);
+  const [installmentSip, setInstallmentSip] = useState<MfSip | null>(null);
 
   const handlePause = (id: string) => {
     pauseSip.mutate(id);
@@ -75,8 +80,8 @@ export default function SipListPage() {
       <AppLayout>
         <div className="p-4 lg:p-8 space-y-6">
           <Skeleton className="h-10 w-48" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
           </div>
           <div className="space-y-4">
             {[1, 2].map(i => <Skeleton key={i} className="h-32" />)}
@@ -120,12 +125,12 @@ export default function SipListPage() {
           </Card>
           <Card>
             <CardContent className="pt-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Wallet className="h-6 w-6 text-primary" />
+              <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <Banknote className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Monthly Commitment</p>
-                <p className="text-2xl font-bold">{formatINR(summary.monthly_commitment)}</p>
+                <p className="text-sm text-muted-foreground">Total Invested</p>
+                <p className="text-2xl font-bold">{formatINR(summary.total_invested)}</p>
               </div>
             </CardContent>
           </Card>
@@ -137,26 +142,27 @@ export default function SipListPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Current Value</p>
                 <p className="text-2xl font-bold">{formatINR(summary.total_current_value)}</p>
+                {summary.total_invested > 0 && (
+                  <p className={cn(
+                    "text-xs",
+                    summary.total_current_value >= summary.total_invested ? "text-green-600" : "text-red-600"
+                  )}>
+                    {summary.total_current_value >= summary.total_invested ? '+' : ''}
+                    {(((summary.total_current_value - summary.total_invested) / summary.total_invested) * 100).toFixed(1)}%
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground mb-2">Upcoming This Month</p>
-              {summary.upcoming_this_month.length > 0 ? (
-                <ul className="space-y-1 text-sm">
-                  {summary.upcoming_this_month.slice(0, 3).map((sip) => (
-                    <li key={sip.id} className="flex justify-between">
-                      <span className="truncate">{sip.scheme?.scheme_name?.slice(0, 20)}...</span>
-                      <span className="font-medium">
-                        {sip.next_due && format(sip.next_due, 'MMM d')}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-muted-foreground">No SIPs due this month</p>
-              )}
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Monthly Commitment</p>
+                <p className="text-2xl font-bold">{formatINR(summary.monthly_commitment)}</p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -180,6 +186,8 @@ export default function SipListPage() {
           ) : (
             sips.map((sip) => {
               const nextDue = getNextSipDueDate(sip);
+              const returns = calculateSipReturns(sip);
+              const isProfit = returns.gain >= 0;
               
               return (
                 <Card key={sip.id} className="hover:shadow-md transition-shadow">
@@ -191,17 +199,20 @@ export default function SipListPage() {
                           {getStatusBadge(sip.status)}
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <span>Monthly: <strong>{formatINR(sip.sip_amount)}</strong></span>
-                          <span>Units: <strong>{sip.current_units || 0}</strong></span>
-                          <span>Value: <strong>{formatINR(calculateSipCurrentValue(sip))}</strong></span>
-                          <span>Day: <strong>{sip.sip_day_of_month}</strong></span>
-                          {sip.folio_no && <span>Folio: {sip.folio_no}</span>}
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <span>Started: {format(new Date(sip.start_date), 'MMM d, yyyy')}</span>
-                          {sip.end_date && (
-                            <span>Ends: {format(new Date(sip.end_date), 'MMM d, yyyy')}</span>
+                          <span>Invested: <strong>{formatINR(returns.invested)}</strong></span>
+                          <span>Units: <strong>{(sip.current_units || 0).toFixed(4)}</strong></span>
+                          <span>Value: <strong className={isProfit ? "text-green-600" : "text-red-600"}>{formatINR(returns.currentValue)}</strong></span>
+                          {returns.invested > 0 && (
+                            <span className={isProfit ? "text-green-600" : "text-red-600"}>
+                              {isProfit ? '+' : ''}{returns.gainPercent.toFixed(1)}%
+                            </span>
                           )}
+                        </div>
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          <span>Monthly: {formatINR(sip.sip_amount)}</span>
+                          <span>Day: {sip.sip_day_of_month}</span>
+                          <span>Started: {format(new Date(sip.start_date), 'MMM yyyy')}</span>
+                          {sip.folio_no && <span>Folio: {sip.folio_no}</span>}
                         </div>
                       </div>
                       
@@ -214,6 +225,17 @@ export default function SipListPage() {
                         )}
                         
                         <div className="flex gap-2">
+                          {sip.status === 'ACTIVE' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setInstallmentSip(sip)}
+                              title="Add Installment"
+                            >
+                              <PlusCircle className="h-4 w-4 mr-1" />
+                              Add
+                            </Button>
+                          )}
                           {sip.status === 'ACTIVE' && (
                             <Button
                               variant="ghost"
@@ -261,6 +283,15 @@ export default function SipListPage() {
           )}
         </div>
       </div>
+
+      {/* Add Installment Dialog */}
+      {installmentSip && (
+        <AddInstallmentDialog
+          sip={installmentSip}
+          open={!!installmentSip}
+          onOpenChange={(open) => !open && setInstallmentSip(null)}
+        />
+      )}
 
       {/* Stop Confirmation */}
       <AlertDialog open={!!stoppingId} onOpenChange={(open) => !open && setStoppingId(null)}>
