@@ -34,7 +34,8 @@ const ASSET_ICONS: Record<string, typeof Coins> = {
 };
 
 export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
-  const data = overview.assets_by_type.map((asset) => ({
+  // Build data from assets_by_type
+  const assetData = overview.assets_by_type.map((asset) => ({
     name: asset.label,
     value: asset.current_value,
     color: ASSET_COLORS[asset.type] || 'hsl(var(--muted))',
@@ -42,7 +43,23 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
     invested: asset.total_invested,
     profit_loss: asset.profit_loss,
     count: asset.count,
-  })).filter(d => d.value > 0);
+  }));
+
+  // Add Mutual Funds if present
+  if (overview.mf_summary && overview.mf_summary.holdings_count > 0) {
+    const mfProfitLoss = overview.mf_summary.current_value_aed - overview.mf_summary.total_invested_aed;
+    assetData.push({
+      name: 'Mutual Funds',
+      value: overview.mf_summary.current_value_aed,
+      color: ASSET_COLORS['mutual_fund'],
+      type: 'mutual_fund',
+      invested: overview.mf_summary.total_invested_aed,
+      profit_loss: mfProfitLoss,
+      count: overview.mf_summary.holdings_count,
+    });
+  }
+
+  const data = assetData.filter(d => d.value > 0);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-AE', {
