@@ -450,6 +450,7 @@ export type Database = {
           holding_id: string | null
           id: string
           notes: string | null
+          opening_balance: number | null
           scheme_id: string
           sip_amount: number
           sip_day_of_month: number
@@ -465,6 +466,7 @@ export type Database = {
           holding_id?: string | null
           id?: string
           notes?: string | null
+          opening_balance?: number | null
           scheme_id: string
           sip_amount: number
           sip_day_of_month: number
@@ -480,6 +482,7 @@ export type Database = {
           holding_id?: string | null
           id?: string
           notes?: string | null
+          opening_balance?: number | null
           scheme_id?: string
           sip_amount?: number
           sip_day_of_month?: number

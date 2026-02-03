@@ -27,6 +27,7 @@ import MfHoldingDetail from "./pages/mf/MfHoldingDetail";
 import EditMfHolding from "./pages/mf/EditMfHolding";
 import SipListPage from "./pages/mf/SipList";
 import AddSipPage from "./pages/mf/AddSip";
+import EditSipPage from "./pages/mf/EditSip";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/mf/holdings/:id/edit" element={<ProtectedRoute><EditMfHolding /></ProtectedRoute>} />
               <Route path="/mf/sips" element={<ProtectedRoute><SipListPage /></ProtectedRoute>} />
               <Route path="/mf/sips/new" element={<ProtectedRoute><AddSipPage /></ProtectedRoute>} />
+              <Route path="/mf/sips/:id/edit" element={<ProtectedRoute><EditSipPage /></ProtectedRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

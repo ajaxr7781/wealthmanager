@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMfSips, useSipSummary, usePauseMfSip, useResumeMfSip, useStopMfSip } from '@/hooks/useMfSips';
-import { formatINR, getNextSipDueDate } from '@/types/mutualFunds';
+import { formatINR, getNextSipDueDate, calculateSipTotalInvested } from '@/types/mutualFunds';
 import { 
   Plus, 
   Calendar,
@@ -14,7 +14,8 @@ import {
   Play,
   StopCircle,
   Edit,
-  Wallet
+  Wallet,
+  TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -105,7 +106,7 @@ export default function SipListPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6 flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -125,6 +126,17 @@ export default function SipListPage() {
               <div>
                 <p className="text-sm text-muted-foreground">Monthly Commitment</p>
                 <p className="text-2xl font-bold">{formatINR(summary.monthly_commitment)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Invested</p>
+                <p className="text-2xl font-bold">{formatINR(summary.total_invested)}</p>
               </div>
             </CardContent>
           </Card>
@@ -179,7 +191,8 @@ export default function SipListPage() {
                           {getStatusBadge(sip.status)}
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <span>Amount: <strong>{formatINR(sip.sip_amount)}</strong></span>
+                          <span>Monthly: <strong>{formatINR(sip.sip_amount)}</strong></span>
+                          <span>Total Invested: <strong>{formatINR(calculateSipTotalInvested(sip))}</strong></span>
                           <span>Day: <strong>{sip.sip_day_of_month}</strong></span>
                           {sip.folio_no && <span>Folio: {sip.folio_no}</span>}
                         </div>
