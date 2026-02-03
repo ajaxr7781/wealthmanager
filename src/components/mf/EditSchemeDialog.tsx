@@ -32,14 +32,35 @@ export function EditSchemeDialog({ scheme, open, onOpenChange }: EditSchemeDialo
 
   const updateScheme = useUpdateMfScheme();
 
+  // Auto-detect plan type and option type from scheme name
+  const detectPlanAndOption = (name: string): { 
+    planType: 'Direct' | 'Regular'; 
+    optionType: 'Growth' | 'IDCW' | 'Dividend' | '' 
+  } => {
+    const upperName = name.toUpperCase();
+    
+    const planType: 'Direct' | 'Regular' = upperName.includes('DIRECT') ? 'Direct' : 'Regular';
+    
+    let optionType: 'Growth' | 'IDCW' | 'Dividend' | '' = '';
+    if (upperName.includes('GROWTH')) {
+      optionType = 'Growth';
+    } else if (upperName.includes('IDCW') || upperName.includes('DIVIDEND')) {
+      optionType = 'IDCW';
+    }
+    
+    return { planType, optionType };
+  };
+
   useEffect(() => {
     if (scheme) {
+      const { planType, optionType } = detectPlanAndOption(scheme.scheme_name);
+      
       setFormData({
         scheme_name: scheme.scheme_name,
         fund_house: scheme.fund_house || '',
         category: scheme.category || '',
-        plan_type: scheme.plan_type || '',
-        option_type: scheme.option_type || '',
+        plan_type: scheme.plan_type || planType,
+        option_type: scheme.option_type || optionType,
         isin: scheme.isin || '',
         amfi_scheme_code: scheme.amfi_scheme_code?.toString() || '',
         benchmark: scheme.benchmark || '',
@@ -48,6 +69,17 @@ export function EditSchemeDialog({ scheme, open, onOpenChange }: EditSchemeDialo
       });
     }
   }, [scheme]);
+
+  // Update plan/option type when scheme name changes
+  const handleSchemeNameChange = (newName: string) => {
+    const { planType, optionType } = detectPlanAndOption(newName);
+    setFormData(prev => ({
+      ...prev,
+      scheme_name: newName,
+      plan_type: planType,
+      option_type: optionType || prev.option_type
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +116,7 @@ export function EditSchemeDialog({ scheme, open, onOpenChange }: EditSchemeDialo
               <Input
                 id="scheme_name"
                 value={formData.scheme_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, scheme_name: e.target.value }))}
+                onChange={(e) => handleSchemeNameChange(e.target.value)}
                 required
               />
             </div>
