@@ -1,31 +1,26 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useDefaultPortfolio } from '@/hooks/usePortfolios';
-import { useProcessedTransactions, useCreateTransaction, useDeleteTransaction } from '@/hooks/useTransactions';
+import { useProcessedTransactions, useCreateTransaction } from '@/hooks/useTransactions';
 import { useLatestPrices } from '@/hooks/usePrices';
 import { TransactionForm } from '@/components/transactions/TransactionForm';
 import { TransactionTable } from '@/components/transactions/TransactionTable';
-import { TransactionFilters } from '@/components/transactions/TransactionFilters';
+import { TransactionFilters, TransactionFilter } from '@/components/transactions/TransactionFilters';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TransactionWithPosition } from '@/lib/calculations';
 
-export type TransactionFilter = {
-  instrument?: 'XAU' | 'XAG' | 'all';
-  side?: 'BUY' | 'SELL' | 'all';
-  dateFrom?: string;
-  dateTo?: string;
-};
+export type { TransactionFilter } from '@/components/transactions/TransactionFilters';
 
 export default function Transactions() {
   const [searchParams] = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(searchParams.get('action') === 'add');
   const [filters, setFilters] = useState<TransactionFilter>({
-    instrument: 'all',
+    assetType: 'all',
+    assetName: 'all',
     side: 'all',
   });
 
@@ -45,10 +40,27 @@ export default function Transactions() {
     });
   }, [txData]);
 
+  // Get unique asset names for filter dropdown
+  const availableAssetNames = useMemo(() => {
+    if (!allTransactions.length) return [];
+    const names = new Set<string>();
+    allTransactions.forEach(tx => {
+      if (tx.instrument_symbol) names.add(tx.instrument_symbol);
+    });
+    return Array.from(names);
+  }, [allTransactions]);
+
   // Apply filters
   const filteredTransactions = useMemo(() => {
     return allTransactions.filter(tx => {
-      if (filters.instrument && filters.instrument !== 'all' && tx.instrument_symbol !== filters.instrument) {
+      // Asset type filter - support both legacy XAU/XAG and new asset type codes
+      if (filters.assetType && filters.assetType !== 'all') {
+        if (filters.assetType === 'XAU' || filters.assetType === 'XAG') {
+          if (tx.instrument_symbol !== filters.assetType) return false;
+        }
+        // For new asset types, would need to check against asset_type_code
+      }
+      if (filters.assetName && filters.assetName !== 'all' && tx.instrument_symbol !== filters.assetName) {
         return false;
       }
       if (filters.side && filters.side !== 'all' && tx.side !== filters.side) {
@@ -116,7 +128,11 @@ export default function Transactions() {
         </div>
 
         {/* Filters */}
-        <TransactionFilters filters={filters} onFiltersChange={setFilters} />
+        <TransactionFilters 
+          filters={filters} 
+          onFiltersChange={setFilters} 
+          availableAssetNames={availableAssetNames}
+        />
 
         {/* Transactions Table */}
         {isLoading ? (

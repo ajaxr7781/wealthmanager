@@ -1,6 +1,6 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/useAssets';
+import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,8 +31,10 @@ import {
   MapPin,
   Banknote,
   Percent,
+  Clock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
   precious_metals: Coins,
@@ -106,8 +108,31 @@ export default function AssetDetail() {
   }
 
   const Icon = ASSET_ICONS[asset.asset_type] || Coins;
-  const currentValue = Number(asset.current_value) || Number(asset.total_cost);
   const totalCost = Number(asset.total_cost);
+  
+  // Calculate current value - special handling for FDs
+  let currentValue: number;
+  let fdStatus: ReturnType<typeof getFDStatus> | null = null;
+  let fdValueMethod: string | null = null;
+  
+  if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
+    const fdResult = getEffectiveFDValue({
+      principal: asset.principal ? Number(asset.principal) : null,
+      interest_rate: asset.interest_rate ? Number(asset.interest_rate) : null,
+      purchase_date: asset.purchase_date,
+      maturity_date: asset.maturity_date,
+      maturity_amount: asset.maturity_amount ? Number(asset.maturity_amount) : null,
+      current_value: asset.current_value ? Number(asset.current_value) : null,
+      is_current_value_manual: asset.is_current_value_manual,
+      total_cost: totalCost,
+    });
+    currentValue = fdResult.currentValue;
+    fdValueMethod = fdResult.method;
+    fdStatus = getFDStatus(asset.maturity_date);
+  } else {
+    currentValue = Number(asset.current_value) || totalCost;
+  }
+  
   const pl = currentValue - totalCost;
   const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
   const isProfit = pl >= 0;
@@ -144,10 +169,12 @@ export default function AssetDetail() {
             </div>
             
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
+              <Link to={`/asset/${id}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </Link>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm">
@@ -278,10 +305,34 @@ export default function AssetDetail() {
 
             {asset.asset_type === 'fixed_deposit' && (
               <div className="pt-4 border-t space-y-3">
+                {fdStatus && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <Badge 
+                      variant={fdStatus.status === 'matured' ? 'secondary' : 'outline'}
+                      className={cn(
+                        fdStatus.status === 'matured' && 'bg-positive/20 text-positive'
+                      )}
+                    >
+                      {fdStatus.label}
+                    </Badge>
+                    {fdValueMethod && (
+                      <span className="text-xs text-muted-foreground">
+                        (Value: {fdValueMethod})
+                      </span>
+                    )}
+                  </div>
+                )}
                 {asset.bank_name && (
                   <div>
                     <p className="text-sm text-muted-foreground">Bank</p>
                     <p className="font-medium">{asset.bank_name}</p>
+                  </div>
+                )}
+                {asset.principal && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Principal</p>
+                    <p className="font-medium">{formatCurrency(Number(asset.principal), asset.currency)}</p>
                   </div>
                 )}
                 {asset.interest_rate && (
@@ -294,6 +345,12 @@ export default function AssetDetail() {
                   <div>
                     <p className="text-sm text-muted-foreground">Maturity Date</p>
                     <p className="font-medium">{formatDate(asset.maturity_date)}</p>
+                  </div>
+                )}
+                {asset.maturity_amount && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Maturity Amount</p>
+                    <p className="font-medium">{formatCurrency(Number(asset.maturity_amount), asset.currency)}</p>
                   </div>
                 )}
               </div>

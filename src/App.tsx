@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import Portfolio from "./pages/Portfolio";
 import AddAsset from "./pages/AddAsset";
+import EditAsset from "./pages/EditAsset";
 import AssetDetail from "./pages/AssetDetail";
 import Transactions from "./pages/Transactions";
 import Holdings from "./pages/Holdings";
@@ -42,7 +43,8 @@ const App = () => (
               
               {/* Asset Routes */}
               <Route path="/assets/new" element={<ProtectedRoute><AddAsset /></ProtectedRoute>} />
-              <Route path="/assets/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
+              <Route path="/asset/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
+              <Route path="/asset/:id/edit" element={<ProtectedRoute><EditAsset /></ProtectedRoute>} />
               
               {/* Holdings Routes */}
               <Route path="/holdings" element={<ProtectedRoute><Holdings /></ProtectedRoute>} />

@@ -53,12 +53,37 @@ export default function Prices() {
 
   const formatTime = (dateString: string | null) => {
     if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleString('en-US', {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    // Get timezone abbreviation
+    const timezone = Intl.DateTimeFormat('en-US', { timeZoneName: 'short' })
+      .formatToParts(date)
+      .find(part => part.type === 'timeZoneName')?.value || '';
+    
+    const timeStr = date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
     });
+    
+    let relativeStr = '';
+    if (diffMins < 1) {
+      relativeStr = 'just now';
+    } else if (diffMins < 60) {
+      relativeStr = `${diffMins}m ago`;
+    } else if (diffMins < 1440) {
+      relativeStr = `${Math.floor(diffMins / 60)}h ago`;
+    } else {
+      relativeStr = `${Math.floor(diffMins / 1440)}d ago`;
+    }
+    
+    return `${timeStr} ${timezone} (${relativeStr})`;
   };
 
   return (
