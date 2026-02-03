@@ -38,7 +38,7 @@ export default function EditSipPage() {
     sip_day_of_month: '',
     start_date: '',
     end_date: '',
-    opening_balance: '',
+    current_units: '',
     notes: ''
   });
 
@@ -51,7 +51,7 @@ export default function EditSipPage() {
         sip_day_of_month: sip.sip_day_of_month.toString(),
         start_date: sip.start_date,
         end_date: sip.end_date || '',
-        opening_balance: (sip.opening_balance || 0).toString(),
+        current_units: (sip.current_units || 0).toString(),
         notes: sip.notes || ''
       });
     }
@@ -68,7 +68,7 @@ export default function EditSipPage() {
       sip_day_of_month: parseInt(formData.sip_day_of_month),
       start_date: formData.start_date,
       end_date: formData.end_date || null,
-      opening_balance: formData.opening_balance ? parseFloat(formData.opening_balance) : 0,
+      current_units: formData.current_units ? parseFloat(formData.current_units) : 0,
       notes: formData.notes || null
     }, {
       onSuccess: () => {
@@ -235,18 +235,18 @@ export default function EditSipPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="opening_balance">Opening Balance (₹)</Label>
+                  <Label htmlFor="current_units">Current Units Held</Label>
                   <Input
-                    id="opening_balance"
+                    id="current_units"
                     type="number"
-                    step="100"
+                    step="0.001"
                     min="0"
-                    value={formData.opening_balance}
-                    onChange={(e) => setFormData(prev => ({ ...prev, opening_balance: e.target.value }))}
-                    placeholder="Total invested before tracking"
+                    value={formData.current_units}
+                    onChange={(e) => setFormData(prev => ({ ...prev, current_units: e.target.value }))}
+                    placeholder="e.g., 125.456"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Amount invested before start date
+                    Total units held in this SIP
                   </p>
                 </div>
               </div>

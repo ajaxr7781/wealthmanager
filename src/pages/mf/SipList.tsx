@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMfSips, useSipSummary, usePauseMfSip, useResumeMfSip, useStopMfSip } from '@/hooks/useMfSips';
-import { formatINR, getNextSipDueDate, calculateSipTotalInvested } from '@/types/mutualFunds';
+import { formatINR, getNextSipDueDate, calculateSipCurrentValue } from '@/types/mutualFunds';
 import { 
   Plus, 
   Calendar,
@@ -135,8 +135,8 @@ export default function SipListPage() {
                 <TrendingUp className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Invested</p>
-                <p className="text-2xl font-bold">{formatINR(summary.total_invested)}</p>
+                <p className="text-sm text-muted-foreground">Current Value</p>
+                <p className="text-2xl font-bold">{formatINR(summary.total_current_value)}</p>
               </div>
             </CardContent>
           </Card>
@@ -192,7 +192,8 @@ export default function SipListPage() {
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                           <span>Monthly: <strong>{formatINR(sip.sip_amount)}</strong></span>
-                          <span>Total Invested: <strong>{formatINR(calculateSipTotalInvested(sip))}</strong></span>
+                          <span>Units: <strong>{sip.current_units || 0}</strong></span>
+                          <span>Value: <strong>{formatINR(calculateSipCurrentValue(sip))}</strong></span>
                           <span>Day: <strong>{sip.sip_day_of_month}</strong></span>
                           {sip.folio_no && <span>Folio: {sip.folio_no}</span>}
                         </div>

@@ -144,13 +144,14 @@ export function usePortfolioOverview() {
   return useQuery({
     queryKey: ['portfolio-overview', user?.id, inrToAed],
     queryFn: async () => {
-      // Fetch assets, transactions, MF holdings, and SIPs in parallel
-      const [assetsResult, transactionsResult, pricesResult, mfHoldingsResult, sipsResult] = await Promise.all([
+      // Fetch assets, transactions, MF holdings, SIPs, and schemes in parallel
+      const [assetsResult, transactionsResult, pricesResult, mfHoldingsResult, sipsResult, schemesResult] = await Promise.all([
         supabase.from('assets').select('*'),
         supabase.from('transactions').select('*'),
         supabase.from('price_snapshots').select('*').order('as_of', { ascending: false }).limit(10),
         supabase.from('mf_holdings').select('*').eq('is_active', true),
         supabase.from('mf_sips').select('*'),
+        supabase.from('mf_schemes').select('id, latest_nav'),
       ]);
 
       if (assetsResult.error) throw assetsResult.error;
@@ -161,6 +162,15 @@ export function usePortfolioOverview() {
       const priceSnapshots = pricesResult.data || [];
       const mfHoldings = mfHoldingsResult.data || [];
       const sips = sipsResult.data || [];
+      const schemes = schemesResult.data || [];
+
+      // Create a map of scheme id to NAV for quick lookup
+      const schemeNavMap = new Map<string, number>();
+      for (const scheme of schemes) {
+        if (scheme.latest_nav) {
+          schemeNavMap.set(scheme.id, Number(scheme.latest_nav));
+        }
+      }
 
       // Get latest prices for XAU and XAG
       const goldPrice = priceSnapshots.find(p => p.instrument_symbol === 'XAU');
@@ -288,13 +298,28 @@ export function usePortfolioOverview() {
         total_current_value += mfCurrentValueAED;
       }
 
-      // Calculate SIP summary
+      // Calculate SIP summary with current values based on units and NAV
       const activeSips = sips.filter(s => s.status === 'ACTIVE');
       const sipMonthlyINR = activeSips.reduce((sum, s) => sum + Number(s.sip_amount || 0), 0);
       const sipMonthlyAED = sipMonthlyINR * inrToAed;
+      
+      // Calculate SIP current value from units × NAV
+      let sipCurrentValueINR = 0;
+      for (const sip of sips) {
+        const units = Number(sip.current_units || 0);
+        const nav = schemeNavMap.get(sip.scheme_id) || 0;
+        sipCurrentValueINR += units * nav;
+      }
+      const sipCurrentValueAED = sipCurrentValueINR * inrToAed;
+
+      // Add SIP current value to totals if there are any SIPs with units
+      if (sipCurrentValueAED > 0) {
+        total_invested += 0; // SIP invested amount is tracked separately or via holdings
+        total_current_value += sipCurrentValueAED;
+      }
 
       // Return null if no assets at all
-      const hasAnyAssets = assets.length > 0 || preciousMetalsCount > 0 || mfHoldings.length > 0;
+      const hasAnyAssets = assets.length > 0 || preciousMetalsCount > 0 || mfHoldings.length > 0 || sipCurrentValueAED > 0;
       if (!hasAnyAssets) {
         return null;
       }
@@ -328,6 +353,8 @@ export function usePortfolioOverview() {
           holdings_count: mfHoldings.length,
         } : undefined,
         sip_summary: sips.length > 0 ? {
+          current_value_inr: sipCurrentValueINR,
+          current_value_aed: sipCurrentValueAED,
           monthly_commitment_inr: sipMonthlyINR,
           monthly_commitment_aed: sipMonthlyAED,
           active_count: activeSips.length,

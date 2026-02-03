@@ -445,12 +445,12 @@ export type Database = {
       mf_sips: {
         Row: {
           created_at: string
+          current_units: number | null
           end_date: string | null
           folio_no: string | null
           holding_id: string | null
           id: string
           notes: string | null
-          opening_balance: number | null
           scheme_id: string
           sip_amount: number
           sip_day_of_month: number
@@ -461,12 +461,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_units?: number | null
           end_date?: string | null
           folio_no?: string | null
           holding_id?: string | null
           id?: string
           notes?: string | null
-          opening_balance?: number | null
           scheme_id: string
           sip_amount: number
           sip_day_of_month: number
@@ -477,12 +477,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_units?: number | null
           end_date?: string | null
           folio_no?: string | null
           holding_id?: string | null
           id?: string
           notes?: string | null
-          opening_balance?: number | null
           scheme_id?: string
           sip_amount?: number
           sip_day_of_month?: number
