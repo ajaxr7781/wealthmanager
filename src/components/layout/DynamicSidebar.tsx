@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCategoriesWithTypes, useTransactionSupportedTypes, usePriceFeedSupportedTypes } from '@/hooks/useAssetConfig';
+import { useCategoryTotals } from '@/hooks/useCategoryTotals';
 import { cn } from '@/lib/utils';
 import { 
   Briefcase, 
@@ -22,7 +23,7 @@ import {
   LineChart,
   Calendar,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 // Map string icons to components
 const IconMap: Record<string, typeof Coins> = {
@@ -50,6 +51,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
   const { data: categoriesWithTypes } = useCategoriesWithTypes();
   const { data: transactionTypes } = useTransactionSupportedTypes();
   const { data: priceFeedTypes } = usePriceFeedSupportedTypes();
+  const { data: categoryTotals } = useCategoryTotals();
   
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['assets']));
 
@@ -133,41 +135,69 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
               All Holdings
             </Link>
 
-            {/* Dynamic category-based links */}
-            {categoriesWithTypes?.filter(cat => cat.asset_types.length > 0).map((category) => {
-              const Icon = IconMap[category.icon || 'Package'] || Package;
+            {/* Dynamic category-based links - sorted by value desc, then alphabetically */}
+            {useMemo(() => {
+              // Create sortable items including MF and SIPs
+              const items = [
+                // Dynamic categories
+                ...(categoriesWithTypes?.filter(cat => cat.asset_types.length > 0).map(category => ({
+                  type: 'category' as const,
+                  code: category.code,
+                  name: category.name,
+                  icon: category.icon,
+                  path: `/holdings/${category.code}`,
+                  totalValue: categoryTotals?.[category.code]?.totalValue || 0,
+                })) || []),
+                // Mutual Funds
+                {
+                  type: 'mf' as const,
+                  code: 'mutual_funds',
+                  name: 'Mutual Funds',
+                  icon: 'LineChart',
+                  path: '/mf/holdings',
+                  totalValue: categoryTotals?.['mutual_funds']?.totalValue || 0,
+                },
+                // SIPs (no value, always at end of zero-value items alphabetically)
+                {
+                  type: 'sip' as const,
+                  code: 'sips',
+                  name: 'My SIPs',
+                  icon: 'Calendar',
+                  path: '/mf/sips',
+                  totalValue: 0,
+                },
+              ];
+
+              // Sort: by value desc, then alphabetically for zero-value items
+              return items.sort((a, b) => {
+                if (a.totalValue !== b.totalValue) {
+                  return b.totalValue - a.totalValue; // Descending by value
+                }
+                return a.name.localeCompare(b.name); // Alphabetical for same value
+              });
+            }, [categoriesWithTypes, categoryTotals]).map((item) => {
+              const Icon = item.icon === 'LineChart' ? LineChart 
+                : item.icon === 'Calendar' ? Calendar 
+                : IconMap[item.icon || 'Package'] || Package;
+              
+              const isItemActive = item.type === 'mf' 
+                ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
+                : item.type === 'sip'
+                ? isActive('/mf/sips')
+                : isActive(item.path);
+
               return (
                 <Link
-                  key={category.code}
-                  to={`/holdings/${category.code}`}
+                  key={item.code}
+                  to={item.path}
                   onClick={onItemClick}
-                  className={getItemClass(isActive(`/holdings/${category.code}`))}
+                  className={getItemClass(isItemActive)}
                 >
                   <Icon className="h-4 w-4" />
-                  {category.name}
+                  {item.name}
                 </Link>
               );
             })}
-
-            {/* Mutual Funds under Assets */}
-            <Link
-              to="/mf/holdings"
-              onClick={onItemClick}
-              className={getItemClass(isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips')))}
-            >
-              <LineChart className="h-4 w-4" />
-              Mutual Funds
-            </Link>
-
-            {/* SIPs under Assets */}
-            <Link
-              to="/mf/sips"
-              onClick={onItemClick}
-              className={getItemClass(isActive('/mf/sips'))}
-            >
-              <Calendar className="h-4 w-4" />
-              My SIPs
-            </Link>
           </div>
         )}
       </div>
