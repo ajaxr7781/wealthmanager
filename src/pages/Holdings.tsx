@@ -2,12 +2,15 @@ import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useDefaultPortfolio } from '@/hooks/usePortfolios';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
-import { useAssets, usePortfolioOverview } from '@/hooks/useAssets';
+import { useAssets, usePortfolioOverview, useUserSettings } from '@/hooks/useAssets';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
+import { useActiveMfHoldings } from '@/hooks/useMfHoldings';
+import { useActiveMfSips } from '@/hooks/useMfSips';
+import { DEFAULT_INR_TO_AED } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Coins, Circle, Info, Plus, ChevronRight, Package } from 'lucide-react';
+import { Coins, Circle, Info, Plus, ChevronRight, Package, LineChart, Calendar } from 'lucide-react';
 import { formatOz, formatGrams, formatCurrency, formatPercent, formatPL } from '@/lib/calculations';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -34,6 +37,8 @@ const IconMap: Record<string, typeof Coins> = {
   BarChart3,
   PieChart,
   Package,
+  LineChart,
+  Calendar,
 };
 
 export default function Holdings() {
@@ -42,14 +47,29 @@ export default function Holdings() {
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: overview } = usePortfolioOverview();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
+  const { data: mfHoldings, isLoading: mfLoading } = useActiveMfHoldings();
+  const { data: sips, isLoading: sipsLoading } = useActiveMfSips();
+  const { data: settings } = useUserSettings();
+  
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
-  const isLoading = portfolioLoading || metalsLoading || assetsLoading || categoriesLoading;
+  const isLoading = portfolioLoading || metalsLoading || assetsLoading || categoriesLoading || mfLoading || sipsLoading;
 
-  // Calculate category summaries
+  // Calculate category summaries with proper currency conversion
   const categorySummaries = categories?.map(category => {
     const categoryAssets = assets?.filter(a => a.category_code === category.code) || [];
-    const totalInvested = categoryAssets.reduce((sum, a) => sum + Number(a.total_cost), 0);
-    const totalValue = categoryAssets.reduce((sum, a) => sum + (Number(a.current_value) || Number(a.total_cost)), 0);
+    
+    // Apply currency conversion for INR assets
+    const totalInvested = categoryAssets.reduce((sum, a) => {
+      const cost = Number(a.total_cost) || 0;
+      return sum + (a.currency === 'INR' ? cost * inrToAed : cost);
+    }, 0);
+    
+    const totalValue = categoryAssets.reduce((sum, a) => {
+      const value = Number(a.current_value) || Number(a.total_cost) || 0;
+      return sum + (a.currency === 'INR' ? value * inrToAed : value);
+    }, 0);
+    
     const count = categoryAssets.length;
     
     // For precious metals, also include legacy transaction-based holdings
@@ -77,6 +97,75 @@ export default function Holdings() {
       metalsSummary: null,
     };
   }).filter(c => c.count > 0) || [];
+
+  // Calculate MF Holdings summary (INR -> AED)
+  const mfSummary = mfHoldings && mfHoldings.length > 0 ? {
+    totalInvested: mfHoldings.reduce((sum, h) => sum + (Number(h.invested_amount) * inrToAed), 0),
+    totalValue: mfHoldings.reduce((sum, h) => sum + ((Number(h.current_value) || Number(h.invested_amount)) * inrToAed), 0),
+    count: mfHoldings.length,
+  } : null;
+
+  // Calculate SIPs summary (monthly commitment in INR -> AED)
+  const sipSummary = sips && sips.length > 0 ? {
+    monthlyCommitment: sips.reduce((sum, s) => sum + (Number(s.sip_amount) * inrToAed), 0),
+    count: sips.length,
+  } : null;
+
+  // Combine all summaries for sorting
+  type CategoryItem = {
+    id: string;
+    code: string;
+    name: string;
+    icon: string;
+    color: string | null;
+    totalValue: number;
+    totalInvested: number;
+    count: number;
+    path: string;
+    type: 'category' | 'mf' | 'sip';
+    hasMetalsTransactions?: boolean;
+    metalsSummary?: typeof metalsSummary;
+  };
+
+  const allCategories: CategoryItem[] = [
+    ...categorySummaries.map(c => ({
+      ...c,
+      path: `/holdings/${c.code}`,
+      type: 'category' as const,
+    })),
+    ...(mfSummary ? [{
+      id: 'mutual_funds',
+      code: 'mutual_funds',
+      name: 'Mutual Funds',
+      icon: 'LineChart',
+      color: 'purple',
+      totalValue: mfSummary.totalValue,
+      totalInvested: mfSummary.totalInvested,
+      count: mfSummary.count,
+      path: '/mf/holdings',
+      type: 'mf' as const,
+    }] : []),
+    ...(sipSummary ? [{
+      id: 'sips',
+      code: 'sips',
+      name: 'Active SIPs',
+      icon: 'Calendar',
+      color: 'blue',
+      totalValue: sipSummary.monthlyCommitment,
+      totalInvested: sipSummary.monthlyCommitment,
+      count: sipSummary.count,
+      path: '/mf/sips',
+      type: 'sip' as const,
+    }] : []),
+  ];
+
+  // Sort by value descending, then alphabetically for zero-value
+  const sortedCategories = allCategories.sort((a, b) => {
+    if (a.totalValue !== b.totalValue) {
+      return b.totalValue - a.totalValue;
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <AppLayout>
@@ -142,18 +231,19 @@ export default function Holdings() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-40" />)}
           </div>
-        ) : categorySummaries.length > 0 ? (
+        ) : sortedCategories.length > 0 ? (
           <div className="space-y-6">
             {/* Category Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {categorySummaries.map((category) => {
+              {sortedCategories.map((category) => {
                 const Icon = IconMap[category.icon || 'Package'] || Package;
                 const pl = category.totalValue - category.totalInvested;
                 const plPercent = category.totalInvested > 0 ? (pl / category.totalInvested) * 100 : 0;
                 const isProfit = pl >= 0;
+                const isSip = category.type === 'sip';
 
                 return (
-                  <Link key={category.id} to={`/holdings/${category.code}`}>
+                  <Link key={category.id} to={category.path}>
                     <Card className="shadow-luxury hover:shadow-lg transition-shadow cursor-pointer h-full">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
@@ -167,7 +257,7 @@ export default function Holdings() {
                             <div>
                               <CardTitle className="text-base">{category.name}</CardTitle>
                               <p className="text-sm text-muted-foreground">
-                                {category.count} holding{category.count !== 1 ? 's' : ''}
+                                {category.count} {isSip ? 'active' : 'holding'}{category.count !== 1 ? 's' : ''}
                               </p>
                             </div>
                           </div>
@@ -176,17 +266,21 @@ export default function Holdings() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Value</span>
+                          <span className="text-sm text-muted-foreground">
+                            {isSip ? 'Monthly' : 'Value'}
+                          </span>
                           <span className="font-medium">
                             AED {category.totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">P/L</span>
-                          <span className={cn("font-medium", isProfit ? "text-positive" : "text-negative")}>
-                            {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
-                          </span>
-                        </div>
+                        {!isSip && (
+                          <div className="flex justify-between">
+                            <span className="text-sm text-muted-foreground">P/L</span>
+                            <span className={cn("font-medium", isProfit ? "text-positive" : "text-negative")}>
+                              {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
+                            </span>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   </Link>

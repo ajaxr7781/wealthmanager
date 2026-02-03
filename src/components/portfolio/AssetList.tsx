@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Asset } from '@/types/assets';
-import { ASSET_TYPE_LABELS } from '@/types/assets';
+import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED } from '@/types/assets';
+import { useUserSettings } from '@/hooks/useAssets';
 import { 
   Coins, 
   Building2, 
@@ -39,10 +40,13 @@ const ASSET_COLORS: Record<string, string> = {
 };
 
 export function AssetList({ assets }: AssetListProps) {
-  const formatCurrency = (value: number, currency: string = 'AED') => {
+  const { data: settings } = useUserSettings();
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
+
+  const formatCurrencyAED = (value: number) => {
     return new Intl.NumberFormat('en-AE', {
       style: 'currency',
-      currency,
+      currency: 'AED',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
@@ -54,6 +58,16 @@ export function AssetList({ assets }: AssetListProps) {
     const pl = currentValue - totalCost;
     const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
     return { pl, plPercent };
+  };
+
+  const getValueInAED = (asset: Asset) => {
+    const value = Number(asset.current_value) || Number(asset.total_cost);
+    return asset.currency === 'INR' ? value * inrToAed : value;
+  };
+
+  const getCostInAED = (asset: Asset) => {
+    const cost = Number(asset.total_cost);
+    return asset.currency === 'INR' ? cost * inrToAed : cost;
   };
 
   if (assets.length === 0) {
@@ -92,7 +106,8 @@ export function AssetList({ assets }: AssetListProps) {
             const Icon = ASSET_ICONS[asset.asset_type] || Coins;
             const { pl, plPercent } = calculatePL(asset);
             const isProfit = pl >= 0;
-            const currentValue = Number(asset.current_value) || Number(asset.total_cost);
+            const valueAED = getValueInAED(asset);
+            const costAED = getCostInAED(asset);
 
             return (
               <Link
@@ -113,9 +128,12 @@ export function AssetList({ assets }: AssetListProps) {
                       <Badge variant="secondary" className="text-xs">
                         {ASSET_TYPE_LABELS[asset.asset_type]}
                       </Badge>
+                      {asset.currency === 'INR' && (
+                        <Badge variant="outline" className="text-xs">INR</Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {asset.currency} {formatCurrency(Number(asset.total_cost), asset.currency).replace(/[A-Z]+\s?/g, '')} invested
+                      {formatCurrencyAED(costAED)} invested
                     </p>
                   </div>
                 </div>
@@ -123,7 +141,7 @@ export function AssetList({ assets }: AssetListProps) {
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <p className="font-medium">
-                      {formatCurrency(currentValue, asset.currency)}
+                      {formatCurrencyAED(valueAED)}
                     </p>
                     <p className={cn(
                       "text-sm",
