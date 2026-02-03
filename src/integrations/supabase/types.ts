@@ -450,6 +450,7 @@ export type Database = {
           folio_no: string | null
           holding_id: string | null
           id: string
+          invested_amount: number | null
           notes: string | null
           scheme_id: string
           sip_amount: number
@@ -466,6 +467,7 @@ export type Database = {
           folio_no?: string | null
           holding_id?: string | null
           id?: string
+          invested_amount?: number | null
           notes?: string | null
           scheme_id: string
           sip_amount: number
@@ -482,6 +484,7 @@ export type Database = {
           folio_no?: string | null
           holding_id?: string | null
           id?: string
+          invested_amount?: number | null
           notes?: string | null
           scheme_id?: string
           sip_amount?: number

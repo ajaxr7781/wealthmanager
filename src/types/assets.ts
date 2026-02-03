@@ -160,6 +160,8 @@ export interface PortfolioOverview {
   };
   // SIP summary (INR, converted to AED for totals)
   sip_summary?: {
+    invested_inr: number;
+    invested_aed: number;
     current_value_inr: number;
     current_value_aed: number;
     monthly_commitment_inr: number;

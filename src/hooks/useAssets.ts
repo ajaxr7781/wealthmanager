@@ -303,18 +303,21 @@ export function usePortfolioOverview() {
       const sipMonthlyINR = activeSips.reduce((sum, s) => sum + Number(s.sip_amount || 0), 0);
       const sipMonthlyAED = sipMonthlyINR * inrToAed;
       
-      // Calculate SIP current value from units × NAV
+      // Calculate SIP invested and current value
+      let sipInvestedINR = 0;
       let sipCurrentValueINR = 0;
       for (const sip of sips) {
+        sipInvestedINR += Number(sip.invested_amount || 0);
         const units = Number(sip.current_units || 0);
         const nav = schemeNavMap.get(sip.scheme_id) || 0;
         sipCurrentValueINR += units * nav;
       }
+      const sipInvestedAED = sipInvestedINR * inrToAed;
       const sipCurrentValueAED = sipCurrentValueINR * inrToAed;
 
-      // Add SIP current value to totals if there are any SIPs with units
-      if (sipCurrentValueAED > 0) {
-        total_invested += 0; // SIP invested amount is tracked separately or via holdings
+      // Add SIP values to totals
+      if (sipInvestedAED > 0 || sipCurrentValueAED > 0) {
+        total_invested += sipInvestedAED;
         total_current_value += sipCurrentValueAED;
       }
 
@@ -353,6 +356,8 @@ export function usePortfolioOverview() {
           holdings_count: mfHoldings.length,
         } : undefined,
         sip_summary: sips.length > 0 ? {
+          invested_inr: sipInvestedINR,
+          invested_aed: sipInvestedAED,
           current_value_inr: sipCurrentValueINR,
           current_value_aed: sipCurrentValueAED,
           monthly_commitment_inr: sipMonthlyINR,
