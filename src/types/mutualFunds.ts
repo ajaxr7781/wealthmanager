@@ -106,6 +106,7 @@ export interface MfSip {
   sip_day_of_month: number;
   start_date: string;
   end_date: string | null;
+  opening_balance: number;
   status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   notes: string | null;
   created_at: string;
@@ -123,8 +124,25 @@ export interface MfSipInsert {
   sip_day_of_month: number;
   start_date: string;
   end_date?: string;
+  opening_balance?: number;
   status?: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
   notes?: string;
+}
+
+// Calculate total invested for a SIP (opening balance + calculated installments)
+export function calculateSipTotalInvested(sip: MfSip): number {
+  const openingBalance = sip.opening_balance || 0;
+  const startDate = new Date(sip.start_date);
+  const endDate = sip.end_date ? new Date(sip.end_date) : new Date();
+  
+  // Calculate number of months between start and end/today
+  const months = Math.max(0,
+    (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+    (endDate.getMonth() - startDate.getMonth()) +
+    (endDate.getDate() >= sip.sip_day_of_month ? 1 : 0)
+  );
+  
+  return openingBalance + (months * sip.sip_amount);
 }
 
 export interface MfNavHistory {

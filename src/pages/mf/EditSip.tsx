@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,46 +7,105 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveMfSchemes } from '@/hooks/useMfSchemes';
-import { useAddMfSip } from '@/hooks/useMfSips';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { useMfSip, useUpdateMfSip, useDeleteMfSip } from '@/hooks/useMfSips';
+import { Loader2, ArrowLeft, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
-export default function AddSipPage() {
+export default function EditSipPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { data: sip, isLoading: sipLoading } = useMfSip(id);
   const { data: schemes, isLoading: schemesLoading } = useActiveMfSchemes();
-  const addSip = useAddMfSip();
+  const updateSip = useUpdateMfSip();
+  const deleteSip = useDeleteMfSip();
+  const [showDelete, setShowDelete] = useState(false);
 
   const [formData, setFormData] = useState({
     scheme_id: '',
     folio_no: '',
     sip_amount: '',
     sip_day_of_month: '',
-    start_date: format(new Date(), 'yyyy-MM-dd'),
+    start_date: '',
     end_date: '',
     opening_balance: '',
     notes: ''
   });
 
+  useEffect(() => {
+    if (sip) {
+      setFormData({
+        scheme_id: sip.scheme_id,
+        folio_no: sip.folio_no || '',
+        sip_amount: sip.sip_amount.toString(),
+        sip_day_of_month: sip.sip_day_of_month.toString(),
+        start_date: sip.start_date,
+        end_date: sip.end_date || '',
+        opening_balance: (sip.opening_balance || 0).toString(),
+        notes: sip.notes || ''
+      });
+    }
+  }, [sip]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    addSip.mutate({
+    updateSip.mutate({
+      id: id!,
       scheme_id: formData.scheme_id,
-      folio_no: formData.folio_no || undefined,
+      folio_no: formData.folio_no || null,
       sip_amount: parseFloat(formData.sip_amount),
       sip_day_of_month: parseInt(formData.sip_day_of_month),
       start_date: formData.start_date,
-      end_date: formData.end_date || undefined,
+      end_date: formData.end_date || null,
       opening_balance: formData.opening_balance ? parseFloat(formData.opening_balance) : 0,
-      notes: formData.notes || undefined
+      notes: formData.notes || null
     }, {
       onSuccess: () => {
         navigate('/mf/sips');
       }
     });
   };
+
+  const handleDelete = () => {
+    deleteSip.mutate(id!, {
+      onSuccess: () => navigate('/mf/sips')
+    });
+  };
+
+  if (sipLoading) {
+    return (
+      <AppLayout>
+        <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-4">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-[500px]" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!sip) {
+    return (
+      <AppLayout>
+        <div className="p-4 lg:p-8 text-center">
+          <p className="text-muted-foreground">SIP not found</p>
+          <Button asChild className="mt-4">
+            <Link to="/mf/sips">Back to SIPs</Link>
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -60,10 +119,18 @@ export default function AddSipPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Create New SIP</CardTitle>
-            <CardDescription>
-              Set up a Systematic Investment Plan for regular investments
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Edit SIP</CardTitle>
+                <CardDescription>
+                  Update your Systematic Investment Plan details
+                </CardDescription>
+              </div>
+              <Button variant="destructive" size="sm" onClick={() => setShowDelete(true)}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -81,13 +148,6 @@ export default function AddSipPage() {
                     {schemesLoading ? (
                       <div className="p-4 text-center">
                         <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                      </div>
-                    ) : schemes?.length === 0 ? (
-                      <div className="p-4 text-center text-sm text-muted-foreground">
-                        No schemes found. 
-                        <Link to="/settings/mf-schemes" className="text-primary ml-1">
-                          Add schemes first
-                        </Link>
                       </div>
                     ) : (
                       schemes?.map((scheme) => (
@@ -186,7 +246,7 @@ export default function AddSipPage() {
                     placeholder="Total invested before tracking"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Enter amount already invested before this start date
+                    Amount invested before start date
                   </p>
                 </div>
               </div>
@@ -208,15 +268,15 @@ export default function AddSipPage() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={addSip.isPending || !formData.scheme_id || !formData.sip_amount || !formData.sip_day_of_month}
+                  disabled={updateSip.isPending || !formData.scheme_id || !formData.sip_amount || !formData.sip_day_of_month}
                 >
-                  {addSip.isPending ? (
+                  {updateSip.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating...
+                      Saving...
                     </>
                   ) : (
-                    'Create SIP'
+                    'Save Changes'
                   )}
                 </Button>
               </div>
@@ -224,6 +284,26 @@ export default function AddSipPage() {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={showDelete} onOpenChange={setShowDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete SIP?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this SIP record. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
