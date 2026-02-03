@@ -77,28 +77,82 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Fetch fresh data from MFAPI
+    // Fetch fresh data from MFAPI with retry logic
     console.log('Fetching scheme master from MFAPI...')
     
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
-
-    const response = await fetch('https://api.mfapi.in/mf', {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'InvestTracker/1.0'
-      }
-    })
+    let schemes: MFAPIScheme[] = []
+    let lastError: Error | null = null
+    const maxRetries = 3
+    const retryDelays = [1000, 2000, 4000] // exponential backoff
     
-    clearTimeout(timeoutId)
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-    if (!response.ok) {
-      throw new Error(`MFAPI returned ${response.status}: ${response.statusText}`)
+        const response = await fetch('https://api.mfapi.in/mf', {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'InvestTracker/1.0'
+          }
+        })
+        
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          throw new Error(`MFAPI returned ${response.status}: ${response.statusText}`)
+        }
+
+        schemes = await response.json()
+        console.log(`Fetched ${schemes.length} schemes from MFAPI`)
+        lastError = null
+        break // Success, exit retry loop
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error))
+        console.error(`Attempt ${attempt + 1}/${maxRetries} failed:`, lastError.message)
+        
+        if (attempt < maxRetries - 1) {
+          console.log(`Retrying in ${retryDelays[attempt]}ms...`)
+          await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]))
+        }
+      }
     }
 
-    const schemes: MFAPIScheme[] = await response.json()
-    console.log(`Fetched ${schemes.length} schemes from MFAPI`)
+    // If all retries failed, check if we have cached data to return
+    if (lastError && schemes.length === 0) {
+      // Try to return existing cache even if stale
+      const { data: staleCache, error: staleCacheError } = await supabase
+        .from('mf_scheme_master_cache')
+        .select('scheme_code, scheme_name, isin, fund_house, cached_at')
+        .eq('source', 'MFAPI')
+        .order('scheme_name')
+        .limit(searchTerm ? 100 : 50)
+      
+      if (!staleCacheError && staleCache && staleCache.length > 0) {
+        let resultSchemes = staleCache
+        if (searchTerm) {
+          const searchLower = searchTerm.toLowerCase()
+          resultSchemes = staleCache.filter(s => 
+            s.scheme_name.toLowerCase().includes(searchLower)
+          )
+        }
+        
+        return new Response(JSON.stringify({
+          success: true,
+          source: 'stale_cache',
+          warning: `MFAPI unavailable: ${lastError.message}. Returning stale cache.`,
+          count: resultSchemes.length,
+          schemes: resultSchemes,
+          message: `MFAPI unavailable. Returned ${resultSchemes.length} schemes from stale cache.`
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
+      // No cache available, return error
+      throw lastError
+    }
 
     // Clear old MFAPI cache entries and insert new ones
     // Do this in batches to avoid timeout
