@@ -112,7 +112,7 @@ export function AssetList({ assets }: AssetListProps) {
             return (
               <Link
                 key={asset.id}
-                to={`/assets/${asset.id}`}
+                to={`/asset/${asset.id}`}
                 className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
               >
                 <div className="flex items-center gap-4">
