@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Coins, Circle, Clock } from 'lucide-react';
+import { RefreshCw, Coins, Circle, Clock, DollarSign } from 'lucide-react';
 import type { MetalPrices } from '@/types/assets';
-
+import { formatShortRelative, formatDateTime } from '@/lib/dateUtils';
+import { useUserSettings } from '@/hooks/useAssets';
+import { useForexRates } from '@/hooks/useForexRates';
 interface LiveMetalPricesProps {
   prices: MetalPrices | undefined;
   isLoading: boolean;
@@ -12,22 +14,14 @@ interface LiveMetalPricesProps {
 }
 
 export function LiveMetalPrices({ prices, isLoading, onRefresh, isRefreshing }: LiveMetalPricesProps) {
+  const { data: settings } = useUserSettings();
+  const { data: forexRates } = useForexRates();
+  
   const formatNumber = (value: number, decimals: number = 2) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(value);
-  };
-
-  const formatTime = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   };
 
   if (isLoading) {
@@ -128,10 +122,33 @@ export function LiveMetalPrices({ prices, isLoading, onRefresh, isRefreshing }: 
               </div>
             </div>
 
+            {/* Forex Rates */}
+            <div className="space-y-1 pt-2 border-t">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Forex Rates</p>
+                  <p className="text-xs text-muted-foreground">
+                    1 USD = {formatNumber(settings?.usd_to_aed_rate || forexRates?.USD_AED || 3.6725, 4)} AED
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    1 INR = {formatNumber(settings?.inr_to_aed_rate || forexRates?.INR_AED || 0.044, 4)} AED
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Last Updated */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
               <Clock className="h-3 w-3" />
-              <span>Updated: {formatTime(prices?.last_updated || null)}</span>
+              <span 
+                title={formatDateTime(prices?.last_updated)}
+                className="cursor-help"
+              >
+                Updated: {formatShortRelative(prices?.last_updated)} ago
+              </span>
             </div>
             {prices?.source && prices.source !== 'failed' && (
               <p className="text-xs text-muted-foreground">

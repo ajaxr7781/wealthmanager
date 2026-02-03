@@ -136,9 +136,13 @@ export function useDeleteAsset() {
 
 export function usePortfolioOverview() {
   const { user } = useAuth();
+  const { data: settings } = useUserSettings();
+  
+  // Get dynamic INR to AED rate from settings
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   return useQuery({
-    queryKey: ['portfolio-overview', user?.id],
+    queryKey: ['portfolio-overview', user?.id, inrToAed],
     queryFn: async () => {
       // Fetch both assets and transactions (precious metals legacy data)
       const [assetsResult, transactionsResult, pricesResult, portfolioResult] = await Promise.all([
@@ -217,13 +221,13 @@ export function usePortfolioOverview() {
         const invested = Number(asset.total_cost) || 0;
         const currentVal = Number(asset.current_value) || invested;
         
-        // Convert to AED for unified totals
+        // Convert to AED for unified totals using dynamic rate
         let investedAED = invested;
         let currentAED = currentVal;
         
         if (asset.currency === 'INR') {
-          investedAED = invested * DEFAULT_INR_TO_AED;
-          currentAED = currentVal * DEFAULT_INR_TO_AED;
+          investedAED = invested * inrToAed;
+          currentAED = currentVal * inrToAed;
         }
 
         total_invested += investedAED;

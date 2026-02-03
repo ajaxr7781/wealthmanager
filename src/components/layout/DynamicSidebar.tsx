@@ -148,6 +148,16 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
                 </Link>
               );
             })}
+
+            {/* Mutual Funds under Assets */}
+            <Link
+              to="/mf/holdings"
+              onClick={onItemClick}
+              className={getItemClass(isActive('/mf/holdings') || isActivePrefix('/mf/'))}
+            >
+              <LineChart className="h-4 w-4" />
+              Mutual Funds
+            </Link>
           </div>
         )}
       </div>
@@ -186,49 +196,15 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         Reports
       </Link>
 
-      {/* Mutual Funds Section */}
-      <div>
-        <button
-          onClick={() => toggleCategory('mf')}
-          className={cn(
-            'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            isActivePrefix('/mf')
-              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-primary'
-              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
-          )}
-        >
-          <div className="flex items-center gap-3">
-            <LineChart className="h-5 w-5" />
-            Mutual Funds
-          </div>
-          {expandedCategories.has('mf') ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </button>
-
-        {expandedCategories.has('mf') && (
-          <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-3">
-            <Link
-              to="/mf/holdings"
-              onClick={onItemClick}
-              className={getItemClass(isActive('/mf/holdings'))}
-            >
-              <PieChart className="h-4 w-4" />
-              MF Holdings
-            </Link>
-            <Link
-              to="/mf/sips"
-              onClick={onItemClick}
-              className={getItemClass(isActive('/mf/sips'))}
-            >
-              <Calendar className="h-4 w-4" />
-              My SIPs
-            </Link>
-          </div>
-        )}
-      </div>
+      {/* SIPs as separate top-level item */}
+      <Link
+        to="/mf/sips"
+        onClick={onItemClick}
+        className={getItemClass(isActive('/mf/sips'))}
+      >
+        <Calendar className="h-5 w-5" />
+        My SIPs
+      </Link>
 
       {/* Settings */}
       <div>

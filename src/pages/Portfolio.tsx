@@ -1,6 +1,7 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { usePortfolioOverview, useAssets } from '@/hooks/useAssets';
-import { useMetalPrices, useRefreshMetalPrices } from '@/hooks/useMetalPrices';
+import { useMetalPrices } from '@/hooks/useMetalPrices';
+import { useUnifiedRefresh } from '@/hooks/useUnifiedRefresh';
 import { PortfolioSummaryCards } from '@/components/portfolio/PortfolioSummaryCards';
 import { AllocationBreakdown } from '@/components/portfolio/AllocationBreakdown';
 import { AssetList } from '@/components/portfolio/AssetList';
@@ -14,7 +15,7 @@ export default function Portfolio() {
   const { data: overview, isLoading: overviewLoading } = usePortfolioOverview();
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: metalPrices, isLoading: pricesLoading } = useMetalPrices();
-  const refreshPrices = useRefreshMetalPrices();
+  const unifiedRefresh = useUnifiedRefresh();
 
   const isLoading = overviewLoading || assetsLoading;
 
@@ -33,11 +34,11 @@ export default function Portfolio() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => refreshPrices.mutate()}
-              disabled={refreshPrices.isPending}
+              onClick={() => unifiedRefresh.mutate()}
+              disabled={unifiedRefresh.isPending}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshPrices.isPending ? 'animate-spin' : ''}`} />
-              Refresh Prices
+              <RefreshCw className={`h-4 w-4 mr-2 ${unifiedRefresh.isPending ? 'animate-spin' : ''}`} />
+              Refresh All
             </Button>
             <Link to="/assets/new">
               <Button size="sm" className="gold-gradient text-primary-foreground">
@@ -66,8 +67,8 @@ export default function Portfolio() {
                 <LiveMetalPrices 
                   prices={metalPrices} 
                   isLoading={pricesLoading} 
-                  onRefresh={() => refreshPrices.mutate()}
-                  isRefreshing={refreshPrices.isPending}
+                  onRefresh={() => unifiedRefresh.mutate()}
+                  isRefreshing={unifiedRefresh.isPending}
                 />
               </div>
             </div>

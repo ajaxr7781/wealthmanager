@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber } from '@/lib/calculations';
+import { formatShortRelative, formatDateTime } from '@/lib/dateUtils';
 import { Coins, Circle } from 'lucide-react';
 
 interface LatestPrice {
@@ -16,15 +17,6 @@ interface LivePricesProps {
 }
 
 export function LivePrices({ prices }: LivePricesProps) {
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   return (
     <Card className="shadow-luxury">
@@ -48,8 +40,11 @@ export function LivePrices({ prices }: LivePricesProps) {
                   <p className="text-lg font-bold text-gold">
                     AED {formatNumber(prices.XAU.price_aed_per_oz, 2)}/oz
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    AED {formatNumber(prices.XAU.price_aed_per_gram, 2)}/g · {formatTime(prices.XAU.as_of)}
+                  <p 
+                    className="text-xs text-muted-foreground cursor-help"
+                    title={formatDateTime(prices.XAU.as_of)}
+                  >
+                    AED {formatNumber(prices.XAU.price_aed_per_gram, 2)}/g · {formatShortRelative(prices.XAU.as_of)} ago
                   </p>
                 </>
               ) : (
@@ -72,8 +67,11 @@ export function LivePrices({ prices }: LivePricesProps) {
                   <p className="text-lg font-bold text-silver">
                     AED {formatNumber(prices.XAG.price_aed_per_oz, 2)}/oz
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    AED {formatNumber(prices.XAG.price_aed_per_gram, 2)}/g · {formatTime(prices.XAG.as_of)}
+                  <p 
+                    className="text-xs text-muted-foreground cursor-help"
+                    title={formatDateTime(prices.XAG.as_of)}
+                  >
+                    AED {formatNumber(prices.XAG.price_aed_per_gram, 2)}/g · {formatShortRelative(prices.XAG.as_of)} ago
                   </p>
                 </>
               ) : (
