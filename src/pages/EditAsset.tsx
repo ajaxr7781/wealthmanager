@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Save } from 'lucide-react';
+import { FDFormFields } from '@/components/assets/FDFormFields';
+import { calculateFDCurrentValue } from '@/lib/fdCalculations';
 import type { Currency } from '@/types/assets';
 
 export default function EditAsset() {
@@ -62,9 +64,24 @@ export default function EditAsset() {
     e.preventDefault();
     if (!id || !formData.asset_name) return;
 
+    const assetTypeCode = asset?.asset_type_code || asset?.asset_type;
+    const isFD = ['fixed_deposit', 'bonds'].includes(assetTypeCode || '');
+    
+    // For FDs, calculate current value based on accrued interest if not manually set
+    let currentValue = formData.current_value;
+    if (isFD && !formData.is_current_value_manual && formData.principal && formData.interest_rate) {
+      currentValue = calculateFDCurrentValue({
+        principal: formData.principal,
+        interestRate: formData.interest_rate,
+        purchaseDate: formData.purchase_date || asset?.purchase_date || '',
+        maturityDate: formData.maturity_date || undefined,
+      });
+    }
+
     await updateAsset.mutateAsync({
       id,
       ...formData,
+      current_value: currentValue,
     });
     navigate(`/asset/${id}`);
   };
@@ -260,62 +277,12 @@ export default function EditAsset() {
               <CardHeader>
                 <CardTitle>Banking Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bank_name">Bank / Institution</Label>
-                  <Input
-                    id="bank_name"
-                    value={formData.bank_name || ''}
-                    onChange={(e) => updateForm({ bank_name: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="principal">Principal Amount</Label>
-                    <Input
-                      id="principal"
-                      type="number"
-                      min="0"
-                      value={formData.principal || ''}
-                      onChange={(e) => updateForm({ principal: parseFloat(e.target.value) || 0 })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="interest_rate">Interest Rate (% p.a.)</Label>
-                    <Input
-                      id="interest_rate"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      max="100"
-                      value={formData.interest_rate || ''}
-                      onChange={(e) => updateForm({ interest_rate: parseFloat(e.target.value) || 0 })}
-                    />
-                  </div>
-                </div>
-                {assetTypeCode !== 'savings_account' && (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="maturity_date">Maturity Date</Label>
-                      <Input
-                        id="maturity_date"
-                        type="date"
-                        value={formData.maturity_date || ''}
-                        onChange={(e) => updateForm({ maturity_date: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="maturity_amount">Maturity Amount</Label>
-                      <Input
-                        id="maturity_amount"
-                        type="number"
-                        min="0"
-                        value={formData.maturity_amount || ''}
-                        onChange={(e) => updateForm({ maturity_amount: parseFloat(e.target.value) || 0 })}
-                      />
-                    </div>
-                  </div>
-                )}
+              <CardContent>
+                <FDFormFields
+                  formData={formData}
+                  updateForm={updateForm}
+                  selectedTypeCode={assetTypeCode}
+                />
               </CardContent>
             </Card>
           )}

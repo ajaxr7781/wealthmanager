@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FDFormFields } from '@/components/assets/FDFormFields';
 import { 
   Coins, 
   Building2, 
@@ -534,65 +534,11 @@ export default function AddAsset() {
 
               {/* Fixed Deposit / Bonds / Savings */}
               {['fixed_deposit', 'savings_account', 'bonds'].includes(selectedTypeCode || '') && (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bank_name">Bank / Institution</Label>
-                    <Input
-                      id="bank_name"
-                      placeholder="e.g., Emirates NBD, HDFC Bank"
-                      value={formData.bank_name || ''}
-                      onChange={(e) => updateForm({ bank_name: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="principal">Principal Amount</Label>
-                      <Input
-                        id="principal"
-                        type="number"
-                        min="0"
-                        value={formData.principal || ''}
-                        onChange={(e) => updateForm({ principal: parseFloat(e.target.value) || 0 })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="interest_rate">Interest Rate (% p.a.)</Label>
-                      <Input
-                        id="interest_rate"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        max="100"
-                        value={formData.interest_rate || ''}
-                        onChange={(e) => updateForm({ interest_rate: parseFloat(e.target.value) || 0 })}
-                      />
-                    </div>
-                  </div>
-                  {selectedTypeCode !== 'savings_account' && (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor="maturity_date">Maturity Date</Label>
-                        <Input
-                          id="maturity_date"
-                          type="date"
-                          value={formData.maturity_date || ''}
-                          onChange={(e) => updateForm({ maturity_date: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="maturity_amount">Maturity Amount</Label>
-                        <Input
-                          id="maturity_amount"
-                          type="number"
-                          min="0"
-                          placeholder="Auto-calculated if blank"
-                          value={formData.maturity_amount || ''}
-                          onChange={(e) => updateForm({ maturity_amount: parseFloat(e.target.value) || 0 })}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <FDFormFields
+                  formData={formData}
+                  updateForm={updateForm}
+                  selectedTypeCode={selectedTypeCode}
+                />
               )}
 
               {/* Stocks / Mutual Funds / SIP / Crypto */}
