@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Coins, Circle, Info, Plus, ChevronRight, Package, LineChart, Calendar } from 'lucide-react';
 import { formatOz, formatGrams, formatCurrency, formatPercent, formatPL } from '@/lib/calculations';
+import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getColorClass } from '@/types/assetConfig';
@@ -66,7 +67,25 @@ export default function Holdings() {
     }, 0);
     
     const totalValue = categoryAssets.reduce((sum, a) => {
-      const value = Number(a.current_value) || Number(a.total_cost) || 0;
+      let value: number;
+      
+      // Special handling for Fixed Deposits - calculate accrued interest
+      if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
+        const fdResult = getEffectiveFDValue({
+          principal: a.principal ? Number(a.principal) : null,
+          interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
+          purchase_date: a.purchase_date,
+          maturity_date: a.maturity_date,
+          maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
+          current_value: a.current_value ? Number(a.current_value) : null,
+          is_current_value_manual: a.is_current_value_manual,
+          total_cost: Number(a.total_cost),
+        });
+        value = fdResult.currentValue;
+      } else {
+        value = Number(a.current_value) || Number(a.total_cost) || 0;
+      }
+      
       return sum + (a.currency === 'INR' ? value * inrToAed : value);
     }, 0);
     
