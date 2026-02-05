@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
 import { useDefaultPortfolio } from '@/hooks/usePortfolios';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
-import { useLatestPrices, useCreatePrice } from '@/hooks/usePrices';
+import { useCreatePrice } from '@/hooks/usePrices';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
 import { LivePrices } from '@/components/dashboard/LivePrices';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { FDMaturityAlerts } from '@/components/dashboard/FDMaturityAlerts';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
@@ -40,8 +40,9 @@ export default function Dashboard() {
                 <AllocationChart summary={summary} />
               </div>
 
-              {/* Live Prices + Quick Actions */}
+              {/* Live Prices + Quick Actions + Alerts */}
               <div className="space-y-6">
+                <FDMaturityAlerts />
                 <LivePrices prices={prices} />
                 <QuickActions />
               </div>
