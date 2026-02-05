@@ -5,13 +5,13 @@ import { Plus, TrendingUp } from 'lucide-react';
 
 export function QuickActions() {
   return (
-    <Card className="shadow-luxury">
+    <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base">Quick Actions</CardTitle>
+        <CardTitle className="text-base font-medium">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         <Link to="/transactions?action=add">
-          <Button className="w-full justify-start" variant="default">
+          <Button className="w-full justify-start">
             <Plus className="mr-2 h-4 w-4" />
             Add Transaction
           </Button>

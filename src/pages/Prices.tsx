@@ -12,7 +12,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { toast } from 'sonner';
 
 export default function Prices() {
-  const { data: prices, isLoading } = useLatestPrices();
+  const { data: prices } = useLatestPrices();
   const { data: livePrices, isLoading: liveLoading } = useMetalPrices();
   const refreshLivePrices = useRefreshMetalPrices();
   const savePrices = useSaveMetalPrices();
@@ -88,14 +88,14 @@ export default function Prices() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Prices</h1>
+          <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Prices</h1>
           <p className="text-muted-foreground">Fetch live prices or update manually</p>
         </div>
 
         {/* Live Prices Card */}
-        <Card className="shadow-luxury border-primary/20">
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -120,7 +120,6 @@ export default function Prices() {
                 size="sm"
                 onClick={handleSaveLivePrices}
                 disabled={savePrices.isPending || !livePrices?.XAU}
-                className="gold-gradient text-primary-foreground"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Save to History
@@ -146,19 +145,19 @@ export default function Prices() {
             ) : (
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Gold */}
-                <div className="p-4 rounded-lg bg-gold/10 border border-gold/20">
+                <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
-                      <Coins className="h-5 w-5 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center">
+                      <Coins className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold">Gold (XAU)</p>
+                      <p className="font-semibold text-foreground">Gold (XAU)</p>
                       <p className="text-xs text-muted-foreground">Troy Ounce</p>
                     </div>
                   </div>
                   {livePrices?.XAU ? (
                     <div className="space-y-1">
-                      <p className="text-2xl font-bold text-gold">
+                      <p className="text-2xl font-semibold text-foreground">
                         AED {formatNumber(livePrices.XAU.aed_per_oz, 2)}/oz
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -174,19 +173,19 @@ export default function Prices() {
                 </div>
 
                 {/* Silver */}
-                <div className="p-4 rounded-lg bg-silver/10 border border-silver/20">
+                <div className="p-4 rounded-lg bg-muted/50 border border-border">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-silver flex items-center justify-center">
-                      <Circle className="h-5 w-5 text-white fill-white" />
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <Circle className="h-5 w-5 text-muted-foreground fill-muted-foreground" />
                     </div>
                     <div>
-                      <p className="font-semibold">Silver (XAG)</p>
+                      <p className="font-semibold text-foreground">Silver (XAG)</p>
                       <p className="text-xs text-muted-foreground">Troy Ounce</p>
                     </div>
                   </div>
                   {livePrices?.XAG ? (
                     <div className="space-y-1">
-                      <p className="text-2xl font-bold text-silver">
+                      <p className="text-2xl font-semibold text-foreground">
                         AED {formatNumber(livePrices.XAG.aed_per_oz, 2)}/oz
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -215,7 +214,7 @@ export default function Prices() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Manual Update Card */}
-          <Card className="shadow-luxury">
+          <Card>
             <CardHeader>
               <CardTitle>Manual Price Update</CardTitle>
               <CardDescription>Enter prices manually if API is unavailable</CardDescription>
@@ -223,7 +222,7 @@ export default function Prices() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  <Coins className="h-4 w-4 text-gold" />
+                  <Coins className="h-4 w-4 text-amber-500" />
                   Gold (XAU) - AED/oz
                 </Label>
                 <Input 
@@ -240,7 +239,7 @@ export default function Prices() {
               </div>
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  <Circle className="h-4 w-4 text-silver fill-silver" />
+                  <Circle className="h-4 w-4 text-muted-foreground fill-muted-foreground" />
                   Silver (XAG) - AED/oz
                 </Label>
                 <Input 
@@ -273,7 +272,7 @@ export default function Prices() {
           </Card>
 
           {/* Price History Chart */}
-          <Card className="shadow-luxury">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Price History</CardTitle>
               <div className="flex gap-2">
@@ -298,21 +297,22 @@ export default function Prices() {
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" fontSize={12} />
-                      <YAxis fontSize={12} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="date" fontSize={12} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis fontSize={12} stroke="hsl(var(--muted-foreground))" />
                       <Tooltip 
                         contentStyle={{
                           backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px',
+                          color: 'hsl(var(--foreground))',
                         }}
                         formatter={(value: number) => [`AED ${formatNumber(value, 2)}`, 'Price/oz']}
                       />
                       <Line 
                         type="monotone" 
                         dataKey="price" 
-                        stroke={selectedChart === 'XAU' ? 'hsl(43, 74%, 49%)' : 'hsl(210, 11%, 71%)'} 
+                        stroke="hsl(217, 91%, 60%)" 
                         strokeWidth={2} 
                         dot={false}
                       />

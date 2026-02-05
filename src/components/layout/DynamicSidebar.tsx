@@ -74,17 +74,19 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
   const hasTransactionTypes = transactionTypes && transactionTypes.length > 0;
   const hasPriceFeedTypes = priceFeedTypes && priceFeedTypes.length > 0;
 
+  // Desktop sidebar nav item styling - clean charcoal with slate blue active
   const navItemClass = (active: boolean) => cn(
-    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-150',
     active
-      ? 'bg-sidebar-accent text-sidebar-primary'
-      : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+      ? 'bg-primary text-primary-foreground'
+      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
   );
 
+  // Mobile nav item styling
   const mobileNavItemClass = (active: boolean) => cn(
-    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+    'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
     active
-      ? 'bg-accent text-accent-foreground'
+      ? 'bg-primary text-primary-foreground'
       : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
   );
 
@@ -98,23 +100,23 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         onClick={onItemClick}
         className={getItemClass(isActive('/portfolio') || isActive('/'))}
       >
-        <LayoutDashboard className="h-5 w-5" />
-        Portfolio
+        <LayoutDashboard className="h-4 w-4" />
+        Dashboard
       </Link>
 
       {/* Assets Section with Categories */}
-      <div>
+      <div className="pt-4">
         <button
           onClick={() => toggleCategory('assets')}
           className={cn(
-            'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+            'flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium transition-colors',
             isActivePrefix('/assets') || isActivePrefix('/holdings')
-              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-primary'
-              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-foreground'
+              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
           )}
         >
           <div className="flex items-center gap-3">
-            <Briefcase className="h-5 w-5" />
+            <Briefcase className="h-4 w-4" />
             Assets
           </div>
           {expandedCategories.has('assets') ? (
@@ -125,7 +127,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         </button>
 
         {expandedCategories.has('assets') && (
-          <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-3">
+          <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-sidebar-border pl-3">
             <Link
               to="/holdings"
               onClick={onItemClick}
@@ -209,7 +211,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
           onClick={onItemClick}
           className={getItemClass(isActive('/transactions'))}
         >
-          <Receipt className="h-5 w-5" />
+          <Receipt className="h-4 w-4" />
           Trades
         </Link>
       )}
@@ -221,7 +223,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
           onClick={onItemClick}
           className={getItemClass(isActive('/prices'))}
         >
-          <TrendingUp className="h-5 w-5" />
+          <TrendingUp className="h-4 w-4" />
           Market
         </Link>
       )}
@@ -232,23 +234,23 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         onClick={onItemClick}
         className={getItemClass(isActive('/reports'))}
       >
-        <FileText className="h-5 w-5" />
+        <FileText className="h-4 w-4" />
         Reports
       </Link>
 
       {/* Settings */}
-      <div>
+      <div className="pt-4">
         <button
           onClick={() => toggleCategory('settings')}
           className={cn(
-            'flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+            'flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium transition-colors',
             isActivePrefix('/settings')
-              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-primary'
-              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-foreground'
+              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
           )}
         >
           <div className="flex items-center gap-3">
-            <Settings className="h-5 w-5" />
+            <Settings className="h-4 w-4" />
             Settings
           </div>
           {expandedCategories.has('settings') ? (
@@ -259,7 +261,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         </button>
 
         {expandedCategories.has('settings') && (
-          <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-3">
+          <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-sidebar-border pl-3">
             <Link
               to="/settings/asset-types"
               onClick={onItemClick}

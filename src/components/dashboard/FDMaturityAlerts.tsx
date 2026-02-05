@@ -60,18 +60,18 @@ export function FDMaturityAlerts() {
     if (days <= 7) {
       return <Badge variant="destructive" className="text-xs">This Week</Badge>;
     } else if (days <= 30) {
-      return <Badge className="bg-warning text-warning-foreground text-xs">This Month</Badge>;
+      return <Badge variant="warning" className="text-xs">This Month</Badge>;
     } else {
       return <Badge variant="secondary" className="text-xs">{days} days</Badge>;
     }
   };
 
   return (
-    <Card className="shadow-luxury border-warning/20">
+    <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Bell className="h-4 w-4 text-warning" />
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <Bell className="h-4 w-4 text-primary" />
             Upcoming FD Maturities
           </CardTitle>
           <Select value={filterDays} onValueChange={(v) => setFilterDays(v as FilterDays)}>
@@ -88,13 +88,13 @@ export function FDMaturityAlerts() {
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Total Maturity Summary */}
-        <div className="flex items-center justify-between p-3 rounded-lg bg-positive/10 border border-positive/20">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-positive/5 border border-positive/20">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-positive" />
-            <span className="text-sm font-medium">Total Maturing</span>
+            <span className="text-sm font-medium text-foreground">Total Maturing</span>
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold text-positive">
+            <p className="text-lg font-semibold text-positive">
               AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -108,21 +108,21 @@ export function FDMaturityAlerts() {
           <Link
             key={fd.id}
             to={`/assets/${fd.id}`}
-            className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors group"
+            className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors group"
           >
             <div className="flex items-start gap-3">
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center",
-                fd.daysToMaturity <= 7 ? "bg-destructive/10" : "bg-warning/10"
+                fd.daysToMaturity <= 7 ? "bg-destructive/10" : "bg-primary/10"
               )}>
                 {fd.daysToMaturity <= 7 ? (
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                 ) : (
-                  <Calendar className="h-4 w-4 text-warning" />
+                  <Calendar className="h-4 w-4 text-primary" />
                 )}
               </div>
               <div>
-                <p className="font-medium text-sm line-clamp-1">{fd.asset_name}</p>
+                <p className="font-medium text-sm text-foreground line-clamp-1">{fd.asset_name}</p>
                 <p className="text-xs text-muted-foreground">
                   {fd.bank_name && `${fd.bank_name} • `}
                   Matures {format(parseISO(fd.maturity_date!), 'dd MMM yyyy')}
@@ -149,7 +149,7 @@ export function FDMaturityAlerts() {
             </div>
             <div className="flex items-center gap-2">
               {getUrgencyBadge(fd.daysToMaturity)}
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
           </Link>
         ))}

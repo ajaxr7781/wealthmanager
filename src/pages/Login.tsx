@@ -39,18 +39,18 @@ export default function Login() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="p-3 rounded-xl gold-gradient">
+          <div className="p-3 rounded-xl bg-primary">
             <Briefcase className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold gold-text-gradient">InvestTracker</h1>
+            <h1 className="text-2xl font-bold text-foreground">InvestTracker</h1>
             <p className="text-sm text-muted-foreground">Portfolio Manager</p>
           </div>
         </div>
 
-        <Card className="border-border/50 shadow-luxury">
+        <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+            <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
             <CardDescription>
               Sign in to your account to continue
             </CardDescription>

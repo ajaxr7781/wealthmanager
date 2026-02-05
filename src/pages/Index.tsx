@@ -18,12 +18,14 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         {/* Header */}
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl lg:text-3xl font-bold">Precious Metals</h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">
+            Portfolio Dashboard
+          </h1>
           <p className="text-muted-foreground">
-            Track your Gold & Silver investments
+            Track your investments across all asset classes
           </p>
         </div>
 
@@ -49,8 +51,14 @@ export default function Dashboard() {
             </div>
           </>
         ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No data yet. Add your first transaction to get started!</p>
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-1">No data yet</h3>
+            <p className="text-muted-foreground mb-4">Add your first transaction to get started!</p>
           </div>
         )}
       </div>
@@ -60,17 +68,17 @@ export default function Dashboard() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="h-32" />
+          <Skeleton key={i} className="h-32 rounded-lg" />
         ))}
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
-        <Skeleton className="lg:col-span-2 h-80" />
+        <Skeleton className="lg:col-span-2 h-80 rounded-lg" />
         <div className="space-y-6">
-          <Skeleton className="h-40" />
-          <Skeleton className="h-32" />
+          <Skeleton className="h-40 rounded-lg" />
+          <Skeleton className="h-32 rounded-lg" />
         </div>
       </div>
     </div>

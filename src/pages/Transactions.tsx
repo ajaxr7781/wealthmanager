@@ -90,11 +90,11 @@ export default function Transactions() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">Transactions</h1>
+            <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Transactions</h1>
             <p className="text-muted-foreground">
               Track all your precious metals trades
             </p>
@@ -140,21 +140,24 @@ export default function Transactions() {
             <CardContent className="p-6">
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+                  <Skeleton key={i} className="h-12 w-full rounded-md" />
                 ))}
               </div>
             </CardContent>
           </Card>
         ) : filteredTransactions.length === 0 ? (
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">
+            <CardContent className="py-16 text-center">
               {allTransactions.length === 0 ? (
                 <>
-                  <p>No transactions yet.</p>
-                  <p className="text-sm mt-1">Add your first transaction to start tracking.</p>
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                    <Plus className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium text-foreground mb-1">No transactions yet</h3>
+                  <p className="text-muted-foreground">Add your first transaction to start tracking.</p>
                 </>
               ) : (
-                <p>No transactions match your filters.</p>
+                <p className="text-muted-foreground">No transactions match your filters.</p>
               )}
             </CardContent>
           </Card>

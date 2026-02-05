@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatNumber } from '@/lib/calculations';
 import { formatShortRelative, formatDateTime } from '@/lib/dateUtils';
-import { Coins, Circle } from 'lucide-react';
+import { Coins, Circle, TrendingUp } from 'lucide-react';
 
 interface LatestPrice {
   price_aed_per_oz: number;
@@ -19,10 +19,10 @@ interface LivePricesProps {
 export function LivePrices({ prices }: LivePricesProps) {
 
   return (
-    <Card className="shadow-luxury">
+    <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <TrendingUpIcon className="h-4 w-4 text-primary" />
+        <CardTitle className="text-base font-medium flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-primary" />
           Live Prices
         </CardTitle>
       </CardHeader>
@@ -30,14 +30,14 @@ export function LivePrices({ prices }: LivePricesProps) {
         {/* Gold */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full gold-gradient flex items-center justify-center">
-              <Coins className="h-4 w-4 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+              <Coins className="h-4 w-4 text-white" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Gold (XAU)</p>
+              <p className="text-sm font-medium text-foreground">Gold (XAU)</p>
               {prices?.XAU ? (
                 <>
-                  <p className="text-lg font-bold text-gold">
+                  <p className="text-lg font-semibold text-foreground">
                     AED {formatNumber(prices.XAU.price_aed_per_oz, 2)}/oz
                   </p>
                   <p 
@@ -57,14 +57,14 @@ export function LivePrices({ prices }: LivePricesProps) {
         {/* Silver */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-silver flex items-center justify-center">
-              <Circle className="h-4 w-4 text-white fill-white" />
+            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+              <Circle className="h-4 w-4 text-muted-foreground fill-muted-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Silver (XAG)</p>
+              <p className="text-sm font-medium text-foreground">Silver (XAG)</p>
               {prices?.XAG ? (
                 <>
-                  <p className="text-lg font-bold text-silver">
+                  <p className="text-lg font-semibold text-foreground">
                     AED {formatNumber(prices.XAG.price_aed_per_oz, 2)}/oz
                   </p>
                   <p 
@@ -82,25 +82,5 @@ export function LivePrices({ prices }: LivePricesProps) {
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function TrendingUpIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-      <polyline points="16 7 22 7 22 13" />
-    </svg>
   );
 }
