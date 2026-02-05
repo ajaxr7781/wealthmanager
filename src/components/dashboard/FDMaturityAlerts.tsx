@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,21 +7,32 @@ import { Bell, Calendar, ChevronRight, AlertTriangle, TrendingUp } from 'lucide-
 import { cn } from '@/lib/utils';
 import { differenceInDays, format, parseISO } from 'date-fns';
 import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+type FilterDays = '30' | '60' | '90';
 
 export function FDMaturityAlerts() {
+  const [filterDays, setFilterDays] = useState<FilterDays>('90');
   const { data: assets, isLoading } = useAssets();
   const { data: settings } = useUserSettings();
   
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
+  const maxDays = parseInt(filterDays);
 
-  // Filter FDs with upcoming maturity (within 90 days)
+  // Filter FDs with upcoming maturity (within selected days)
   const upcomingMaturities = assets
     ?.filter(a => {
       if (a.asset_type !== 'fixed_deposit' && a.asset_type_code !== 'fixed_deposit') return false;
       if (!a.maturity_date) return false;
       
       const daysToMaturity = differenceInDays(parseISO(a.maturity_date), new Date());
-      return daysToMaturity >= 0 && daysToMaturity <= 90;
+      return daysToMaturity >= 0 && daysToMaturity <= maxDays;
     })
     .map(a => ({
       ...a,
@@ -57,10 +69,22 @@ export function FDMaturityAlerts() {
   return (
     <Card className="shadow-luxury border-warning/20">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Bell className="h-4 w-4 text-warning" />
-          Upcoming FD Maturities
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Bell className="h-4 w-4 text-warning" />
+            Upcoming FD Maturities
+          </CardTitle>
+          <Select value={filterDays} onValueChange={(v) => setFilterDays(v as FilterDays)}>
+            <SelectTrigger className="w-[100px] h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="30">30 days</SelectItem>
+              <SelectItem value="60">60 days</SelectItem>
+              <SelectItem value="90">90 days</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {/* Total Maturity Summary */}
@@ -74,7 +98,7 @@ export function FDMaturityAlerts() {
               AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
             <p className="text-xs text-muted-foreground">
-              {upcomingMaturities.length} FD{upcomingMaturities.length !== 1 ? 's' : ''} in next 90 days
+              {upcomingMaturities.length} FD{upcomingMaturities.length !== 1 ? 's' : ''} in next {filterDays} days
             </p>
           </div>
         </div>
