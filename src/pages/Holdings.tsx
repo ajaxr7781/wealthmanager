@@ -10,7 +10,7 @@ import { DEFAULT_INR_TO_AED } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Coins, Circle, Info, Plus, ChevronRight, Package, LineChart, Calendar } from 'lucide-react';
+import { Coins, Circle, Info, Plus, ChevronRight, Package, LineChart, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { formatOz, formatGrams, formatCurrency, formatPercent, formatPL } from '@/lib/calculations';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { cn } from '@/lib/utils';
@@ -188,15 +188,15 @@ export default function Holdings() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">All Holdings</h1>
+            <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">All Holdings</h1>
             <p className="text-muted-foreground">Your complete investment portfolio</p>
           </div>
           <Link to="/assets/new">
-            <Button className="gold-gradient text-primary-foreground">
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Add Asset
             </Button>
@@ -205,13 +205,15 @@ export default function Holdings() {
 
         {/* Portfolio Summary */}
         {overview && (
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">AED {overview.total_current_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                <p className="text-2xl font-semibold text-foreground">
+                  AED {overview.total_current_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -219,16 +221,25 @@ export default function Holdings() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Invested</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">AED {overview.total_invested.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                <p className="text-2xl font-semibold text-foreground">
+                  AED {overview.total_invested.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total P/L</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  Total P/L
+                  {overview.total_profit_loss >= 0 ? (
+                    <ArrowUpRight className="h-4 w-4 text-positive" />
+                  ) : (
+                    <ArrowDownRight className="h-4 w-4 text-negative" />
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className={cn(
-                  "text-2xl font-bold",
+                  "text-2xl font-semibold",
                   overview.total_profit_loss >= 0 ? "text-positive" : "text-negative"
                 )}>
                   {overview.total_profit_loss >= 0 ? '+' : ''}AED {overview.total_profit_loss.toLocaleString('en-US', { maximumFractionDigits: 0 })}
@@ -240,7 +251,9 @@ export default function Holdings() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Asset Count</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{overview.assets_by_type.reduce((sum, a) => sum + a.count, 0)}</p>
+                <p className="text-2xl font-semibold text-foreground">
+                  {overview.assets_by_type.reduce((sum, a) => sum + a.count, 0)}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -248,10 +261,10 @@ export default function Holdings() {
 
         {isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-40" />)}
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 rounded-lg" />)}
           </div>
         ) : sortedCategories.length > 0 ? (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Category Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {sortedCategories.map((category) => {
@@ -263,7 +276,7 @@ export default function Holdings() {
 
                 return (
                   <Link key={category.id} to={category.path}>
-                    <Card className="shadow-luxury hover:shadow-lg transition-shadow cursor-pointer h-full">
+                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer h-full group">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -274,13 +287,13 @@ export default function Holdings() {
                               <Icon className="h-5 w-5" />
                             </div>
                             <div>
-                              <CardTitle className="text-base">{category.name}</CardTitle>
+                              <CardTitle className="text-base font-medium">{category.name}</CardTitle>
                               <p className="text-sm text-muted-foreground">
                                 {category.count} {isSip ? 'active' : 'holding'}{category.count !== 1 ? 's' : ''}
                               </p>
                             </div>
                           </div>
-                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2">
@@ -288,14 +301,18 @@ export default function Holdings() {
                           <span className="text-sm text-muted-foreground">
                             {isSip ? 'Monthly' : 'Value'}
                           </span>
-                          <span className="font-medium">
+                          <span className="font-medium text-foreground">
                             AED {category.totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                           </span>
                         </div>
                         {!isSip && (
                           <div className="flex justify-between">
                             <span className="text-sm text-muted-foreground">P/L</span>
-                            <span className={cn("font-medium", isProfit ? "text-positive" : "text-negative")}>
+                            <span className={cn(
+                              "font-medium flex items-center gap-1",
+                              isProfit ? "text-positive" : "text-negative"
+                            )}>
+                              {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                               {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
                             </span>
                           </div>
@@ -309,10 +326,10 @@ export default function Holdings() {
 
             {/* Precious Metals Detail Section (if exists) */}
             {metalsSummary && metalsSummary.instruments.some(i => i.holding_oz > 0) && (
-              <Card className="shadow-luxury">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Coins className="h-5 w-5 text-gold" />
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Coins className="h-5 w-5 text-primary" />
                     Precious Metals Detail
                   </CardTitle>
                 </CardHeader>
@@ -323,12 +340,15 @@ export default function Holdings() {
                       const isGold = inst.symbol === 'XAU';
                       
                       return (
-                        <div key={inst.symbol} className="p-4 rounded-lg border space-y-4">
+                        <div key={inst.symbol} className="p-4 rounded-lg border border-border bg-muted/30 space-y-4">
                           <div className="flex items-center gap-3">
-                            <div className={cn("p-2 rounded-lg", isGold ? "gold-gradient" : "bg-silver")}>
-                              {isGold ? <Coins className="h-5 w-5 text-white" /> : <Circle className="h-5 w-5 text-white fill-white" />}
+                            <div className={cn(
+                              "p-2 rounded-lg",
+                              isGold ? "bg-amber-500" : "bg-muted"
+                            )}>
+                              {isGold ? <Coins className="h-5 w-5 text-white" /> : <Circle className="h-5 w-5 text-foreground fill-foreground" />}
                             </div>
-                            <span className="font-medium">{inst.name} ({inst.symbol})</span>
+                            <span className="font-medium text-foreground">{inst.name} ({inst.symbol})</span>
                           </div>
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <MetricRow label="Holdings (oz)" value={formatOz(inst.holding_oz)} />
@@ -336,9 +356,9 @@ export default function Holdings() {
                             <MetricRow label="Avg Cost (AED/oz)" value={formatCurrency(inst.average_cost_aed_per_oz, false)} />
                             <MetricRow label="Current Value" value={inst.current_value_aed !== null ? formatCurrency(inst.current_value_aed) : 'N/A'} />
                           </div>
-                          <div className="flex justify-between pt-2 border-t">
+                          <div className="flex justify-between pt-2 border-t border-border">
                             <span className="text-muted-foreground">Unrealized P/L</span>
-                            <span className={cn("font-bold", pl.colorClass)}>
+                            <span className={cn("font-semibold", pl.colorClass)}>
                               {pl.text} {inst.unrealized_pl_pct !== null && `(${formatPercent(inst.unrealized_pl_pct)})`}
                             </span>
                           </div>
@@ -352,10 +372,14 @@ export default function Holdings() {
           </div>
         ) : (
           <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">No holdings yet. Start tracking your investments!</p>
+            <CardContent className="py-16 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                <Plus className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium text-foreground mb-1">No holdings yet</h3>
+              <p className="text-muted-foreground mb-6">Start tracking your investments!</p>
               <Link to="/assets/new">
-                <Button className="gold-gradient text-primary-foreground">
+                <Button>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Asset
                 </Button>
@@ -377,7 +401,7 @@ function MetricRow({ label, value, tooltip }: { label: string; value: string; to
           <Tooltip><TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger><TooltipContent>{tooltip}</TooltipContent></Tooltip>
         )}
       </div>
-      <p className="font-mono font-medium">{value}</p>
+      <p className="font-mono font-medium text-foreground">{value}</p>
     </div>
   );
 }

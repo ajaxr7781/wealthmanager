@@ -21,11 +21,11 @@ export default function Portfolio() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">Portfolio</h1>
+            <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Portfolio</h1>
             <p className="text-muted-foreground">
               Your unified investment overview
             </p>
@@ -41,7 +41,7 @@ export default function Portfolio() {
               Refresh All
             </Button>
             <Link to="/assets/new">
-              <Button size="sm" className="gold-gradient text-primary-foreground">
+              <Button size="sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Asset
               </Button>
@@ -86,17 +86,17 @@ export default function Portfolio() {
 
 function PortfolioSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Skeleton key={i} className="h-32" />
+          <Skeleton key={i} className="h-32 rounded-lg" />
         ))}
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
-        <Skeleton className="lg:col-span-2 h-80" />
-        <Skeleton className="h-48" />
+        <Skeleton className="lg:col-span-2 h-80 rounded-lg" />
+        <Skeleton className="h-48 rounded-lg" />
       </div>
-      <Skeleton className="h-64" />
+      <Skeleton className="h-64 rounded-lg" />
     </div>
   );
 }
@@ -104,15 +104,15 @@ function PortfolioSkeleton() {
 function EmptyState() {
   return (
     <div className="text-center py-16">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
         <Plus className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-semibold mb-2">No assets yet</h3>
+      <h3 className="text-lg font-medium text-foreground mb-1">No assets yet</h3>
       <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
         Start tracking your investments by adding your first asset.
       </p>
       <Link to="/assets/new">
-        <Button className="gold-gradient text-primary-foreground">
+        <Button>
           <Plus className="h-4 w-4 mr-2" />
           Add Your First Asset
         </Button>

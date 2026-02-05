@@ -5,8 +5,8 @@ import { useAssets, usePortfolioOverview } from '@/hooks/useAssets';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, FileSpreadsheet, FileText, TrendingUp, TrendingDown, Calendar } from 'lucide-react';
-import { formatCurrency } from '@/lib/calculations';
+import { Download, FileSpreadsheet, FileText, TrendingUp, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { Asset } from '@/types/assets';
@@ -82,10 +82,10 @@ export default function Reports() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-6 lg:p-8 space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Reports & Analytics</h1>
+          <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Reports & Analytics</h1>
           <p className="text-muted-foreground">
             Export data and analyze your investment performance
           </p>
@@ -93,35 +93,42 @@ export default function Reports() {
 
         {/* Summary Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="shadow-luxury">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Portfolio Value</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-semibold text-foreground">
                 {overview ? `AED ${overview.total_current_value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '—'}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-luxury">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Invested</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-semibold text-foreground">
                 {overview ? `AED ${overview.total_invested.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}` : '—'}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-luxury">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total P/L</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                Total P/L
+                {overview && overview.total_profit_loss >= 0 ? (
+                  <ArrowUpRight className="h-4 w-4 text-positive" />
+                ) : (
+                  <ArrowDownRight className="h-4 w-4 text-negative" />
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className={cn(
-                "text-2xl font-bold",
+                "text-2xl font-semibold",
                 overview && overview.total_profit_loss >= 0 ? "text-positive" : "text-negative"
               )}>
                 {overview ? (
@@ -137,12 +144,12 @@ export default function Reports() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-luxury">
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Asset Count</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-semibold text-foreground">
                 {overview ? overview.assets_by_type.reduce((sum, a) => sum + a.count, 0) : 0}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -152,7 +159,7 @@ export default function Reports() {
           </Card>
         </div>
 
-        <Tabs defaultValue="export" className="space-y-4">
+        <Tabs defaultValue="export" className="space-y-6">
           <TabsList>
             <TabsTrigger value="export">Export Data</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -161,10 +168,10 @@ export default function Reports() {
 
           <TabsContent value="export" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <Card className="shadow-luxury">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileSpreadsheet className="h-5 w-5 text-primary" />
                     Precious Metals Transactions
                   </CardTitle>
                   <CardDescription>
@@ -186,10 +193,10 @@ export default function Reports() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-luxury">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <FileText className="h-5 w-5 text-primary" />
                     All Assets
                   </CardTitle>
                   <CardDescription>
@@ -215,7 +222,7 @@ export default function Reports() {
 
           <TabsContent value="performance" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <Card className="shadow-luxury">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-positive">
                     <TrendingUp className="h-5 w-5" />
@@ -238,7 +245,7 @@ export default function Reports() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-luxury">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-negative">
                     <TrendingDown className="h-5 w-5" />
@@ -264,7 +271,7 @@ export default function Reports() {
           </TabsContent>
 
           <TabsContent value="allocation" className="space-y-4">
-            <Card className="shadow-luxury">
+            <Card>
               <CardHeader>
                 <CardTitle>Asset Allocation by Type</CardTitle>
                 <CardDescription>Breakdown of your portfolio by asset category</CardDescription>
@@ -282,20 +289,21 @@ export default function Reports() {
                         <div key={category.type} className="space-y-2">
                           <div className="flex justify-between items-center">
                             <div>
-                              <span className="font-medium">{category.label}</span>
+                              <span className="font-medium text-foreground">{category.label}</span>
                               <span className="text-sm text-muted-foreground ml-2">
                                 ({category.count} asset{category.count !== 1 ? 's' : ''})
                               </span>
                             </div>
                             <div className="text-right">
-                              <span className="font-medium">
+                              <span className="font-medium text-foreground">
                                 AED {category.current_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                               </span>
                               <span className={cn(
-                                "text-sm ml-2",
+                                "text-sm ml-2 inline-flex items-center gap-0.5",
                                 isProfit ? "text-positive" : "text-negative"
                               )}>
-                                ({isProfit ? '+' : ''}{((category.profit_loss / category.total_invested) * 100).toFixed(1)}%)
+                                {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                                {isProfit ? '+' : ''}{((category.profit_loss / category.total_invested) * 100).toFixed(1)}%
                               </span>
                             </div>
                           </div>
@@ -333,9 +341,9 @@ function PerformanceRow({ asset }: { asset: Asset }) {
   const isProfit = profitLoss >= 0;
 
   return (
-    <div className="flex justify-between items-center p-3 rounded-lg bg-muted/50">
+    <div className="flex justify-between items-center p-3 rounded-lg bg-muted/30 border border-border">
       <div>
-        <p className="font-medium text-sm">{asset.asset_name}</p>
+        <p className="font-medium text-sm text-foreground">{asset.asset_name}</p>
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           {format(new Date(asset.purchase_date), 'MMM yyyy')}
@@ -343,9 +351,10 @@ function PerformanceRow({ asset }: { asset: Asset }) {
       </div>
       <div className="text-right">
         <p className={cn(
-          "font-medium text-sm",
+          "font-medium text-sm flex items-center gap-0.5",
           isProfit ? "text-positive" : "text-negative"
         )}>
+          {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
           {isProfit ? '+' : ''}{profitLossPercent.toFixed(1)}%
         </p>
         <p className="text-xs text-muted-foreground">

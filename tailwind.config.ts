@@ -56,7 +56,11 @@ export default {
           DEFAULT: "hsl(var(--negative))",
           foreground: "hsl(var(--negative-foreground))",
         },
-        // Metal colors
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        // Metal colors (legacy)
         gold: {
           DEFAULT: "hsl(var(--gold-metal))",
         },
@@ -72,6 +76,7 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+          muted: "hsl(var(--sidebar-muted))",
         },
       },
       borderRadius: {
@@ -81,7 +86,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Cal Sans", "Inter", "system-ui", "sans-serif"],
+        display: ["Inter", "system-ui", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
@@ -111,10 +116,6 @@ export default {
         shimmer: "shimmer 2s linear infinite",
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
-      },
-      backgroundImage: {
-        "gold-gradient": "linear-gradient(135deg, hsl(43 74% 49%) 0%, hsl(38 92% 50%) 50%, hsl(43 74% 49%) 100%)",
-        "emerald-gradient": "linear-gradient(135deg, hsl(161 80% 17%) 0%, hsl(161 80% 25%) 100%)",
       },
     },
   },

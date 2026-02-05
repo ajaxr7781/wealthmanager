@@ -3,123 +3,130 @@
 @tailwind utilities;
 
 /* 
- * InvestTracker - Portfolio Manager Theme
+ * InvestTracker - Professional SaaS Theme
+ * Palette: Charcoal + Slate Blue + White
  * All colors in HSL format
  */
 
 @layer base {
   :root {
-    /* Light Mode - Warm Ivory with Gold & Emerald accents */
-    --background: 48 100% 98%; /* Warm ivory #FFFBF0 */
-    --foreground: 222 47% 11%; /* Dark slate */
+    /* Light Mode - Clean Professional SaaS */
+    --background: 210 20% 98%; /* #F9FAFB */
+    --foreground: 221 39% 11%; /* #111827 */
 
-    --card: 0 0% 100%; /* Pure white cards */
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 221 39% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 221 39% 11%;
 
-    /* Primary: Deep Emerald */
-    --primary: 161 80% 17%; /* #064E3B */
-    --primary-foreground: 48 100% 96%;
+    /* Primary: Slate Blue */
+    --primary: 217 91% 60%; /* #3B82F6 */
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Rich Gold */
-    --secondary: 43 74% 49%; /* #D4AF37 */
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary: Charcoal */
+    --secondary: 220 13% 91%; /* Light gray for secondary buttons */
+    --secondary-foreground: 220 13% 17%;
 
-    --muted: 48 30% 92%;
-    --muted-foreground: 222 20% 45%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%; /* #6B7280 */
 
-    /* Accent: Bright Gold */
-    --accent: 38 92% 50%; /* #F59E0B */
-    --accent-foreground: 222 47% 11%;
+    /* Accent: Slate Blue tint */
+    --accent: 217 91% 97%; /* Light blue hover */
+    --accent-foreground: 217 91% 50%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Positive/Success: Emerald Green */
-    --positive: 161 80% 35%;
+    /* Positive/Success: Muted Green */
+    --positive: 142 71% 45%;
     --positive-foreground: 0 0% 100%;
 
-    /* Negative/Loss: Red */
+    /* Negative/Loss: Muted Red */
     --negative: 0 72% 51%;
     --negative-foreground: 0 0% 100%;
 
-    --border: 48 30% 85%;
-    --input: 48 30% 85%;
-    --ring: 161 80% 17%;
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 221 39% 11%;
 
-    --radius: 0.75rem;
+    --border: 220 13% 91%; /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;
 
-    /* Custom gradients for Gold shimmer */
-    --gold-gradient-start: 43 74% 49%;
-    --gold-gradient-end: 38 92% 50%;
-    
-    /* Metal colors */
+    --radius: 0.5rem;
+
+    /* Metal colors (for legacy support) */
     --gold-metal: 43 74% 49%;
     --silver-metal: 210 11% 71%;
 
-    /* Sidebar - Clean black theme */
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 43 74% 49%;
-    --sidebar-primary-foreground: 0 0% 7%;
-    --sidebar-accent: 0 0% 14%;
+    /* Sidebar: Charcoal */
+    --sidebar-background: 220 13% 17%; /* #1F2937 */
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 91% 60%; /* Slate blue active */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 23%; /* Hover state */
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 43 74% 49%;
+    --sidebar-border: 220 13% 26%;
+    --sidebar-ring: 217 91% 60%;
+    --sidebar-muted: 220 9% 60%; /* Muted text in sidebar */
   }
 
   .dark {
-    /* Dark Mode - Deep Slate with Gold & Emerald accents */
-    --background: 222 47% 8%; /* Deep slate #0F172A */
-    --foreground: 48 100% 96%;
+    /* Dark Mode - Professional Dark SaaS */
+    --background: 220 13% 10%; /* Deep charcoal */
+    --foreground: 210 20% 98%;
 
-    --card: 222 47% 11%; /* Darker slate cards #1E293B */
-    --card-foreground: 48 100% 96%;
+    --card: 220 13% 14%; /* Slightly lighter cards */
+    --card-foreground: 210 20% 98%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 48 100% 96%;
+    --popover: 220 13% 14%;
+    --popover-foreground: 210 20% 98%;
 
-    /* Primary: Rich Gold in dark mode */
-    --primary: 43 74% 49%; /* #D4AF37 */
-    --primary-foreground: 222 47% 11%;
+    /* Primary: Slate Blue */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Emerald */
-    --secondary: 161 80% 25%;
-    --secondary-foreground: 48 100% 96%;
+    /* Secondary */
+    --secondary: 220 13% 22%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 222 30% 18%;
-    --muted-foreground: 48 20% 65%;
+    --muted: 220 13% 18%;
+    --muted-foreground: 220 9% 60%;
 
-    /* Accent: Bright Gold */
-    --accent: 38 92% 50%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent */
+    --accent: 217 91% 20%;
+    --accent-foreground: 217 91% 70%;
 
     --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
     /* Positive/Success */
-    --positive: 161 80% 45%;
-    --positive-foreground: 222 47% 11%;
+    --positive: 142 71% 45%;
+    --positive-foreground: 0 0% 100%;
 
     /* Negative/Loss */
     --negative: 0 72% 55%;
     --negative-foreground: 0 0% 100%;
 
-    --border: 222 30% 20%;
-    --input: 222 30% 20%;
-    --ring: 43 74% 49%;
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 220 13% 10%;
 
-    /* Sidebar dark - Clean black theme */
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 43 74% 49%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 43 74% 49%;
+    --border: 220 13% 22%;
+    --input: 220 13% 22%;
+    --ring: 217 91% 60%;
+
+    /* Sidebar dark */
+    --sidebar-background: 220 13% 8%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 13% 14%;
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-border: 220 13% 18%;
+    --sidebar-ring: 217 91% 60%;
+    --sidebar-muted: 220 9% 55%;
   }
 }
 
@@ -135,67 +142,63 @@
 }
 
 @layer utilities {
-  /* Gold shimmer gradient */
-  .gold-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--gold-gradient-start)) 0%,
-      hsl(var(--gold-gradient-end)) 50%,
-      hsl(var(--gold-gradient-start)) 100%
-    );
+  /* Professional card shadow */
+  .shadow-sm-pro {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   }
 
-  /* Gold text gradient */
+  .shadow-pro {
+    box-shadow: 
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .shadow-md-pro {
+    box-shadow: 
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  /* Legacy support for gold gradients */
+  .gold-gradient {
+    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
+  }
+
   .gold-text-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--gold-gradient-start)) 0%,
-      hsl(var(--gold-gradient-end)) 50%,
-      hsl(var(--gold-gradient-start)) 100%
-    );
+    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Emerald gradient */
-  .emerald-gradient {
-    background: linear-gradient(
-      135deg,
-      hsl(161, 80%, 17%) 0%,
-      hsl(161, 80%, 25%) 100%
-    );
+  /* Primary gradient (slate blue) */
+  .primary-gradient {
+    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
   }
 
-  /* Card with gold border effect */
-  .card-gold-border {
+  /* Card with accent border */
+  .card-accent-border {
     @apply relative overflow-hidden;
   }
   
-  .card-gold-border::before {
+  .card-accent-border::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(
-      90deg,
-      hsl(var(--gold-gradient-start)),
-      hsl(var(--gold-gradient-end)),
-      hsl(var(--gold-gradient-start))
-    );
+    background: hsl(217 91% 60%);
   }
 
-  /* Luxury shadow */
+  /* Luxury shadow (legacy support) */
   .shadow-luxury {
     box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
-  /* Metal icon colors */
+  /* Metal icon colors (legacy) */
   .text-gold-metal {
     color: hsl(var(--gold-metal));
   }
@@ -211,13 +214,27 @@
   .bg-silver-metal {
     background-color: hsl(var(--silver-metal));
   }
+
+  /* Table zebra striping */
+  .table-zebra tbody tr:nth-child(even) {
+    @apply bg-muted/30;
+  }
+
+  /* Hover states */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-0.5 shadow-md-pro;
+  }
 }
 
 /* Custom scrollbar */
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted)) transparent;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
   
   .scrollbar-thin::-webkit-scrollbar {
@@ -236,5 +253,12 @@
   
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* Focus visible for accessibility */
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 }

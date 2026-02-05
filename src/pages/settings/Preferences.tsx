@@ -36,7 +36,7 @@ export default function PreferencesSettings() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 space-y-6">
+        <div className="p-6 lg:p-8 space-y-6">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64" />
         </div>
@@ -46,15 +46,15 @@ export default function PreferencesSettings() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6 max-w-2xl">
+      <div className="p-6 lg:p-8 space-y-8 max-w-2xl">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Preferences</h1>
+          <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Preferences</h1>
           <p className="text-muted-foreground">
             Configure your currency rates and display preferences
           </p>
         </div>
 
-        <Card className="shadow-luxury">
+        <Card>
           <CardHeader>
             <CardTitle>Currency Conversion</CardTitle>
             <CardDescription>
@@ -93,7 +93,7 @@ export default function PreferencesSettings() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-luxury">
+        <Card>
           <CardHeader>
             <CardTitle>Price Updates</CardTitle>
             <CardDescription>
@@ -119,7 +119,6 @@ export default function PreferencesSettings() {
         <Button 
           onClick={handleSave} 
           disabled={updateSettings.isPending}
-          className="gold-gradient text-primary-foreground"
         >
           <Save className="h-4 w-4 mr-2" />
           {updateSettings.isPending ? 'Saving...' : 'Save Preferences'}

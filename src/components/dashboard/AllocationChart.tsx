@@ -14,24 +14,25 @@ export function AllocationChart({ summary }: AllocationChartProps) {
   const silverValue = silverInstrument?.current_value_aed ?? silverInstrument?.cost_basis_aed ?? 0;
   const totalValue = goldValue + silverValue;
 
+  // Using primary blue for Gold and muted for Silver in the new SaaS theme
   const data = [
     { 
       name: 'Gold (XAU)', 
       value: goldValue, 
-      color: 'hsl(43, 74%, 49%)', // Gold color
+      color: 'hsl(217, 91%, 60%)', // Slate blue (primary)
       percent: totalValue > 0 ? (goldValue / totalValue * 100) : 0,
     },
     { 
       name: 'Silver (XAG)', 
       value: silverValue, 
-      color: 'hsl(210, 11%, 71%)', // Silver color
+      color: 'hsl(220, 13%, 69%)', // Muted gray
       percent: totalValue > 0 ? (silverValue / totalValue * 100) : 0,
     },
   ].filter(d => d.value > 0);
 
   if (data.length === 0) {
     return (
-      <Card className="shadow-luxury">
+      <Card>
         <CardHeader>
           <CardTitle>Portfolio Allocation</CardTitle>
         </CardHeader>
@@ -43,7 +44,7 @@ export function AllocationChart({ summary }: AllocationChartProps) {
   }
 
   return (
-    <Card className="shadow-luxury">
+    <Card>
       <CardHeader>
         <CardTitle>Portfolio Allocation</CardTitle>
       </CardHeader>
@@ -70,6 +71,10 @@ export function AllocationChart({ summary }: AllocationChartProps) {
                   backgroundColor: 'hsl(var(--card))',
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
+                  color: 'hsl(var(--foreground))',
+                }}
+                labelStyle={{
+                  color: 'hsl(var(--foreground))',
                 }}
               />
               <Legend
@@ -92,7 +97,7 @@ export function AllocationChart({ summary }: AllocationChartProps) {
                 style={{ backgroundColor: item.color }}
               />
               <div>
-                <p className="text-sm font-medium">{item.name}</p>
+                <p className="text-sm font-medium text-foreground">{item.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatCurrency(item.value)}
                 </p>

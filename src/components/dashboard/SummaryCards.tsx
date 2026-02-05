@@ -79,7 +79,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {cards.map((card) => (
-        <Card key={card.title} className="card-gold-border shadow-luxury">
+        <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               {card.title}
@@ -88,16 +88,16 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
               "h-4 w-4",
               card.positive && "text-positive",
               card.negative && "text-negative",
-              card.warning && "text-accent",
+              card.warning && "text-warning",
               !card.positive && !card.negative && !card.warning && "text-muted-foreground"
             )} />
           </CardHeader>
           <CardContent>
             <div className={cn(
-              "text-2xl font-bold",
+              "text-2xl font-semibold",
               card.positive && "text-positive",
               card.negative && "text-negative",
-              card.warning && "text-accent"
+              card.warning && "text-warning"
             )}>
               {card.value}
               {card.subValue && (
