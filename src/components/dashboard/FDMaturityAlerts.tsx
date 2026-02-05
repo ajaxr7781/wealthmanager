@@ -1,13 +1,17 @@
 import { Link } from 'react-router-dom';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssets, useUserSettings } from '@/hooks/useAssets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Bell, Calendar, ChevronRight, AlertTriangle, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { differenceInDays, format, parseISO } from 'date-fns';
+import { DEFAULT_INR_TO_AED } from '@/types/assets';
 
 export function FDMaturityAlerts() {
   const { data: assets, isLoading } = useAssets();
+  const { data: settings } = useUserSettings();
+  
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   // Filter FDs with upcoming maturity (within 90 days)
   const upcomingMaturities = assets
@@ -21,9 +25,20 @@ export function FDMaturityAlerts() {
     .map(a => ({
       ...a,
       daysToMaturity: differenceInDays(parseISO(a.maturity_date!), new Date()),
+      maturityAmountAed: a.maturity_amount 
+        ? a.currency === 'INR' 
+          ? Number(a.maturity_amount) * inrToAed 
+          : Number(a.maturity_amount)
+        : 0,
     }))
     .sort((a, b) => a.daysToMaturity - b.daysToMaturity)
     .slice(0, 5) || [];
+
+  // Calculate total maturity value in AED
+  const totalMaturityValueAed = upcomingMaturities.reduce(
+    (sum, fd) => sum + fd.maturityAmountAed,
+    0
+  );
 
   if (isLoading || upcomingMaturities.length === 0) {
     return null;
@@ -41,13 +56,30 @@ export function FDMaturityAlerts() {
 
   return (
     <Card className="shadow-luxury border-warning/20">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           <Bell className="h-4 w-4 text-warning" />
           Upcoming FD Maturities
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Total Maturity Summary */}
+        <div className="flex items-center justify-between p-3 rounded-lg bg-positive/10 border border-positive/20">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-positive" />
+            <span className="text-sm font-medium">Total Maturing</span>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-bold text-positive">
+              AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {upcomingMaturities.length} FD{upcomingMaturities.length !== 1 ? 's' : ''} in next 90 days
+            </p>
+          </div>
+        </div>
+
+        {/* Individual FD List */}
         {upcomingMaturities.map((fd) => (
           <Link
             key={fd.id}
@@ -72,9 +104,22 @@ export function FDMaturityAlerts() {
                   Matures {format(parseISO(fd.maturity_date!), 'dd MMM yyyy')}
                 </p>
                 {fd.maturity_amount && (
-                  <p className="text-xs font-medium text-positive mt-0.5">
-                    {fd.currency} {Number(fd.maturity_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
-                  </p>
+                  <div className="mt-0.5">
+                    {fd.currency === 'INR' ? (
+                      <>
+                        <p className="text-xs font-medium text-positive">
+                          ₹{Number(fd.maturity_amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          ≈ AED {fd.maturityAmountAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-xs font-medium text-positive">
+                        AED {Number(fd.maturity_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
