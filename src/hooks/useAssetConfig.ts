@@ -10,22 +10,26 @@ import type {
 } from '@/types/assetConfig';
 
 /**
- * Fetch all asset categories
+ * Fetch all asset categories (including inactive for settings)
  */
-export function useAssetCategories() {
+export function useAssetCategories(includeInactive = false) {
   return useQuery({
-    queryKey: ['asset-categories'],
+    queryKey: ['asset-categories', includeInactive],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('asset_categories')
         .select('*')
-        .eq('is_active', true)
         .order('display_order');
 
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as AssetCategory[];
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -53,23 +57,30 @@ export function useAssetTypes() {
 }
 
 /**
- * Fetch categories with nested asset types (for navigation)
+ * Fetch categories with nested asset types (for navigation/settings)
  */
-export function useCategoriesWithTypes() {
+export function useCategoriesWithTypes(includeInactive = false) {
   return useQuery({
-    queryKey: ['categories-with-types'],
+    queryKey: ['categories-with-types', includeInactive],
     queryFn: async () => {
+      let categoriesQuery = supabase
+        .from('asset_categories')
+        .select('*')
+        .order('display_order');
+
+      let typesQuery = supabase
+        .from('asset_types')
+        .select('*')
+        .order('display_order');
+
+      if (!includeInactive) {
+        categoriesQuery = categoriesQuery.eq('is_active', true);
+        typesQuery = typesQuery.eq('is_active', true);
+      }
+
       const [categoriesResult, typesResult] = await Promise.all([
-        supabase
-          .from('asset_categories')
-          .select('*')
-          .eq('is_active', true)
-          .order('display_order'),
-        supabase
-          .from('asset_types')
-          .select('*')
-          .eq('is_active', true)
-          .order('display_order'),
+        categoriesQuery,
+        typesQuery,
       ]);
 
       if (categoriesResult.error) throw categoriesResult.error;
@@ -247,6 +258,95 @@ export function useToggleAssetType() {
       queryClient.invalidateQueries({ queryKey: ['asset-types'] });
       queryClient.invalidateQueries({ queryKey: ['categories-with-types'] });
       toast.success('Asset type updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update: ' + error.message);
+    },
+  });
+}
+
+/**
+ * Create a new asset category
+ */
+export function useCreateAssetCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      code: string;
+      name: string;
+      icon?: string;
+      color?: string;
+      display_order?: number;
+    }) => {
+      const { error } = await supabase
+        .from('asset_categories')
+        .insert(data);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['asset-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-with-types'] });
+      toast.success('Category created');
+    },
+    onError: (error) => {
+      toast.error('Failed to create category: ' + error.message);
+    },
+  });
+}
+
+/**
+ * Update an asset category
+ */
+export function useUpdateAssetCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<{
+      name: string;
+      icon: string;
+      color: string;
+      is_active: boolean;
+      display_order: number;
+    }>) => {
+      const { error } = await supabase
+        .from('asset_categories')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['asset-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-with-types'] });
+      toast.success('Category updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update category: ' + error.message);
+    },
+  });
+}
+
+/**
+ * Toggle asset category active status
+ */
+export function useToggleAssetCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase
+        .from('asset_categories')
+        .update({ is_active })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['asset-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-with-types'] });
+      toast.success('Category updated');
     },
     onError: (error) => {
       toast.error('Failed to update: ' + error.message);
