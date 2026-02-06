@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass, VALUATION_METHOD_LABELS } from '@/types/assetConfig';
+import { AddAssetTypeDialog } from '@/components/settings/AddAssetTypeDialog';
 
 const IconMap: Record<string, typeof Coins> = {
   Coins,
@@ -59,11 +60,14 @@ export default function AssetTypesSettings() {
   return (
     <AppLayout>
       <div className="p-4 lg:p-8 space-y-6">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Asset Types</h1>
-          <p className="text-muted-foreground">
-            Manage asset categories and types. Toggle types on/off to show or hide them in the app.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">Asset Types</h1>
+            <p className="text-muted-foreground">
+              Manage asset categories and types. Toggle types on/off to show or hide them in the app.
+            </p>
+          </div>
+          <AddAssetTypeDialog />
         </div>
 
         <div className="space-y-6">
