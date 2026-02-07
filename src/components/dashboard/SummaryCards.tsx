@@ -8,8 +8,8 @@ import {
   Wallet, 
   TrendingUp, 
   TrendingDown,
-  DollarSign,
   BarChart3,
+  PiggyBank,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -26,16 +26,15 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       description: `Buys: ${formatCurrency(summary.total_buys_aed)} - Sells: ${formatCurrency(summary.total_sells_aed)}`,
     },
     {
-      title: 'Current Value',
-      value: summary.current_value_aed !== null 
-        ? formatCurrency(summary.current_value_aed) 
-        : 'Price missing',
-      icon: DollarSign,
-      description: summary.current_value_aed !== null ? 'Based on latest prices' : 'Update prices to see value',
-      warning: summary.current_value_aed === null,
+      title: 'Realized P/L',
+      value: formatCurrency(summary.total_realized_pl_aed),
+      icon: PiggyBank,
+      description: 'From completed sales',
+      positive: summary.total_realized_pl_aed >= 0,
+      negative: summary.total_realized_pl_aed < 0,
     },
     {
-      title: 'Profit / Loss',
+      title: 'Unrealized P/L',
       value: summary.total_unrealized_pl_aed !== null 
         ? formatCurrency(summary.total_unrealized_pl_aed) 
         : '—',
@@ -70,16 +69,14 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
               "h-4 w-4",
               card.positive && "text-positive",
               card.negative && "text-negative",
-              card.warning && "text-warning",
-              !card.positive && !card.negative && !card.warning && "text-muted-foreground"
+              !card.positive && !card.negative && "text-muted-foreground"
             )} />
           </CardHeader>
           <CardContent>
             <div className={cn(
               "text-2xl font-semibold",
               card.positive && "text-positive",
-              card.negative && "text-negative",
-              card.warning && "text-warning"
+              card.negative && "text-negative"
             )}>
               {card.value}
               {card.subValue && (
