@@ -21,16 +21,20 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Trash2, Coins, Circle } from 'lucide-react';
-import { TransactionWithPosition, formatOz, formatCurrency, formatNumber, formatPL } from '@/lib/calculations';
+import { TransactionWithPosition, formatNumber } from '@/lib/calculations';
 import { useDeleteTransaction } from '@/hooks/useTransactions';
 import { cn } from '@/lib/utils';
 
 interface TransactionTableProps {
   transactions: TransactionWithPosition[];
   portfolioId: string;
+  currentPrices: {
+    XAU: number | null;
+    XAG: number | null;
+  };
 }
 
-export function TransactionTable({ transactions, portfolioId }: TransactionTableProps) {
+export function TransactionTable({ transactions, portfolioId, currentPrices }: TransactionTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const deleteTransaction = useDeleteTransaction();
 
@@ -46,6 +50,22 @@ export function TransactionTable({ transactions, portfolioId }: TransactionTable
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  // Calculate current value and % gain for a transaction
+  const calculateCurrentValueAndGain = (tx: TransactionWithPosition) => {
+    const currentPrice = tx.instrument_symbol === 'XAU' ? currentPrices.XAU : currentPrices.XAG;
+    
+    if (currentPrice === null || tx.side === 'SELL') {
+      return { currentValue: null, gainPct: null };
+    }
+    
+    // Current value = quantity bought × current price
+    const currentValue = tx.canonical_quantity_oz * currentPrice;
+    // % Gain = ((current price - buy price) / buy price) × 100
+    const gainPct = ((currentPrice - tx.canonical_price_aed_per_oz) / tx.canonical_price_aed_per_oz) * 100;
+    
+    return { currentValue, gainPct };
   };
 
   return (
@@ -67,13 +87,14 @@ export function TransactionTable({ transactions, portfolioId }: TransactionTable
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="text-right">Holdings After</TableHead>
                   <TableHead className="text-right">Avg Cost After</TableHead>
-                  <TableHead className="text-right">Realized P/L</TableHead>
+                  <TableHead className="text-right">Current Value</TableHead>
+                  <TableHead className="text-right">Gain/Loss %</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => {
-                  const pl = tx.side === 'SELL' ? formatPL(tx.realized_pl_this_tx) : { text: '—', colorClass: 'text-muted-foreground' };
+                  const { currentValue, gainPct } = calculateCurrentValueAndGain(tx);
                   
                   return (
                     <TableRow key={tx.id}>
@@ -136,8 +157,18 @@ export function TransactionTable({ transactions, portfolioId }: TransactionTable
                           ? formatNumber(tx.average_cost_after_aed_per_oz, 2) 
                           : '—'}
                       </TableCell>
-                      <TableCell className={cn("text-right font-mono", pl.colorClass)}>
-                        {pl.text}
+                      <TableCell className="text-right font-mono">
+                        {currentValue !== null 
+                          ? formatNumber(currentValue, 2)
+                          : '—'}
+                      </TableCell>
+                      <TableCell className={cn(
+                        "text-right font-mono",
+                        gainPct !== null && gainPct >= 0 ? "text-positive" : gainPct !== null ? "text-negative" : "text-muted-foreground"
+                      )}>
+                        {gainPct !== null 
+                          ? `${gainPct >= 0 ? '+' : ''}${formatNumber(gainPct, 2)}%`
+                          : '—'}
                       </TableCell>
                       <TableCell>
                         <Button

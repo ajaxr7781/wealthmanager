@@ -165,6 +165,10 @@ export default function Transactions() {
           <TransactionTable 
             transactions={filteredTransactions} 
             portfolioId={portfolio?.id ?? ''}
+            currentPrices={{
+              XAU: prices?.XAU?.price_aed_per_oz ?? null,
+              XAG: prices?.XAG?.price_aed_per_oz ?? null,
+            }}
           />
         )}
       </div>
