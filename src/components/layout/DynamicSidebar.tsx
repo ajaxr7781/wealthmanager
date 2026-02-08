@@ -44,9 +44,10 @@ const IconMap: Record<string, typeof Coins> = {
 interface DynamicSidebarNavProps {
   onItemClick?: () => void;
   isMobile?: boolean;
+  collapsed?: boolean;
 }
 
-export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavProps) {
+export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicSidebarNavProps) {
   const location = useLocation();
   const { data: categoriesWithTypes } = useCategoriesWithTypes();
   const { data: transactionTypes } = useTransactionSupportedTypes();
@@ -76,7 +77,8 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
 
   // Desktop sidebar nav item styling - clean charcoal with slate blue active
   const navItemClass = (active: boolean) => cn(
-    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-150',
+    'flex items-center rounded-md text-sm font-medium transition-all duration-150',
+    collapsed ? 'justify-center px-2 py-2' : 'gap-3 px-3 py-2',
     active
       ? 'bg-primary text-primary-foreground'
       : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
@@ -99,42 +101,51 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         to="/portfolio"
         onClick={onItemClick}
         className={getItemClass(isActive('/portfolio') || isActive('/'))}
+        title={collapsed ? 'Dashboard' : undefined}
       >
-        <LayoutDashboard className="h-4 w-4" />
-        Dashboard
+        <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+        {!collapsed && <span>Dashboard</span>}
       </Link>
 
       {/* Assets Section with Categories */}
       <div className="pt-4">
         <button
-          onClick={() => toggleCategory('assets')}
+          onClick={() => !collapsed && toggleCategory('assets')}
           className={cn(
-            'flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium transition-colors',
+            'flex items-center w-full rounded-md text-sm font-medium transition-colors',
+            collapsed ? 'justify-center px-2 py-2' : 'justify-between px-3 py-2',
             isActivePrefix('/assets') || isActivePrefix('/holdings')
               ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-foreground'
               : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
           )}
+          title={collapsed ? 'Assets' : undefined}
         >
-          <div className="flex items-center gap-3">
-            <Briefcase className="h-4 w-4" />
-            Assets
+          <div className={cn("flex items-center", collapsed ? "" : "gap-3")}>
+            <Briefcase className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span>Assets</span>}
           </div>
-          {expandedCategories.has('assets') ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
+          {!collapsed && (
+            expandedCategories.has('assets') ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
           )}
         </button>
 
-        {expandedCategories.has('assets') && (
-          <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-sidebar-border pl-3">
+        {(expandedCategories.has('assets') || collapsed) && (
+          <div className={cn(
+            "mt-1 space-y-0.5",
+            !collapsed && "ml-4 border-l-2 border-sidebar-border pl-3"
+          )}>
             <Link
               to="/holdings"
               onClick={onItemClick}
               className={getItemClass(isActive('/holdings'))}
+              title={collapsed ? 'All Holdings' : undefined}
             >
-              <Package className="h-4 w-4" />
-              All Holdings
+              <Package className="h-4 w-4 flex-shrink-0" />
+              {!collapsed && <span>All Holdings</span>}
             </Link>
 
             {/* Dynamic category-based links - sorted by value desc, then alphabetically */}
@@ -194,9 +205,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
                   to={item.path}
                   onClick={onItemClick}
                   className={getItemClass(isItemActive)}
+                  title={collapsed ? item.name : undefined}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.name}
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  {!collapsed && <span>{item.name}</span>}
                 </Link>
               );
             })}
@@ -210,9 +222,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
           to="/transactions"
           onClick={onItemClick}
           className={getItemClass(isActive('/transactions'))}
+          title={collapsed ? 'Trades' : undefined}
         >
-          <Receipt className="h-4 w-4" />
-          Trades
+          <Receipt className="h-4 w-4 flex-shrink-0" />
+          {!collapsed && <span>Trades</span>}
         </Link>
       )}
 
@@ -222,9 +235,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
           to="/prices"
           onClick={onItemClick}
           className={getItemClass(isActive('/prices'))}
+          title={collapsed ? 'Market' : undefined}
         >
-          <TrendingUp className="h-4 w-4" />
-          Market
+          <TrendingUp className="h-4 w-4 flex-shrink-0" />
+          {!collapsed && <span>Market</span>}
         </Link>
       )}
 
@@ -233,58 +247,69 @@ export function DynamicSidebarNav({ onItemClick, isMobile }: DynamicSidebarNavPr
         to="/reports"
         onClick={onItemClick}
         className={getItemClass(isActive('/reports'))}
+        title={collapsed ? 'Reports' : undefined}
       >
-        <FileText className="h-4 w-4" />
-        Reports
+        <FileText className="h-4 w-4 flex-shrink-0" />
+        {!collapsed && <span>Reports</span>}
       </Link>
 
       {/* Settings */}
       <div className="pt-4">
         <button
-          onClick={() => toggleCategory('settings')}
+          onClick={() => !collapsed && toggleCategory('settings')}
           className={cn(
-            'flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium transition-colors',
+            'flex items-center w-full rounded-md text-sm font-medium transition-colors',
+            collapsed ? 'justify-center px-2 py-2' : 'justify-between px-3 py-2',
             isActivePrefix('/settings')
               ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-foreground'
               : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
           )}
+          title={collapsed ? 'Settings' : undefined}
         >
-          <div className="flex items-center gap-3">
-            <Settings className="h-4 w-4" />
-            Settings
+          <div className={cn("flex items-center", collapsed ? "" : "gap-3")}>
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span>Settings</span>}
           </div>
-          {expandedCategories.has('settings') ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
+          {!collapsed && (
+            expandedCategories.has('settings') ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )
           )}
         </button>
 
-        {expandedCategories.has('settings') && (
-          <div className="ml-4 mt-1 space-y-0.5 border-l-2 border-sidebar-border pl-3">
+        {(expandedCategories.has('settings') || collapsed) && (
+          <div className={cn(
+            "mt-1 space-y-0.5",
+            !collapsed && "ml-4 border-l-2 border-sidebar-border pl-3"
+          )}>
             <Link
               to="/settings/asset-types"
               onClick={onItemClick}
               className={getItemClass(isActive('/settings/asset-types'))}
+              title={collapsed ? 'Asset Types' : undefined}
             >
-              <Briefcase className="h-4 w-4" />
-              Asset Types
+              <Briefcase className="h-4 w-4 flex-shrink-0" />
+              {!collapsed && <span>Asset Types</span>}
             </Link>
             <Link
               to="/settings/mf-schemes"
               onClick={onItemClick}
               className={getItemClass(isActive('/settings/mf-schemes'))}
+              title={collapsed ? 'MF Schemes' : undefined}
             >
-              <LineChart className="h-4 w-4" />
-              MF Schemes
+              <LineChart className="h-4 w-4 flex-shrink-0" />
+              {!collapsed && <span>MF Schemes</span>}
             </Link>
             <Link
               to="/settings/preferences"
               onClick={onItemClick}
               className={getItemClass(isActive('/settings/preferences'))}
+              title={collapsed ? 'Preferences' : undefined}
             >
-              <Settings className="h-4 w-4" />
-              Preferences
+              <Settings className="h-4 w-4 flex-shrink-0" />
+              {!collapsed && <span>Preferences</span>}
             </Link>
           </div>
         )}
