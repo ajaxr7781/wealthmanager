@@ -75,6 +75,47 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
   const hasTransactionTypes = transactionTypes && transactionTypes.length > 0;
   const hasPriceFeedTypes = priceFeedTypes && priceFeedTypes.length > 0;
 
+  // Memoize sorted asset items - MUST be at top level, not inside conditional render
+  const sortedAssetItems = useMemo(() => {
+    const items = [
+      // Dynamic categories
+      ...(categoriesWithTypes?.filter(cat => cat.asset_types.length > 0).map(category => ({
+        type: 'category' as const,
+        code: category.code,
+        name: category.name,
+        icon: category.icon,
+        path: `/holdings/${category.code}`,
+        totalValue: categoryTotals?.[category.code]?.totalValue || 0,
+      })) || []),
+      // Mutual Funds
+      {
+        type: 'mf' as const,
+        code: 'mutual_funds',
+        name: 'Mutual Funds',
+        icon: 'LineChart',
+        path: '/mf/holdings',
+        totalValue: categoryTotals?.['mutual_funds']?.totalValue || 0,
+      },
+      // SIPs (no value, always at end of zero-value items alphabetically)
+      {
+        type: 'sip' as const,
+        code: 'sips',
+        name: 'My SIPs',
+        icon: 'Calendar',
+        path: '/mf/sips',
+        totalValue: 0,
+      },
+    ];
+
+    // Sort: by value desc, then alphabetically for zero-value items
+    return items.sort((a, b) => {
+      if (a.totalValue !== b.totalValue) {
+        return b.totalValue - a.totalValue; // Descending by value
+      }
+      return a.name.localeCompare(b.name); // Alphabetical for same value
+    });
+  }, [categoriesWithTypes, categoryTotals]);
+
   // Desktop sidebar nav item styling - clean charcoal with slate blue active
   const navItemClass = (active: boolean) => cn(
     'flex items-center rounded-md text-sm font-medium transition-all duration-150',
@@ -149,46 +190,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             </Link>
 
             {/* Dynamic category-based links - sorted by value desc, then alphabetically */}
-            {useMemo(() => {
-              // Create sortable items including MF and SIPs
-              const items = [
-                // Dynamic categories
-                ...(categoriesWithTypes?.filter(cat => cat.asset_types.length > 0).map(category => ({
-                  type: 'category' as const,
-                  code: category.code,
-                  name: category.name,
-                  icon: category.icon,
-                  path: `/holdings/${category.code}`,
-                  totalValue: categoryTotals?.[category.code]?.totalValue || 0,
-                })) || []),
-                // Mutual Funds
-                {
-                  type: 'mf' as const,
-                  code: 'mutual_funds',
-                  name: 'Mutual Funds',
-                  icon: 'LineChart',
-                  path: '/mf/holdings',
-                  totalValue: categoryTotals?.['mutual_funds']?.totalValue || 0,
-                },
-                // SIPs (no value, always at end of zero-value items alphabetically)
-                {
-                  type: 'sip' as const,
-                  code: 'sips',
-                  name: 'My SIPs',
-                  icon: 'Calendar',
-                  path: '/mf/sips',
-                  totalValue: 0,
-                },
-              ];
-
-              // Sort: by value desc, then alphabetically for zero-value items
-              return items.sort((a, b) => {
-                if (a.totalValue !== b.totalValue) {
-                  return b.totalValue - a.totalValue; // Descending by value
-                }
-                return a.name.localeCompare(b.name); // Alphabetical for same value
-              });
-            }, [categoriesWithTypes, categoryTotals]).map((item) => {
+            {sortedAssetItems.map((item) => {
               const Icon = item.icon === 'LineChart' ? LineChart 
                 : item.icon === 'Calendar' ? Calendar 
                 : IconMap[item.icon || 'Package'] || Package;
