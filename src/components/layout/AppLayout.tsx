@@ -9,9 +9,12 @@ import {
   X,
   Moon,
   Sun,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { DynamicSidebarNav } from './DynamicSidebar';
+import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,6 +24,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
@@ -30,48 +34,81 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop Sidebar - Charcoal */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+      {/* Desktop Sidebar - Collapsible */}
+      <aside 
+        className={cn(
+          "hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "lg:w-16" : "lg:w-64"
+        )}
+      >
         <div className="flex flex-col h-full bg-sidebar">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
-            <div className="p-2 rounded-lg bg-primary">
+          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-5 border-b border-sidebar-border">
+            <div className="p-2 rounded-lg bg-primary flex-shrink-0">
               <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="font-semibold text-sidebar-foreground tracking-tight">InvestTracker</h1>
-              <p className="text-xs text-sidebar-muted">Portfolio Manager</p>
-            </div>
+            {!sidebarCollapsed && (
+              <div className="overflow-hidden">
+                <h1 className="font-semibold text-sidebar-foreground tracking-tight whitespace-nowrap">InvestTracker</h1>
+                <p className="text-xs text-sidebar-muted whitespace-nowrap">Portfolio Manager</p>
+              </div>
+            )}
           </div>
 
-          {/* Dynamic Navigation - Scrollable */}
-          <div className="flex-1 min-h-0 px-3 py-4 overflow-y-auto">
-            <DynamicSidebarNav />
+          {/* Dynamic Navigation - Scrollable with hidden scrollbar */}
+          <div className="flex-1 min-h-0 px-2 py-4 overflow-y-auto scrollbar-none">
+            <DynamicSidebarNav collapsed={sidebarCollapsed} />
           </div>
 
           {/* Bottom section */}
-          <div className="flex-shrink-0 px-3 py-4 border-t border-sidebar-border space-y-1">
+          <div className="flex-shrink-0 px-2 py-4 border-t border-sidebar-border space-y-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className={cn(
+                "w-full text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                sidebarCollapsed ? "justify-center px-2" : "justify-start"
+              )}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeft className="h-4 w-4" />
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4 mr-3" />
+                  Collapse
+                </>
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className={cn(
+                "w-full text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                sidebarCollapsed ? "justify-center px-2" : "justify-start"
+              )}
             >
               {theme === 'dark' ? (
-                <Sun className="h-4 w-4 mr-3" />
+                <Sun className="h-4 w-4" />
               ) : (
-                <Moon className="h-4 w-4 mr-3" />
+                <Moon className="h-4 w-4" />
               )}
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              {!sidebarCollapsed && (
+                <span className="ml-3">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+              )}
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="w-full justify-start text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              className={cn(
+                "w-full text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                sidebarCollapsed ? "justify-center px-2" : "justify-start"
+              )}
             >
-              <LogOut className="h-4 w-4 mr-3" />
-              Sign out
+              <LogOut className="h-4 w-4" />
+              {!sidebarCollapsed && <span className="ml-3">Sign out</span>}
             </Button>
           </div>
         </div>
@@ -137,7 +174,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="lg:pl-64 w-full">
+      <main className={cn(
+        "w-full transition-all duration-300 ease-in-out",
+        sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
+      )}>
         <div className="pt-16 lg:pt-0 min-h-screen px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {children}
         </div>
