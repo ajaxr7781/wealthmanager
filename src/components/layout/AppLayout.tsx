@@ -32,9 +32,9 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar - Charcoal */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-sidebar">
+        <div className="flex flex-col h-full bg-sidebar">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
+          <div className="flex-shrink-0 flex items-center gap-3 px-6 py-5 border-b border-sidebar-border">
             <div className="p-2 rounded-lg bg-primary">
               <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
@@ -44,13 +44,13 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </div>
 
-          {/* Dynamic Navigation */}
-          <div className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
+          {/* Dynamic Navigation - Scrollable */}
+          <div className="flex-1 min-h-0 px-3 py-4 overflow-y-auto">
             <DynamicSidebarNav />
           </div>
 
           {/* Bottom section */}
-          <div className="px-3 py-4 border-t border-sidebar-border space-y-1">
+          <div className="flex-shrink-0 px-3 py-4 border-t border-sidebar-border space-y-1">
             <Button
               variant="ghost"
               size="sm"
@@ -137,8 +137,8 @@ export function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="lg:pl-64">
-        <div className="pt-16 lg:pt-0 min-h-screen">
+      <main className="lg:pl-64 w-full">
+        <div className="pt-16 lg:pt-0 min-h-screen px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {children}
         </div>
       </main>
