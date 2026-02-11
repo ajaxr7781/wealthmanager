@@ -136,12 +136,14 @@ export interface PortfolioOverview {
   total_profit_loss: number;
   total_profit_loss_percent: number;
   assets_by_type: {
-    type: AssetType;
+    type: string;
     label: string;
     total_invested: number;
     current_value: number;
     profit_loss: number;
     count: number;
+    color?: string | null;
+    icon?: string | null;
   }[];
   currency_breakdown: {
     currency: Currency;
