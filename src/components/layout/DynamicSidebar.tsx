@@ -116,13 +116,13 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
     });
   }, [categoriesWithTypes, categoryTotals]);
 
-  // Desktop sidebar nav item styling - clean charcoal with slate blue active
+  // Desktop sidebar nav item styling - white text on blue gradient
   const navItemClass = (active: boolean) => cn(
     'flex items-center rounded-md text-sm font-medium transition-all duration-150',
     collapsed ? 'justify-center px-2 py-2' : 'gap-3 px-3 py-2',
     active
-      ? 'bg-primary text-primary-foreground'
-      : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
+      ? 'bg-white/20 text-white shadow-sm'
+      : 'text-white/70 hover:bg-white/10 hover:text-white'
   );
 
   // Mobile nav item styling
@@ -156,8 +156,8 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             'flex items-center w-full rounded-md text-sm font-medium transition-colors',
             collapsed ? 'justify-center px-2 py-2' : 'justify-between px-3 py-2',
             isActivePrefix('/assets') || isActivePrefix('/holdings')
-              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-foreground'
-              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
+              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-white/20 text-white'
+              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-white/70 hover:bg-white/10 hover:text-white'
           )}
           title={collapsed ? 'Assets' : undefined}
         >
@@ -177,7 +177,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
         {(expandedCategories.has('assets') || collapsed) && (
           <div className={cn(
             "mt-1 space-y-0.5",
-            !collapsed && "ml-4 border-l-2 border-sidebar-border pl-3"
+            !collapsed && "ml-4 border-l-2 border-white/20 pl-3"
           )}>
             <Link
               to="/holdings"
@@ -263,8 +263,8 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             'flex items-center w-full rounded-md text-sm font-medium transition-colors',
             collapsed ? 'justify-center px-2 py-2' : 'justify-between px-3 py-2',
             isActivePrefix('/settings')
-              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-sidebar-accent text-sidebar-foreground'
-              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-foreground'
+              ? isMobile ? 'bg-accent text-accent-foreground' : 'bg-white/20 text-white'
+              : isMobile ? 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' : 'text-white/70 hover:bg-white/10 hover:text-white'
           )}
           title={collapsed ? 'Settings' : undefined}
         >
@@ -284,7 +284,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
         {(expandedCategories.has('settings') || collapsed) && (
           <div className={cn(
             "mt-1 space-y-0.5",
-            !collapsed && "ml-4 border-l-2 border-sidebar-border pl-3"
+            !collapsed && "ml-4 border-l-2 border-white/20 pl-3"
           )}>
             <Link
               to="/settings/asset-types"
