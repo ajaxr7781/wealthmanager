@@ -144,14 +144,15 @@ export function usePortfolioOverview() {
   return useQuery({
     queryKey: ['portfolio-overview', user?.id, inrToAed],
     queryFn: async () => {
-      // Fetch assets, transactions, MF holdings, SIPs, and schemes in parallel
-      const [assetsResult, transactionsResult, pricesResult, mfHoldingsResult, sipsResult, schemesResult] = await Promise.all([
+      // Fetch assets, transactions, MF holdings, SIPs, schemes, and categories in parallel
+      const [assetsResult, transactionsResult, pricesResult, mfHoldingsResult, sipsResult, schemesResult, categoriesResult] = await Promise.all([
         supabase.from('assets').select('*'),
         supabase.from('transactions').select('*'),
         supabase.from('price_snapshots').select('*').order('as_of', { ascending: false }).limit(10),
         supabase.from('mf_holdings').select('*').eq('is_active', true),
         supabase.from('mf_sips').select('*'),
         supabase.from('mf_schemes').select('id, latest_nav'),
+        supabase.from('asset_categories').select('code, name, color, icon').eq('is_active', true),
       ]);
 
       if (assetsResult.error) throw assetsResult.error;
@@ -163,6 +164,13 @@ export function usePortfolioOverview() {
       const mfHoldings = mfHoldingsResult.data || [];
       const sips = sipsResult.data || [];
       const schemes = schemesResult.data || [];
+      const categories = categoriesResult.data || [];
+
+      // Build category lookup map
+      const categoryMap = new Map<string, { name: string; color: string | null; icon: string | null }>();
+      for (const cat of categories) {
+        categoryMap.set(cat.code, { name: cat.name, color: cat.color, icon: cat.icon });
+      }
 
       // Create a map of scheme id to NAV for quick lookup
       const schemeNavMap = new Map<string, number>();
@@ -213,8 +221,8 @@ export function usePortfolioOverview() {
       const preciousMetalsCurrentValue = goldCurrentValue + silverCurrentValue;
       const preciousMetalsCount = (goldHoldingOz > 0 ? 1 : 0) + (silverHoldingOz > 0 ? 1 : 0);
 
-      // Calculate totals by asset type from assets table
-      const assetsByType = new Map<AssetType, {
+      // Calculate totals by category_code (dynamic, not hardcoded asset_type)
+      const assetsByCategory = new Map<string, {
         total_invested: number;
         current_value: number;
         count: number;
@@ -246,10 +254,10 @@ export function usePortfolioOverview() {
         total_invested += investedAED;
         total_current_value += currentAED;
 
-        // By type
-        const typeKey = asset.asset_type as AssetType;
-        const existing = assetsByType.get(typeKey) || { total_invested: 0, current_value: 0, count: 0 };
-        assetsByType.set(typeKey, {
+        // By category (dynamic)
+        const catKey = asset.category_code || asset.asset_type || 'other';
+        const existing = assetsByCategory.get(catKey) || { total_invested: 0, current_value: 0, count: 0 };
+        assetsByCategory.set(catKey, {
           total_invested: existing.total_invested + investedAED,
           current_value: existing.current_value + currentAED,
           count: existing.count + 1,
@@ -269,8 +277,8 @@ export function usePortfolioOverview() {
         total_invested += preciousMetalsInvested;
         total_current_value += preciousMetalsCurrentValue;
         
-        const existingMetals = assetsByType.get('precious_metals') || { total_invested: 0, current_value: 0, count: 0 };
-        assetsByType.set('precious_metals', {
+        const existingMetals = assetsByCategory.get('precious_metals') || { total_invested: 0, current_value: 0, count: 0 };
+        assetsByCategory.set('precious_metals', {
           total_invested: existingMetals.total_invested + preciousMetalsInvested,
           current_value: existingMetals.current_value + preciousMetalsCurrentValue,
           count: existingMetals.count + preciousMetalsCount,
@@ -334,14 +342,19 @@ export function usePortfolioOverview() {
         total_profit_loss_percent: total_invested > 0 
           ? ((total_current_value - total_invested) / total_invested) * 100 
           : 0,
-        assets_by_type: Array.from(assetsByType.entries()).map(([type, data]) => ({
-          type,
-          label: ASSET_TYPE_LABELS[type],
-          total_invested: data.total_invested,
-          current_value: data.current_value,
-          profit_loss: data.current_value - data.total_invested,
-          count: data.count,
-        })),
+        assets_by_type: Array.from(assetsByCategory.entries()).map(([code, data]) => {
+          const catInfo = categoryMap.get(code);
+          return {
+            type: code,
+            label: catInfo?.name || ASSET_TYPE_LABELS[code as AssetType] || code,
+            total_invested: data.total_invested,
+            current_value: data.current_value,
+            profit_loss: data.current_value - data.total_invested,
+            count: data.count,
+            color: catInfo?.color || null,
+            icon: catInfo?.icon || null,
+          };
+        }),
         currency_breakdown: Array.from(byCurrency.entries()).map(([currency, data]) => ({
           currency,
           ...data,

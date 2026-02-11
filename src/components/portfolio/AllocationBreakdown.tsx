@@ -8,6 +8,13 @@ import {
   TrendingUp, 
   PieChart as PieChartIcon, 
   BarChart3,
+  Wallet,
+  Bitcoin,
+  Briefcase,
+  MapPin,
+  Package,
+  LineChart,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,31 +22,45 @@ interface AllocationBreakdownProps {
   overview: PortfolioOverview;
 }
 
-const ASSET_COLORS: Record<string, string> = {
-  precious_metals: 'hsl(43, 74%, 49%)', // Gold
-  real_estate: 'hsl(142, 71%, 45%)', // Green
-  fixed_deposit: 'hsl(217, 91%, 60%)', // Blue
-  sip: 'hsl(280, 65%, 60%)', // Purple
-  mutual_fund: 'hsl(350, 89%, 60%)', // Red
-  shares: 'hsl(25, 95%, 53%)', // Orange
-};
+// Fallback colors for categories without a configured color
+const FALLBACK_COLORS = [
+  'hsl(43, 74%, 49%)',   // Gold
+  'hsl(142, 71%, 45%)',  // Green
+  'hsl(217, 91%, 60%)',  // Blue
+  'hsl(280, 65%, 60%)',  // Purple
+  'hsl(350, 89%, 60%)',  // Red
+  'hsl(25, 95%, 53%)',   // Orange
+  'hsl(190, 80%, 45%)',  // Teal
+  'hsl(330, 70%, 55%)',  // Pink
+  'hsl(60, 70%, 50%)',   // Yellow
+  'hsl(160, 60%, 45%)',  // Emerald
+];
 
-const ASSET_ICONS: Record<string, typeof Coins> = {
-  precious_metals: Coins,
-  real_estate: Building2,
-  fixed_deposit: Landmark,
-  sip: TrendingUp,
-  mutual_fund: PieChartIcon,
-  shares: BarChart3,
+// Icon name to component map
+const IconMap: Record<string, typeof Coins> = {
+  Coins,
+  Landmark,
+  TrendingUp,
+  Building2,
+  Bitcoin,
+  Wallet,
+  Briefcase,
+  BarChart3,
+  PieChart: PieChartIcon,
+  MapPin,
+  Package,
+  LineChart,
+  Calendar,
 };
 
 export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
-  // Build data from assets_by_type
-  const assetData = overview.assets_by_type.map((asset) => ({
+  // Build data from assets_by_type (now category-based)
+  const assetData = overview.assets_by_type.map((asset, index) => ({
     name: asset.label,
     value: asset.current_value,
-    color: ASSET_COLORS[asset.type] || 'hsl(var(--muted))',
+    color: asset.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length],
     type: asset.type,
+    icon: asset.icon || null,
     invested: asset.total_invested,
     profit_loss: asset.profit_loss,
     count: asset.count,
@@ -51,8 +72,9 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
     assetData.push({
       name: 'Mutual Funds',
       value: overview.mf_summary.current_value_aed,
-      color: ASSET_COLORS['mutual_fund'],
+      color: 'hsl(350, 89%, 60%)',
       type: 'mutual_fund',
+      icon: 'LineChart',
       invested: overview.mf_summary.total_invested_aed,
       profit_loss: mfProfitLoss,
       count: overview.mf_summary.holdings_count,
@@ -65,8 +87,9 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
     assetData.push({
       name: 'SIP',
       value: overview.sip_summary.current_value_aed,
-      color: ASSET_COLORS['sip'],
+      color: 'hsl(280, 65%, 60%)',
       type: 'sip',
+      icon: 'Calendar',
       invested: overview.sip_summary.invested_aed,
       profit_loss: sipProfitLoss,
       count: overview.sip_summary.total_count,
@@ -139,7 +162,7 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
         {/* Detailed breakdown */}
         <div className="mt-6 space-y-3">
           {data.map((item) => {
-            const Icon = ASSET_ICONS[item.type] || Coins;
+            const Icon = (item.icon && IconMap[item.icon]) || Coins;
             const isProfit = item.profit_loss >= 0;
             const pct = overview.total_current_value > 0 
               ? (item.value / overview.total_current_value * 100).toFixed(1) 
