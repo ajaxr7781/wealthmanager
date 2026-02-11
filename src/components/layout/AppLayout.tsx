@@ -41,16 +41,16 @@ export function AppLayout({ children }: AppLayoutProps) {
           sidebarCollapsed ? "lg:w-16" : "lg:w-64"
         )}
       >
-        <div className="flex flex-col h-full bg-sidebar">
+        <div className="flex flex-col h-full bg-gradient-to-br from-[hsl(220,60%,45%)] via-[hsl(210,65%,55%)] to-[hsl(205,75%,70%)]">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-5 border-b border-sidebar-border">
-            <div className="p-2 rounded-lg bg-primary flex-shrink-0">
-              <Briefcase className="h-5 w-5 text-primary-foreground" />
+          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-5 border-b border-white/20">
+            <div className="p-2 rounded-lg bg-white/20 flex-shrink-0">
+              <Briefcase className="h-5 w-5 text-white" />
             </div>
             {!sidebarCollapsed && (
               <div className="overflow-hidden">
-                <h1 className="font-semibold text-sidebar-foreground tracking-tight whitespace-nowrap">InvestTracker</h1>
-                <p className="text-xs text-sidebar-muted whitespace-nowrap">Portfolio Manager</p>
+                <h1 className="font-semibold text-white tracking-tight whitespace-nowrap">InvestTracker</h1>
+                <p className="text-xs text-white/70 whitespace-nowrap">Portfolio Manager</p>
               </div>
             )}
           </div>
@@ -61,13 +61,13 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Bottom section */}
-          <div className="flex-shrink-0 px-2 py-4 border-t border-sidebar-border space-y-1">
+          <div className="flex-shrink-0 px-2 py-4 border-t border-white/20 space-y-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className={cn(
-                "w-full text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                "w-full text-white/70 hover:text-white hover:bg-white/10",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start"
               )}
             >
@@ -85,7 +85,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               size="sm"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className={cn(
-                "w-full text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                "w-full text-white/70 hover:text-white hover:bg-white/10",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start"
               )}
             >
@@ -103,7 +103,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               size="sm"
               onClick={handleSignOut}
               className={cn(
-                "w-full text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent",
+                "w-full text-white/70 hover:text-white hover:bg-white/10",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start"
               )}
             >
