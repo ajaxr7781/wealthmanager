@@ -37,37 +37,40 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Desktop Sidebar - Collapsible */}
       <aside 
         className={cn(
-          "hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300 ease-in-out",
-          sidebarCollapsed ? "lg:w-16" : "lg:w-64"
+          "hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col transition-all duration-300 ease-in-out z-30",
+          sidebarCollapsed ? "lg:w-[60px]" : "lg:w-[252px]"
         )}
       >
-        <div className="flex flex-col h-full bg-gradient-to-br from-[hsl(220,60%,45%)] via-[hsl(210,65%,55%)] to-[hsl(205,75%,70%)]">
+        <div className="flex flex-col h-full bg-gradient-to-b from-[hsl(220,58%,28%)] via-[hsl(218,55%,22%)] to-[hsl(220,52%,18%)]">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center gap-3 px-4 py-5 border-b border-white/20">
-            <div className="p-2 rounded-lg bg-white/20 flex-shrink-0">
+          <div className={cn(
+            "flex-shrink-0 flex items-center gap-3 border-b border-white/10",
+            sidebarCollapsed ? "justify-center px-2 py-4" : "px-5 py-5"
+          )}>
+            <div className="p-2 rounded-xl bg-white/10 flex-shrink-0 backdrop-blur-sm">
               <Briefcase className="h-5 w-5 text-white" />
             </div>
             {!sidebarCollapsed && (
               <div className="overflow-hidden">
-                <h1 className="font-semibold text-white tracking-tight whitespace-nowrap">InvestTracker</h1>
-                <p className="text-xs text-white/70 whitespace-nowrap">Portfolio Manager</p>
+                <h1 className="font-semibold text-white text-[15px] tracking-tight whitespace-nowrap">InvestTracker</h1>
+                <p className="text-[11px] text-white/40 whitespace-nowrap">Portfolio Manager</p>
               </div>
             )}
           </div>
 
-          {/* Dynamic Navigation - Scrollable with hidden scrollbar */}
-          <div className="flex-1 min-h-0 px-2 py-4 overflow-y-auto scrollbar-none">
+          {/* Navigation */}
+          <div className="flex-1 min-h-0 px-2 py-2 overflow-y-auto scrollbar-none">
             <DynamicSidebarNav collapsed={sidebarCollapsed} />
           </div>
 
           {/* Bottom section */}
-          <div className="flex-shrink-0 px-2 py-4 border-t border-white/20 space-y-1">
+          <div className="flex-shrink-0 px-2 py-3 border-t border-white/10 space-y-0.5">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               className={cn(
-                "w-full text-white/70 hover:text-white hover:bg-white/10",
+                "w-full text-white/50 hover:text-white/80 hover:bg-white/8 rounded-lg h-9 text-[13px]",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start"
               )}
             >
@@ -85,7 +88,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               size="sm"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className={cn(
-                "w-full text-white/70 hover:text-white hover:bg-white/10",
+                "w-full text-white/50 hover:text-white/80 hover:bg-white/8 rounded-lg h-9 text-[13px]",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start"
               )}
             >
@@ -103,7 +106,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               size="sm"
               onClick={handleSignOut}
               className={cn(
-                "w-full text-white/70 hover:text-white hover:bg-white/10",
+                "w-full text-white/50 hover:text-white/80 hover:bg-white/8 rounded-lg h-9 text-[13px]",
                 sidebarCollapsed ? "justify-center px-2" : "justify-start"
               )}
             >
@@ -176,7 +179,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Main Content */}
       <main className={cn(
         "w-full transition-all duration-300 ease-in-out",
-        sidebarCollapsed ? "lg:pl-16" : "lg:pl-64"
+        sidebarCollapsed ? "lg:pl-[60px]" : "lg:pl-[252px]"
       )}>
         <div className="pt-16 lg:pt-0 min-h-screen px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           {children}
