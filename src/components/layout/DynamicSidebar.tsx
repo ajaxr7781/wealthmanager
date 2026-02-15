@@ -204,22 +204,29 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           )}
         </div>
 
-        {hasTransactionTypes && (
-          <Link to="/transactions" onClick={onItemClick} className={mobileNavItemClass(isActive('/transactions'))}>
-            <Receipt className="h-4 w-4 flex-shrink-0" />
-            <span>Trades</span>
+        <div className="pt-3">
+          <span className="px-3 pb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 select-none">Markets</span>
+          {hasPriceFeedTypes && (
+            <Link to="/prices" onClick={onItemClick} className={mobileNavItemClass(isActive('/prices'))}>
+              <TrendingUp className="h-4 w-4 flex-shrink-0" />
+              <span>Market</span>
+            </Link>
+          )}
+          {hasTransactionTypes && (
+            <Link to="/transactions" onClick={onItemClick} className={mobileNavItemClass(isActive('/transactions'))}>
+              <Receipt className="h-4 w-4 flex-shrink-0" />
+              <span>Trades</span>
+            </Link>
+          )}
+        </div>
+
+        <div className="pt-3">
+          <span className="px-3 pb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 select-none">Insights</span>
+          <Link to="/reports" onClick={onItemClick} className={mobileNavItemClass(isActive('/reports'))}>
+            <BarChart3 className="h-4 w-4 flex-shrink-0" />
+            <span>Reports</span>
           </Link>
-        )}
-        {hasPriceFeedTypes && (
-          <Link to="/prices" onClick={onItemClick} className={mobileNavItemClass(isActive('/prices'))}>
-            <TrendingUp className="h-4 w-4 flex-shrink-0" />
-            <span>Market</span>
-          </Link>
-        )}
-        <Link to="/reports" onClick={onItemClick} className={mobileNavItemClass(isActive('/reports'))}>
-          <FileText className="h-4 w-4 flex-shrink-0" />
-          <span>Reports</span>
-        </Link>
+        </div>
 
         <div className="pt-3">
           <button
@@ -261,12 +268,11 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
   // Desktop sidebar
   return (
     <nav className="flex-1 space-y-0.5">
-      {/* Overview section */}
-      <SectionLabel collapsed={collapsed}>Overview</SectionLabel>
+      {/* Dashboard - top level, no section label */}
       {renderDesktopItem('/portfolio', <LayoutDashboard className="h-4 w-4 flex-shrink-0" />, 'Dashboard', isActive('/portfolio') || isActive('/'))}
 
-      {/* Assets section */}
-      <SectionLabel collapsed={collapsed}>Holdings</SectionLabel>
+      {/* Portfolio section */}
+      <SectionLabel collapsed={collapsed}>Portfolio</SectionLabel>
 
       {collapsed ? (
         // Collapsed: show icons only with tooltips
@@ -344,11 +350,14 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
         </>
       )}
 
-      {/* Activity section */}
-      <SectionLabel collapsed={collapsed}>Activity</SectionLabel>
-      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Trades')}
+      {/* Markets section - Market data first, then Trades */}
+      <SectionLabel collapsed={collapsed}>Markets</SectionLabel>
       {hasPriceFeedTypes && renderDesktopItem('/prices', <TrendingUp className="h-4 w-4 flex-shrink-0" />, 'Market')}
-      {renderDesktopItem('/reports', <FileText className="h-4 w-4 flex-shrink-0" />, 'Reports')}
+      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Trades')}
+
+      {/* Insights section */}
+      <SectionLabel collapsed={collapsed}>Insights</SectionLabel>
+      {renderDesktopItem('/reports', <BarChart3 className="h-4 w-4 flex-shrink-0" />, 'Reports')}
 
       {/* Settings section */}
       <SectionLabel collapsed={collapsed}>Manage</SectionLabel>
