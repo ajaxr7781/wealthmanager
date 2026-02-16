@@ -5,9 +5,16 @@ import {
   TrendingUp, 
   TrendingDown,
   DollarSign,
-  Target,
+  Shield,
+  Minus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLiabilitySummary } from '@/hooks/useLiabilities';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface PortfolioSummaryCardsProps {
   overview: PortfolioOverview;
@@ -15,6 +22,9 @@ interface PortfolioSummaryCardsProps {
 
 export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) {
   const isProfit = overview.total_profit_loss >= 0;
+  const { totalOutstanding, totalEmi } = useLiabilitySummary();
+
+  const netWorth = overview.total_current_value - totalOutstanding;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-AE', {
@@ -30,26 +40,31 @@ export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) 
     return `${sign}${value.toFixed(2)}%`;
   };
 
-  // Calculate total asset count including MF holdings
-  const assetCount = overview.assets_by_type.reduce((sum, a) => sum + a.count, 0) + 
-    (overview.mf_summary?.holdings_count || 0);
-
-  // Count asset types including MF if present
-  const assetTypeCount = overview.assets_by_type.length + 
-    (overview.mf_summary && overview.mf_summary.holdings_count > 0 ? 1 : 0);
-
   const cards = [
     {
-      title: 'Total Invested',
-      value: formatCurrency(overview.total_invested),
+      title: 'Total Assets',
+      value: formatCurrency(overview.total_current_value),
       icon: Wallet,
-      description: 'Net cash invested across all assets',
+      description: `Invested: ${formatCurrency(overview.total_invested)}`,
+      tooltip: 'Total current market value of all your assets',
     },
     {
-      title: 'Current Value',
-      value: formatCurrency(overview.total_current_value),
-      icon: DollarSign,
-      description: 'Total current portfolio value',
+      title: 'Total Liabilities',
+      value: formatCurrency(totalOutstanding),
+      icon: Minus,
+      description: totalEmi > 0 ? `Monthly EMI: ${formatCurrency(totalEmi)}` : 'No liabilities',
+      negative: totalOutstanding > 0,
+      tooltip: 'Sum of all outstanding loans and obligations',
+    },
+    {
+      title: 'Net Worth',
+      value: formatCurrency(netWorth),
+      icon: Shield,
+      positive: netWorth >= 0,
+      negative: netWorth < 0,
+      description: 'Assets minus liabilities',
+      highlight: true,
+      tooltip: 'Your total wealth after subtracting all liabilities',
     },
     {
       title: 'Total P/L',
@@ -58,50 +73,53 @@ export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) 
       icon: isProfit ? TrendingUp : TrendingDown,
       positive: isProfit,
       negative: !isProfit,
-    },
-    {
-      title: 'Asset Count',
-      value: assetCount.toString(),
-      icon: Target,
-      description: `${assetTypeCount} asset types`,
+      tooltip: 'Profit or loss across all holdings',
     },
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {cards.map((card) => (
-        <Card key={card.title} className="card-gold-border shadow-luxury">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {card.title}
-            </CardTitle>
-            <card.icon className={cn(
-              "h-4 w-4",
-              card.positive && "text-positive",
-              card.negative && "text-negative",
-              !card.positive && !card.negative && "text-muted-foreground"
-            )} />
-          </CardHeader>
-          <CardContent>
-            <div className={cn(
-              "text-2xl font-bold",
-              card.positive && "text-positive",
-              card.negative && "text-negative"
+        <Tooltip key={card.title}>
+          <TooltipTrigger asChild>
+            <Card className={cn(
+              "card-gold-border shadow-luxury",
+              card.highlight && "ring-1 ring-primary/20"
             )}>
-              {card.value}
-              {card.subValue && (
-                <span className="ml-2 text-base font-medium">
-                  ({card.subValue})
-                </span>
-              )}
-            </div>
-            {card.description && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {card.description}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {card.title}
+                </CardTitle>
+                <card.icon className={cn(
+                  "h-4 w-4",
+                  card.positive && "text-positive",
+                  card.negative && "text-negative",
+                  !card.positive && !card.negative && "text-muted-foreground"
+                )} />
+              </CardHeader>
+              <CardContent>
+                <div className={cn(
+                  "text-2xl font-bold",
+                  card.positive && "text-positive",
+                  card.negative && "text-negative"
+                )}>
+                  {card.value}
+                  {card.subValue && (
+                    <span className="ml-2 text-base font-medium">
+                      ({card.subValue})
+                    </span>
+                  )}
+                </div>
+                {card.description && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {card.description}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TooltipTrigger>
+          {card.tooltip && <TooltipContent><p>{card.tooltip}</p></TooltipContent>}
+        </Tooltip>
       ))}
     </div>
   );

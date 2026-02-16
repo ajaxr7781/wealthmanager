@@ -22,6 +22,9 @@ import {
   Package,
   LineChart,
   Calendar,
+  Target,
+  Scale,
+  CreditCard,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
@@ -226,6 +229,18 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             <BarChart3 className="h-4 w-4 flex-shrink-0" />
             <span>Reports</span>
           </Link>
+          <Link to="/goals" onClick={onItemClick} className={mobileNavItemClass(isActive('/goals'))}>
+            <Target className="h-4 w-4 flex-shrink-0" />
+            <span>Goals</span>
+          </Link>
+          <Link to="/rebalancing" onClick={onItemClick} className={mobileNavItemClass(isActive('/rebalancing'))}>
+            <Scale className="h-4 w-4 flex-shrink-0" />
+            <span>Rebalancing</span>
+          </Link>
+          <Link to="/liabilities" onClick={onItemClick} className={mobileNavItemClass(isActive('/liabilities'))}>
+            <CreditCard className="h-4 w-4 flex-shrink-0" />
+            <span>Liabilities</span>
+          </Link>
         </div>
 
         <div className="pt-3">
@@ -358,6 +373,9 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
       {/* Insights section */}
       <SectionLabel collapsed={collapsed}>Insights</SectionLabel>
       {renderDesktopItem('/reports', <BarChart3 className="h-4 w-4 flex-shrink-0" />, 'Reports')}
+      {renderDesktopItem('/goals', <Target className="h-4 w-4 flex-shrink-0" />, 'Goals')}
+      {renderDesktopItem('/rebalancing', <Scale className="h-4 w-4 flex-shrink-0" />, 'Rebalancing')}
+      {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0" />, 'Liabilities')}
 
       {/* Settings section */}
       <SectionLabel collapsed={collapsed}>Manage</SectionLabel>
