@@ -7,6 +7,7 @@ import { AllocationChart } from '@/components/dashboard/AllocationChart';
 import { LivePrices } from '@/components/dashboard/LivePrices';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { FDMaturityAlerts } from '@/components/dashboard/FDMaturityAlerts';
+import { PortfolioTrendChart } from '@/components/dashboard/PortfolioTrendChart';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
@@ -35,6 +36,9 @@ export default function Dashboard() {
           <>
             {/* Summary Cards */}
             <SummaryCards summary={summary} />
+
+            {/* Portfolio Trend */}
+            <PortfolioTrendChart />
 
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Allocation Chart */}

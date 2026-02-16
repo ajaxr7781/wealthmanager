@@ -29,7 +29,9 @@ import SipListPage from "./pages/mf/SipList";
 import AddSipPage from "./pages/mf/AddSip";
 import EditSipPage from "./pages/mf/EditSip";
 import NotFound from "./pages/NotFound";
-
+import LiabilitiesPage from "./pages/Liabilities";
+import GoalsPage from "./pages/Goals";
+import RebalancingPage from "./pages/Rebalancing";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -62,6 +64,9 @@ const App = () => (
               <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
               <Route path="/prices" element={<ProtectedRoute><Prices /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+              <Route path="/liabilities" element={<ProtectedRoute><LiabilitiesPage /></ProtectedRoute>} />
+              <Route path="/goals" element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
+              <Route path="/rebalancing" element={<ProtectedRoute><RebalancingPage /></ProtectedRoute>} />
               
               {/* Settings Routes */}
               <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />

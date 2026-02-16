@@ -6,6 +6,7 @@ import { PortfolioSummaryCards } from '@/components/portfolio/PortfolioSummaryCa
 import { AllocationBreakdown } from '@/components/portfolio/AllocationBreakdown';
 import { AssetList } from '@/components/portfolio/AssetList';
 import { LiveMetalPrices } from '@/components/portfolio/LiveMetalPrices';
+import { PortfolioTrendChart } from '@/components/dashboard/PortfolioTrendChart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
@@ -55,6 +56,9 @@ export default function Portfolio() {
           <>
             {/* Summary Cards */}
             <PortfolioSummaryCards overview={overview} />
+
+            {/* Portfolio Trend */}
+            <PortfolioTrendChart />
 
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Allocation Breakdown */}

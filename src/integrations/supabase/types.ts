@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      allocation_target_lines: {
+        Row: {
+          category_code: string
+          created_at: string
+          id: string
+          max_pct: number
+          min_pct: number
+          target_id: string
+          target_pct: number
+        }
+        Insert: {
+          category_code: string
+          created_at?: string
+          id?: string
+          max_pct?: number
+          min_pct?: number
+          target_id: string
+          target_pct?: number
+        }
+        Update: {
+          category_code?: string
+          created_at?: string
+          id?: string
+          max_pct?: number
+          min_pct?: number
+          target_id?: string
+          target_pct?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allocation_target_lines_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "allocation_targets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      allocation_targets: {
+        Row: {
+          base_currency: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          rebalance_threshold_pct: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_currency?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          rebalance_threshold_pct?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          rebalance_threshold_pct?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       asset_categories: {
         Row: {
           code: string
@@ -228,6 +299,84 @@ export type Database = {
           },
         ]
       }
+      goal_asset_mapping: {
+        Row: {
+          allocation_pct: number
+          asset_id: string
+          created_at: string
+          goal_id: string
+          id: string
+        }
+        Insert: {
+          allocation_pct?: number
+          asset_id: string
+          created_at?: string
+          goal_id: string
+          id?: string
+        }
+        Update: {
+          allocation_pct?: number
+          asset_id?: string
+          created_at?: string
+          goal_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_asset_mapping_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_asset_mapping_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          priority: string
+          target_amount: number
+          target_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          priority?: string
+          target_amount: number
+          target_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          priority?: string
+          target_amount?: number
+          target_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       instruments: {
         Row: {
           created_at: string
@@ -251,6 +400,68 @@ export type Database = {
           symbol?: string
         }
         Relationships: []
+      }
+      liabilities: {
+        Row: {
+          created_at: string
+          currency: string
+          emi: number | null
+          id: string
+          interest_rate: number | null
+          is_active: boolean
+          linked_asset_id: string | null
+          name: string
+          next_due_date: string | null
+          notes: string | null
+          outstanding: number
+          principal: number
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          emi?: number | null
+          id?: string
+          interest_rate?: number | null
+          is_active?: boolean
+          linked_asset_id?: string | null
+          name: string
+          next_due_date?: string | null
+          notes?: string | null
+          outstanding?: number
+          principal?: number
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          emi?: number | null
+          id?: string
+          interest_rate?: number | null
+          is_active?: boolean
+          linked_asset_id?: string | null
+          name?: string
+          next_due_date?: string | null
+          notes?: string | null
+          outstanding?: number
+          principal?: number
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liabilities_linked_asset_id_fkey"
+            columns: ["linked_asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mf_holdings: {
         Row: {
@@ -555,6 +766,78 @@ export type Database = {
           },
         ]
       }
+      performance_cache: {
+        Row: {
+          end_date: string | null
+          id: string
+          metrics_json: Json
+          period: string
+          scope: string
+          scope_id: string | null
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          end_date?: string | null
+          id?: string
+          metrics_json?: Json
+          period: string
+          scope: string
+          scope_id?: string | null
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          end_date?: string | null
+          id?: string
+          metrics_json?: Json
+          period?: string
+          scope?: string
+          scope_id?: string | null
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      portfolio_snapshots: {
+        Row: {
+          breakdown_json: Json | null
+          created_at: string
+          id: string
+          net_worth: number
+          snapshot_date: string
+          total_invested: number
+          total_liabilities: number
+          total_value: number
+          user_id: string
+        }
+        Insert: {
+          breakdown_json?: Json | null
+          created_at?: string
+          id?: string
+          net_worth?: number
+          snapshot_date: string
+          total_invested?: number
+          total_liabilities?: number
+          total_value?: number
+          user_id: string
+        }
+        Update: {
+          breakdown_json?: Json | null
+          created_at?: string
+          id?: string
+          net_worth?: number
+          snapshot_date?: string
+          total_invested?: number
+          total_liabilities?: number
+          total_value?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       portfolios: {
         Row: {
           base_currency: string
@@ -643,6 +926,88 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      rebalance_actions: {
+        Row: {
+          action: string
+          amount: number
+          category_code: string
+          created_at: string
+          id: string
+          priority: number
+          reason: string | null
+          recommendation_id: string
+        }
+        Insert: {
+          action: string
+          amount?: number
+          category_code: string
+          created_at?: string
+          id?: string
+          priority?: number
+          reason?: string | null
+          recommendation_id: string
+        }
+        Update: {
+          action?: string
+          amount?: number
+          category_code?: string
+          created_at?: string
+          id?: string
+          priority?: number
+          reason?: string | null
+          recommendation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebalance_actions_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "rebalance_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rebalance_recommendations: {
+        Row: {
+          as_of_date: string
+          base_currency: string
+          created_at: string
+          id: string
+          notes: string | null
+          target_id: string
+          total_drift_pct: number | null
+          user_id: string
+        }
+        Insert: {
+          as_of_date?: string
+          base_currency?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          target_id: string
+          total_drift_pct?: number | null
+          user_id: string
+        }
+        Update: {
+          as_of_date?: string
+          base_currency?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          target_id?: string
+          total_drift_pct?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rebalance_recommendations_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "allocation_targets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
