@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
   PanelLeft,
 } from 'lucide-react';
+import { AlertBell } from './AlertBell';
 import { useTheme } from 'next-themes';
 import { DynamicSidebarNav } from './DynamicSidebar';
 import { cn } from '@/lib/utils';
@@ -127,6 +128,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="font-semibold text-foreground">InvestTracker</span>
           </div>
           <div className="flex items-center gap-1">
+            <AlertBell className="text-muted-foreground hover:text-foreground" />
             <Button
               variant="ghost"
               size="icon"

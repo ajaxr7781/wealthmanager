@@ -25,6 +25,8 @@ import {
   Target,
   Scale,
   CreditCard,
+  Bell,
+  Activity,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
@@ -241,6 +243,14 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             <CreditCard className="h-4 w-4 flex-shrink-0" />
             <span>Liabilities</span>
           </Link>
+          <Link to="/performance" onClick={onItemClick} className={mobileNavItemClass(isActive('/performance'))}>
+            <Activity className="h-4 w-4 flex-shrink-0" />
+            <span>Performance</span>
+          </Link>
+          <Link to="/alerts" onClick={onItemClick} className={mobileNavItemClass(isActive('/alerts'))}>
+            <Bell className="h-4 w-4 flex-shrink-0" />
+            <span>Alerts</span>
+          </Link>
         </div>
 
         <div className="pt-3">
@@ -376,6 +386,8 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
       {renderDesktopItem('/goals', <Target className="h-4 w-4 flex-shrink-0" />, 'Goals')}
       {renderDesktopItem('/rebalancing', <Scale className="h-4 w-4 flex-shrink-0" />, 'Rebalancing')}
       {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0" />, 'Liabilities')}
+      {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0" />, 'Performance')}
+      {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0" />, 'Alerts')}
 
       {/* Settings section */}
       <SectionLabel collapsed={collapsed}>Manage</SectionLabel>
