@@ -32,6 +32,8 @@ import NotFound from "./pages/NotFound";
 import LiabilitiesPage from "./pages/Liabilities";
 import GoalsPage from "./pages/Goals";
 import RebalancingPage from "./pages/Rebalancing";
+import AlertsPage from "./pages/Alerts";
+import PerformancePage from "./pages/Performance";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -67,6 +69,8 @@ const App = () => (
               <Route path="/liabilities" element={<ProtectedRoute><LiabilitiesPage /></ProtectedRoute>} />
               <Route path="/goals" element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
               <Route path="/rebalancing" element={<ProtectedRoute><RebalancingPage /></ProtectedRoute>} />
+              <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
+              <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
               
               {/* Settings Routes */}
               <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />

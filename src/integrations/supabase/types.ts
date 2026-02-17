@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      alert_rules: {
+        Row: {
+          config_json: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          severity: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config_json?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          severity?: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config_json?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          severity?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      alerts: {
+        Row: {
+          acknowledged_at: string | null
+          context_json: Json | null
+          id: string
+          message: string
+          resolve_notes: string | null
+          resolved_at: string | null
+          rule_id: string | null
+          severity: string
+          status: string
+          title: string
+          triggered_at: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          context_json?: Json | null
+          id?: string
+          message: string
+          resolve_notes?: string | null
+          resolved_at?: string | null
+          rule_id?: string | null
+          severity?: string
+          status?: string
+          title: string
+          triggered_at?: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          context_json?: Json | null
+          id?: string
+          message?: string
+          resolve_notes?: string | null
+          resolved_at?: string | null
+          rule_id?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          triggered_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       allocation_target_lines: {
         Row: {
           category_code: string
