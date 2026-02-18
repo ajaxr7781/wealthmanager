@@ -1,10 +1,14 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip, TooltipContent, TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,9 +36,12 @@ import {
   Banknote,
   Percent,
   Clock,
+  HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
+import { differenceInDays, parseISO } from 'date-fns';
+import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
   precious_metals: Coins,
@@ -59,6 +66,7 @@ export default function AssetDetail() {
   const navigate = useNavigate();
   const { data: asset, isLoading } = useAsset(id);
   const deleteAsset = useDeleteAsset();
+  const [learnOpen, setLearnOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -137,6 +145,13 @@ export default function AssetDetail() {
   const plPercent = totalCost > 0 ? (pl / totalCost) * 100 : 0;
   const isProfit = pl >= 0;
 
+  // CAGR calculation
+  const days = differenceInDays(new Date(), parseISO(asset.purchase_date));
+  const years = days / 365.25;
+  const cagr = years > 0 && totalCost > 0 && currentValue > 0
+    ? (Math.pow(currentValue / totalCost, 1 / years) - 1) * 100
+    : null;
+
   return (
     <AppLayout>
       <div className="p-4 lg:p-8 max-w-4xl mx-auto">
@@ -205,7 +220,7 @@ export default function AssetDetail() {
         </div>
 
         {/* Value Summary */}
-        <div className="grid gap-4 md:grid-cols-3 mb-6">
+        <div className="grid gap-4 md:grid-cols-4 mb-6">
           <Card className="shadow-luxury">
             <CardHeader className="pb-2">
               <CardDescription>Total Cost</CardDescription>
@@ -247,7 +262,42 @@ export default function AssetDetail() {
               </p>
             </CardContent>
           </Card>
+
+          <Card className="shadow-luxury">
+            <CardHeader className="pb-2">
+              <CardDescription className="flex items-center gap-1">
+                CAGR
+                <Tooltip>
+                  <TooltipTrigger><HelpCircle className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                  <TooltipContent className="max-w-[200px]">Compound Annual Growth Rate — annualized return since purchase.</TooltipContent>
+                </Tooltip>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {cagr !== null ? (
+                <p className={cn(
+                  "text-2xl font-bold",
+                  cagr > 12 ? "text-positive" : cagr > 6 ? "text-warning" : "text-destructive"
+                )}>
+                  {cagr >= 0 ? '+' : ''}{cagr.toFixed(1)}%
+                </p>
+              ) : (
+                <p className="text-lg text-muted-foreground">—</p>
+              )}
+              <p className="text-xs text-muted-foreground">{Math.round(days)} days held</p>
+            </CardContent>
+          </Card>
         </div>
+
+        <LearnMoreDialog
+          open={learnOpen}
+          onOpenChange={setLearnOpen}
+          title="Asset Performance Metrics"
+          sections={[
+            { heading: 'CAGR', content: 'Compound Annual Growth Rate measures annualized return: (Current / Cost)^(1/years) - 1. Green >12%, Yellow 6-12%, Red <6%.' },
+            { heading: 'P/L', content: 'Profit or Loss = Current Value - Total Cost. Percentage is relative to initial investment.' },
+          ]}
+        />
 
         {/* Details */}
         <Card className="shadow-luxury">

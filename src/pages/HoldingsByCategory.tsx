@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
@@ -8,12 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, ChevronRight, ArrowLeft, Coins, Circle } from 'lucide-react';
+import {
+  Tooltip, TooltipContent, TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Plus, ChevronRight, ArrowLeft, Coins, Circle, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { formatOz, formatCurrency as formatCurrencyCalc, formatPL } from '@/lib/calculations';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import { differenceInDays, parseISO } from 'date-fns';
 import {
   Landmark,
   TrendingUp,
@@ -51,7 +56,7 @@ export default function HoldingsByCategory() {
   const isLoading = assetsLoading || categoriesLoading || metalsLoading;
 
   const category = categories?.find(c => c.code === categoryCode);
-  const categoryAssets = assets?.filter(a => a.category_code === categoryCode) || [];
+  const categoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
 
   // Special handling for precious metals - include transaction-based holdings
   const isPreciousMetals = categoryCode === 'precious_metals';
@@ -149,6 +154,18 @@ export default function HoldingsByCategory() {
   const plPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
   const totalHoldingsCount = categoryAssets.length + metalInstruments.length;
 
+  // Category-level CAGR - weighted average
+  const categoryCagr = useMemo(() => {
+    if (totalInvested <= 0 || totalValue <= 0) return null;
+    // Use earliest purchase date for years
+    const dates = categoryAssets.map(a => parseISO(a.purchase_date));
+    if (dates.length === 0) return null;
+    const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
+    const years = differenceInDays(new Date(), earliest) / 365.25;
+    if (years <= 0) return null;
+    return (Math.pow(totalValue / totalInvested, 1 / years) - 1) * 100;
+  }, [totalInvested, totalValue, categoryAssets]);
+
   return (
     <AppLayout>
       <div className="p-4 lg:p-8 space-y-6">
@@ -183,7 +200,7 @@ export default function HoldingsByCategory() {
 
         {/* Category Summary */}
         {totalHoldingsCount > 0 && (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
@@ -212,6 +229,28 @@ export default function HoldingsByCategory() {
                   {totalPL >= 0 ? '+' : ''}{formatCurrency(totalPL)}
                   <span className="text-sm ml-2">({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(1)}%)</span>
                 </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                  CAGR
+                  <Tooltip>
+                    <TooltipTrigger><HelpCircle className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent>Compound Annual Growth Rate for this category</TooltipContent>
+                  </Tooltip>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {categoryCagr !== null ? (
+                  <p className={cn("text-2xl font-bold",
+                    categoryCagr > 12 ? "text-positive" : categoryCagr > 6 ? "text-warning" : "text-destructive"
+                  )}>
+                    {categoryCagr >= 0 ? '+' : ''}{categoryCagr.toFixed(1)}%
+                  </p>
+                ) : (
+                  <p className="text-lg text-muted-foreground">—</p>
+                )}
               </CardContent>
             </Card>
           </div>
