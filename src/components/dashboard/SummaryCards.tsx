@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet, TrendingUp, TrendingDown, BarChart3, PiggyBank, Shield, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PortfolioSummary, formatCurrency, formatPercent } from '@/lib/calculations';
+import { PortfolioSummary, formatPercent } from '@/lib/calculations';
 import { useLiabilitySummary } from '@/hooks/useLiabilities';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import {
   Tooltip,
   TooltipContent,
@@ -15,30 +16,32 @@ interface SummaryCardsProps {
 
 export function SummaryCards({ summary }: SummaryCardsProps) {
   const { totalOutstanding, totalEmi, isLoading: liabLoading } = useLiabilitySummary();
+  const { formatAed } = useCurrency();
 
-  // Net worth = portfolio value - liabilities
+  const fmt = (value: number | null) => value !== null ? formatAed(value) : '—';
+
   const portfolioValue = summary.net_cash_invested_aed + (summary.total_unrealized_pl_aed ?? 0);
   const netWorth = portfolioValue - totalOutstanding;
 
   const cards = [
     {
       title: 'Total Assets',
-      value: formatCurrency(summary.net_cash_invested_aed + (summary.total_unrealized_pl_aed ?? 0)),
+      value: fmt(summary.net_cash_invested_aed + (summary.total_unrealized_pl_aed ?? 0)),
       icon: Wallet,
-      description: `Invested: ${formatCurrency(summary.net_cash_invested_aed)}`,
+      description: `Invested: ${fmt(summary.net_cash_invested_aed)}`,
       tooltip: 'Total current market value of all your assets',
     },
     {
       title: 'Total Liabilities',
-      value: formatCurrency(totalOutstanding),
+      value: fmt(totalOutstanding),
       icon: Minus,
-      description: totalEmi > 0 ? `Monthly EMI: ${formatCurrency(totalEmi)}` : 'No active liabilities',
+      description: totalEmi > 0 ? `Monthly EMI: ${fmt(totalEmi)}` : 'No active liabilities',
       negative: totalOutstanding > 0,
       tooltip: 'Sum of all outstanding loans and obligations',
     },
     {
       title: 'Net Worth',
-      value: formatCurrency(netWorth),
+      value: fmt(netWorth),
       icon: Shield,
       positive: netWorth >= 0,
       negative: netWorth < 0,
@@ -48,7 +51,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
     {
       title: 'Unrealized P/L',
       value: summary.total_unrealized_pl_aed !== null
-        ? formatCurrency(summary.total_unrealized_pl_aed)
+        ? fmt(summary.total_unrealized_pl_aed)
         : '—',
       subValue: summary.total_unrealized_pl_aed !== null && summary.net_cash_invested_aed > 0
         ? formatPercent((summary.total_unrealized_pl_aed / summary.net_cash_invested_aed) * 100)
@@ -61,7 +64,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
     },
     {
       title: 'Realized P/L',
-      value: formatCurrency(summary.total_realized_pl_aed),
+      value: fmt(summary.total_realized_pl_aed),
       icon: PiggyBank,
       description: 'From completed sales',
       positive: summary.total_realized_pl_aed >= 0,

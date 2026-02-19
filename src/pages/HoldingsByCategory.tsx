@@ -5,6 +5,7 @@ import { useAssets, useUserSettings } from '@/hooks/useAssets';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { useDefaultPortfolio } from '@/hooks/usePortfolios';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +54,7 @@ export default function HoldingsByCategory() {
   const { data: settings } = useUserSettings();
 
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
+  const { formatAed } = useCurrency();
   const isLoading = assetsLoading || categoriesLoading || metalsLoading;
 
   const category = categories?.find(c => c.code === categoryCode);
@@ -62,23 +64,7 @@ export default function HoldingsByCategory() {
   const isPreciousMetals = categoryCode === 'precious_metals';
   const metalInstruments = isPreciousMetals && metalsSummary ? metalsSummary.instruments.filter(i => i.holding_oz > 0) : [];
 
-  const formatCurrency = (value: number, currency: string = 'AED') => {
-    return new Intl.NumberFormat('en-AE', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  const formatINR = (value: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const fmtAed = (value: number) => formatAed(value, { decimals: 0 });
 
   const convertToAed = (value: number, currency: string) => {
     return currency === 'INR' ? value * inrToAed : value;
@@ -231,7 +217,7 @@ export default function HoldingsByCategory() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{formatCurrency(totalValue)}</p>
+                <p className="text-2xl font-bold">{fmtAed(totalValue)}</p>
               </CardContent>
             </Card>
             <Card>
@@ -239,7 +225,7 @@ export default function HoldingsByCategory() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">Total Invested</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{formatCurrency(totalInvested)}</p>
+                <p className="text-2xl font-bold">{fmtAed(totalInvested)}</p>
               </CardContent>
             </Card>
             <Card>
@@ -251,7 +237,7 @@ export default function HoldingsByCategory() {
                   "text-2xl font-bold",
                   totalPL >= 0 ? "text-positive" : "text-negative"
                 )}>
-                  {totalPL >= 0 ? '+' : ''}{formatCurrency(totalPL)}
+                  {totalPL >= 0 ? '+' : ''}{fmtAed(totalPL)}
                   <span className="text-sm ml-2">({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(1)}%)</span>
                 </p>
               </CardContent>
@@ -413,28 +399,14 @@ export default function HoldingsByCategory() {
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            {isINR ? (
-                              <>
-                                <span>{formatINR(Number(asset.total_cost))} invested</span>
-                                <span className="text-xs ml-1">(≈ {formatCurrency(totalCostAed)})</span>
-                              </>
-                            ) : (
-                              <span>{formatCurrency(Number(asset.total_cost))} invested</span>
-                            )}
+                              <span>{fmtAed(totalCostAed)} invested</span>
                           </div>
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          {isINR ? (
-                            <>
-                              <p className="font-medium">{formatINR(currentValue)}</p>
-                              <p className="text-xs text-muted-foreground">≈ {formatCurrency(currentValueAed)}</p>
-                            </>
-                          ) : (
-                            <p className="font-medium">{formatCurrency(currentValue)}</p>
-                          )}
+                            <p className="font-medium">{fmtAed(currentValueAed)}</p>
                           <p className={cn(
                             "text-sm",
                             isProfit ? "text-positive" : "text-negative"

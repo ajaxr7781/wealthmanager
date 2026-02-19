@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -41,54 +42,56 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              
-              {/* Main Routes */}
-              <Route path="/" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
-              <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
-              
-              {/* Asset Routes */}
-              <Route path="/assets/new" element={<ProtectedRoute><AddAsset /></ProtectedRoute>} />
-              <Route path="/asset/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
-              <Route path="/asset/:id/edit" element={<ProtectedRoute><EditAsset /></ProtectedRoute>} />
-              
-              {/* Holdings Routes */}
-              <Route path="/holdings" element={<ProtectedRoute><Holdings /></ProtectedRoute>} />
-              <Route path="/holdings/:categoryCode" element={<ProtectedRoute><HoldingsByCategory /></ProtectedRoute>} />
-              
-              {/* Other Routes */}
-              <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-              <Route path="/prices" element={<ProtectedRoute><Prices /></ProtectedRoute>} />
-              <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-              <Route path="/liabilities" element={<ProtectedRoute><LiabilitiesPage /></ProtectedRoute>} />
-              <Route path="/goals" element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
-              <Route path="/rebalancing" element={<ProtectedRoute><RebalancingPage /></ProtectedRoute>} />
-              <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
-              <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
-              
-              {/* Settings Routes */}
-              <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />
-              <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
-              <Route path="/settings/mf-schemes" element={<ProtectedRoute><MfSchemesSettings /></ProtectedRoute>} />
-              
-              {/* Mutual Fund Routes */}
-              <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
-              <Route path="/mf/holdings/new" element={<ProtectedRoute><AddMfHolding /></ProtectedRoute>} />
-              <Route path="/mf/holdings/:id" element={<ProtectedRoute><MfHoldingDetail /></ProtectedRoute>} />
-              <Route path="/mf/holdings/:id/edit" element={<ProtectedRoute><EditMfHolding /></ProtectedRoute>} />
-              <Route path="/mf/sips" element={<ProtectedRoute><SipListPage /></ProtectedRoute>} />
-              <Route path="/mf/sips/new" element={<ProtectedRoute><AddSipPage /></ProtectedRoute>} />
-              <Route path="/mf/sips/:id/edit" element={<ProtectedRoute><EditSipPage /></ProtectedRoute>} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <CurrencyProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                
+                {/* Main Routes */}
+                <Route path="/" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+                <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
+                
+                {/* Asset Routes */}
+                <Route path="/assets/new" element={<ProtectedRoute><AddAsset /></ProtectedRoute>} />
+                <Route path="/asset/:id" element={<ProtectedRoute><AssetDetail /></ProtectedRoute>} />
+                <Route path="/asset/:id/edit" element={<ProtectedRoute><EditAsset /></ProtectedRoute>} />
+                
+                {/* Holdings Routes */}
+                <Route path="/holdings" element={<ProtectedRoute><Holdings /></ProtectedRoute>} />
+                <Route path="/holdings/:categoryCode" element={<ProtectedRoute><HoldingsByCategory /></ProtectedRoute>} />
+                
+                {/* Other Routes */}
+                <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                <Route path="/prices" element={<ProtectedRoute><Prices /></ProtectedRoute>} />
+                <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                <Route path="/liabilities" element={<ProtectedRoute><LiabilitiesPage /></ProtectedRoute>} />
+                <Route path="/goals" element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
+                <Route path="/rebalancing" element={<ProtectedRoute><RebalancingPage /></ProtectedRoute>} />
+                <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
+                <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
+                
+                {/* Settings Routes */}
+                <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />
+                <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
+                <Route path="/settings/mf-schemes" element={<ProtectedRoute><MfSchemesSettings /></ProtectedRoute>} />
+                
+                {/* Mutual Fund Routes */}
+                <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
+                <Route path="/mf/holdings/new" element={<ProtectedRoute><AddMfHolding /></ProtectedRoute>} />
+                <Route path="/mf/holdings/:id" element={<ProtectedRoute><MfHoldingDetail /></ProtectedRoute>} />
+                <Route path="/mf/holdings/:id/edit" element={<ProtectedRoute><EditMfHolding /></ProtectedRoute>} />
+                <Route path="/mf/sips" element={<ProtectedRoute><SipListPage /></ProtectedRoute>} />
+                <Route path="/mf/sips/new" element={<ProtectedRoute><AddSipPage /></ProtectedRoute>} />
+                <Route path="/mf/sips/:id/edit" element={<ProtectedRoute><EditSipPage /></ProtectedRoute>} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </CurrencyProvider>
         </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
