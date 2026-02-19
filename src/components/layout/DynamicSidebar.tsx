@@ -74,7 +74,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
   const { data: priceFeedTypes } = usePriceFeedSupportedTypes();
   const { data: categoryTotals } = useCategoryTotals();
   
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['assets']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => new Set());
 
   const toggleCategory = (key: string) => {
     setExpandedCategories(prev => {

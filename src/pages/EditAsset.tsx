@@ -104,8 +104,8 @@ export default function EditAsset() {
       <AppLayout>
         <div className="p-4 lg:p-8 text-center">
           <p className="text-muted-foreground">Asset not found</p>
-          <Button variant="link" onClick={() => navigate('/portfolio')}>
-            Back to Portfolio
+          <Button variant="link" onClick={() => navigate(-1)}>
+            Back
           </Button>
         </div>
       </AppLayout>

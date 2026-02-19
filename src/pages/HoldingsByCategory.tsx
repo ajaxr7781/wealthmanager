@@ -142,12 +142,10 @@ export default function HoldingsByCategory() {
       <AppLayout>
         <div className="p-4 lg:p-8">
           <p className="text-muted-foreground">Category not found</p>
-          <Link to="/holdings">
-            <Button variant="ghost" className="mt-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to All Holdings
-            </Button>
-          </Link>
+          <Button variant="ghost" className="mt-4" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
         </div>
       </AppLayout>
     );
