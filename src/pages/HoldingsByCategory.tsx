@@ -84,6 +84,44 @@ export default function HoldingsByCategory() {
     return currency === 'INR' ? value * inrToAed : value;
   };
 
+  // Category-level CAGR - must be before early returns to keep hook order stable
+  const categoryCagr = useMemo(() => {
+    if (!category || categoryAssets.length === 0) return null;
+    
+    let catTotalInvested = categoryAssets.reduce((sum, a) => sum + convertToAed(Number(a.total_cost), a.currency), 0);
+    let catTotalValue = categoryAssets.reduce((sum, a) => {
+      let value: number;
+      if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
+        const fdResult = getEffectiveFDValue({
+          principal: a.principal ? Number(a.principal) : null,
+          interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
+          purchase_date: a.purchase_date,
+          maturity_date: a.maturity_date,
+          maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
+          current_value: a.current_value ? Number(a.current_value) : null,
+          is_current_value_manual: a.is_current_value_manual,
+          total_cost: Number(a.total_cost),
+        });
+        value = fdResult.currentValue;
+      } else {
+        value = Number(a.current_value) || Number(a.total_cost);
+      }
+      return sum + convertToAed(value, a.currency);
+    }, 0);
+
+    if (isPreciousMetals && metalsSummary) {
+      catTotalInvested += metalsSummary.net_cash_invested_aed;
+      catTotalValue += metalsSummary.current_value_aed ?? metalsSummary.net_cash_invested_aed;
+    }
+
+    if (catTotalInvested <= 0 || catTotalValue <= 0) return null;
+    const dates = categoryAssets.map(a => parseISO(a.purchase_date));
+    const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
+    const years = differenceInDays(new Date(), earliest) / 365.25;
+    if (years <= 0) return null;
+    return (Math.pow(catTotalValue / catTotalInvested, 1 / years) - 1) * 100;
+  }, [category, categoryAssets, isPreciousMetals, metalsSummary, inrToAed]);
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -154,17 +192,6 @@ export default function HoldingsByCategory() {
   const plPercent = totalInvested > 0 ? (totalPL / totalInvested) * 100 : 0;
   const totalHoldingsCount = categoryAssets.length + metalInstruments.length;
 
-  // Category-level CAGR - weighted average
-  const categoryCagr = useMemo(() => {
-    if (totalInvested <= 0 || totalValue <= 0) return null;
-    // Use earliest purchase date for years
-    const dates = categoryAssets.map(a => parseISO(a.purchase_date));
-    if (dates.length === 0) return null;
-    const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
-    const years = differenceInDays(new Date(), earliest) / 365.25;
-    if (years <= 0) return null;
-    return (Math.pow(totalValue / totalInvested, 1 / years) - 1) * 100;
-  }, [totalInvested, totalValue, categoryAssets]);
 
   return (
     <AppLayout>
