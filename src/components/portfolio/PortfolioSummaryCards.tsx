@@ -4,12 +4,12 @@ import {
   Wallet, 
   TrendingUp, 
   TrendingDown,
-  DollarSign,
   Shield,
   Minus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiabilitySummary } from '@/hooks/useLiabilities';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import {
   Tooltip,
   TooltipContent,
@@ -23,17 +23,11 @@ interface PortfolioSummaryCardsProps {
 export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) {
   const isProfit = overview.total_profit_loss >= 0;
   const { totalOutstanding, totalEmi } = useLiabilitySummary();
+  const { formatAed } = useCurrency();
 
   const netWorth = overview.total_current_value - totalOutstanding;
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-AE', {
-      style: 'currency',
-      currency: 'AED',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const fmt = (value: number) => formatAed(value, { decimals: 0 });
 
   const formatPercent = (value: number) => {
     const sign = value >= 0 ? '+' : '';
@@ -43,22 +37,22 @@ export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) 
   const cards = [
     {
       title: 'Total Assets',
-      value: formatCurrency(overview.total_current_value),
+      value: fmt(overview.total_current_value),
       icon: Wallet,
-      description: `Invested: ${formatCurrency(overview.total_invested)}`,
+      description: `Invested: ${fmt(overview.total_invested)}`,
       tooltip: 'Total current market value of all your assets',
     },
     {
       title: 'Total Liabilities',
-      value: formatCurrency(totalOutstanding),
+      value: fmt(totalOutstanding),
       icon: Minus,
-      description: totalEmi > 0 ? `Monthly EMI: ${formatCurrency(totalEmi)}` : 'No liabilities',
+      description: totalEmi > 0 ? `Monthly EMI: ${fmt(totalEmi)}` : 'No liabilities',
       negative: totalOutstanding > 0,
       tooltip: 'Sum of all outstanding loans and obligations',
     },
     {
       title: 'Net Worth',
-      value: formatCurrency(netWorth),
+      value: fmt(netWorth),
       icon: Shield,
       positive: netWorth >= 0,
       negative: netWorth < 0,
@@ -68,7 +62,7 @@ export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) 
     },
     {
       title: 'Total P/L',
-      value: formatCurrency(overview.total_profit_loss),
+      value: fmt(overview.total_profit_loss),
       subValue: formatPercent(overview.total_profit_loss_percent),
       icon: isProfit ? TrendingUp : TrendingDown,
       positive: isProfit,

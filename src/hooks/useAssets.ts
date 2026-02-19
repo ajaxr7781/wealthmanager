@@ -427,6 +427,7 @@ export function useUpdateSettings() {
       usd_to_aed_rate: number;
       inr_to_aed_rate: number;
       auto_refresh_prices: boolean;
+      display_currency: string;
     }>) => {
       if (!user) throw new Error('Not authenticated');
 

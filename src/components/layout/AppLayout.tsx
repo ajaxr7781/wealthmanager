@@ -13,6 +13,7 @@ import {
   PanelLeft,
 } from 'lucide-react';
 import { AlertBell } from './AlertBell';
+import { CurrencySelector } from './CurrencySelector';
 import { useTheme } from 'next-themes';
 import { DynamicSidebarNav } from './DynamicSidebar';
 import { cn } from '@/lib/utils';
@@ -66,6 +67,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           {/* Bottom section */}
           <div className="flex-shrink-0 px-2 py-3 border-t border-white/10 space-y-0.5">
+            <div className={cn(
+              "flex items-center text-white/70 rounded-lg h-9 text-[13px]",
+              sidebarCollapsed ? "justify-center px-2" : "px-3"
+            )}>
+              <CurrencySelector className="text-white/70 hover:text-white hover:bg-white/8 w-full justify-start" />
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -128,6 +135,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="font-semibold text-foreground">InvestTracker</span>
           </div>
           <div className="flex items-center gap-1">
+            <CurrencySelector className="text-muted-foreground hover:text-foreground" />
             <AlertBell className="text-muted-foreground hover:text-foreground" />
             <Button
               variant="ghost"

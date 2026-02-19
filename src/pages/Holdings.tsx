@@ -6,6 +6,7 @@ import { useAssets, usePortfolioOverview, useUserSettings } from '@/hooks/useAss
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { useActiveMfHoldings } from '@/hooks/useMfHoldings';
 import { useActiveMfSips } from '@/hooks/useMfSips';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import { DEFAULT_INR_TO_AED } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ export default function Holdings() {
   const { data: mfHoldings, isLoading: mfLoading } = useActiveMfHoldings();
   const { data: sips, isLoading: sipsLoading } = useActiveMfSips();
   const { data: settings } = useUserSettings();
+  const { formatAed } = useCurrency();
   
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
@@ -212,7 +214,7 @@ export default function Holdings() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-semibold text-foreground">
-                  AED {overview.total_current_value.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  {formatAed(overview.total_current_value, { decimals: 0 })}
                 </p>
               </CardContent>
             </Card>
@@ -222,7 +224,7 @@ export default function Holdings() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-semibold text-foreground">
-                  AED {overview.total_invested.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  {formatAed(overview.total_invested, { decimals: 0 })}
                 </p>
               </CardContent>
             </Card>
@@ -242,7 +244,7 @@ export default function Holdings() {
                   "text-2xl font-semibold",
                   overview.total_profit_loss >= 0 ? "text-positive" : "text-negative"
                 )}>
-                  {overview.total_profit_loss >= 0 ? '+' : ''}AED {overview.total_profit_loss.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  {overview.total_profit_loss >= 0 ? '+' : ''}{formatAed(overview.total_profit_loss, { decimals: 0 })}
                 </p>
               </CardContent>
             </Card>
@@ -302,7 +304,7 @@ export default function Holdings() {
                             {isSip ? 'Monthly' : 'Value'}
                           </span>
                           <span className="font-medium text-foreground">
-                            AED {category.totalValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                            {formatAed(category.totalValue, { decimals: 0 })}
                           </span>
                         </div>
                         {!isSip && (

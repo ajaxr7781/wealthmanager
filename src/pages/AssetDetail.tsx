@@ -42,6 +42,7 @@ import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
 import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
   precious_metals: Coins,
@@ -67,6 +68,7 @@ export default function AssetDetail() {
   const { data: asset, isLoading } = useAsset(id);
   const deleteAsset = useDeleteAsset();
   const [learnOpen, setLearnOpen] = useState(false);
+  const { convert, format: fmtCurrency } = useCurrency();
 
   const handleDelete = async () => {
     if (!id) return;
@@ -74,13 +76,9 @@ export default function AssetDetail() {
     navigate('/portfolio');
   };
 
-  const formatCurrency = (value: number, currency: string = 'AED') => {
-    return new Intl.NumberFormat('en-AE', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+  const formatCurrencyVal = (value: number, currency: string = 'AED') => {
+    const converted = convert(value, currency as 'AED' | 'INR' | 'USD');
+    return fmtCurrency(converted);
   };
 
   const formatDate = (date: string) => {
@@ -227,7 +225,7 @@ export default function AssetDetail() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                {formatCurrency(totalCost, asset.currency)}
+                {formatCurrencyVal(totalCost, asset.currency)}
               </p>
             </CardContent>
           </Card>
@@ -238,7 +236,7 @@ export default function AssetDetail() {
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">
-                {formatCurrency(currentValue, asset.currency)}
+                {formatCurrencyVal(currentValue, asset.currency)}
               </p>
             </CardContent>
           </Card>
@@ -252,7 +250,7 @@ export default function AssetDetail() {
                 "text-2xl font-bold",
                 isProfit ? "text-positive" : "text-negative"
               )}>
-                {isProfit ? '+' : ''}{formatCurrency(pl, asset.currency)}
+                {isProfit ? '+' : ''}{formatCurrencyVal(pl, asset.currency)}
               </p>
               <p className={cn(
                 "text-sm",
@@ -382,7 +380,7 @@ export default function AssetDetail() {
                 {asset.principal && (
                   <div>
                     <p className="text-sm text-muted-foreground">Principal</p>
-                    <p className="font-medium">{formatCurrency(Number(asset.principal), asset.currency)}</p>
+                    <p className="font-medium">{formatCurrencyVal(Number(asset.principal), asset.currency)}</p>
                   </div>
                 )}
                 {asset.interest_rate && (
@@ -400,7 +398,7 @@ export default function AssetDetail() {
                 {asset.maturity_amount && (
                   <div>
                     <p className="text-sm text-muted-foreground">Maturity Amount</p>
-                    <p className="font-medium">{formatCurrency(Number(asset.maturity_amount), asset.currency)}</p>
+                    <p className="font-medium">{formatCurrencyVal(Number(asset.maturity_amount), asset.currency)}</p>
                   </div>
                 )}
               </div>

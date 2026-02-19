@@ -1186,6 +1186,7 @@ export type Database = {
         Row: {
           auto_refresh_prices: boolean | null
           created_at: string
+          display_currency: string
           id: string
           inr_to_aed_rate: number | null
           updated_at: string
@@ -1195,6 +1196,7 @@ export type Database = {
         Insert: {
           auto_refresh_prices?: boolean | null
           created_at?: string
+          display_currency?: string
           id?: string
           inr_to_aed_rate?: number | null
           updated_at?: string
@@ -1204,6 +1206,7 @@ export type Database = {
         Update: {
           auto_refresh_prices?: boolean | null
           created_at?: string
+          display_currency?: string
           id?: string
           inr_to_aed_rate?: number | null
           updated_at?: string
