@@ -210,11 +210,11 @@ export default function AddAsset() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/portfolio')}
+            onClick={() => navigate(-1)}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Portfolio
+            Back
           </Button>
           <h1 className="text-2xl lg:text-3xl font-bold">Add New Asset</h1>
           <p className="text-muted-foreground">

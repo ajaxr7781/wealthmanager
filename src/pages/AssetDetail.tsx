@@ -107,8 +107,8 @@ export default function AssetDetail() {
       <AppLayout>
         <div className="p-4 lg:p-8 text-center">
           <p className="text-muted-foreground">Asset not found</p>
-          <Button variant="link" onClick={() => navigate('/portfolio')}>
-            Back to Portfolio
+          <Button variant="link" onClick={() => navigate(-1)}>
+            Back
           </Button>
         </div>
       </AppLayout>
@@ -160,11 +160,11 @@ export default function AssetDetail() {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate('/portfolio')}
+            onClick={() => navigate(-1)}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Portfolio
+            Back
           </Button>
           
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
