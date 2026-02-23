@@ -34,9 +34,7 @@ export function RiskExposure({ overview, assets }: RiskExposureProps) {
     }
   }
 
-  // Add MF/SIP
-  if (overview.mf_summary) equity += overview.mf_summary.current_value_aed;
-  if (overview.sip_summary) equity += overview.sip_summary.current_value_aed;
+  // MF/SIP equity values are now included in assets_by_type
 
   const riskData = [
     { name: 'Equity', value: equity, color: 'hsl(217, 91%, 60%)' },
@@ -55,8 +53,7 @@ export function RiskExposure({ overview, assets }: RiskExposureProps) {
     if (a.currency === 'INR') inrExposure += val;
     else aedExposure += val;
   }
-  if (overview.mf_summary) inrExposure += overview.mf_summary.current_value_inr;
-  if (overview.sip_summary) inrExposure += overview.sip_summary.current_value_inr;
+  // MF/SIP INR values now included in assets
 
   const currencyData = [
     { name: 'AED', value: aedExposure, color: 'hsl(217, 91%, 60%)' },

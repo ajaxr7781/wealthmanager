@@ -141,9 +141,7 @@ export default function RebalancingPage() {
       currentByCategory.set(a.type, (currentByCategory.get(a.type) || 0) + a.current_value);
     }
 
-    // Add MF and SIP values
-    if (overview.mf_summary) currentByCategory.set('mutual_funds', (currentByCategory.get('mutual_funds') || 0) + overview.mf_summary.current_value_aed);
-    if (overview.sip_summary) currentByCategory.set('sips', (currentByCategory.get('sips') || 0) + overview.sip_summary.current_value_aed);
+    // MF/SIP are now in assets_by_type — no separate addition needed
 
     const threshold = targets?.find(t => t.id === activeTarget)?.rebalance_threshold_pct ?? 5;
 

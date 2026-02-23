@@ -63,13 +63,7 @@ export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, asse
       color: a.color || DONUT_COLORS[i % DONUT_COLORS.length],
     }));
 
-  // Add MF/SIP to donut
-  if (overview.mf_summary && overview.mf_summary.current_value_aed > 0) {
-    donutData.push({ name: 'Mutual Funds', value: overview.mf_summary.current_value_aed, color: 'hsl(350, 89%, 60%)' });
-  }
-  if (overview.sip_summary && overview.sip_summary.current_value_aed > 0) {
-    donutData.push({ name: 'SIP', value: overview.sip_summary.current_value_aed, color: 'hsl(280, 65%, 60%)' });
-  }
+  // MF/SIP are now in assets_by_type — no separate push needed
 
   const liquidityData = [
     { name: 'Liquid', value: liquidity.liquid, color: 'hsl(142, 71%, 45%)' },

@@ -113,7 +113,7 @@ function MapAssetsDialog({ goal, mappings }: { goal: Goal; mappings: GoalAssetMa
                   <p className="text-sm font-medium truncate">{asset.asset_name}</p>
                   <p className="text-xs text-muted-foreground">{asset.category_code || asset.asset_type}</p>
                 </div>
-                <span className="text-sm font-medium text-foreground">AED {valAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                <span className="text-sm font-medium text-foreground">{valAed.toLocaleString('en-US', { style: 'currency', currency: 'AED', maximumFractionDigits: 0 })}</span>
               </label>
             );
           })}

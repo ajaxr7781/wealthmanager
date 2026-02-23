@@ -23,7 +23,6 @@ export function useAssets(assetType?: AssetType) {
       const { data, error } = await query;
       if (error) throw error;
       
-      // Map database fields to Asset type
       return (data || []).map(item => ({
         ...item,
         asset_type_code: item.asset_type_code || null,
@@ -138,33 +137,23 @@ export function usePortfolioOverview() {
   const { user } = useAuth();
   const { data: settings } = useUserSettings();
   
-  // Get dynamic INR to AED rate from settings
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   return useQuery({
     queryKey: ['portfolio-overview', user?.id, inrToAed],
     queryFn: async () => {
-      // Fetch assets, transactions, MF holdings, SIPs, schemes, and categories in parallel
-      const [assetsResult, transactionsResult, pricesResult, mfHoldingsResult, sipsResult, schemesResult, categoriesResult] = await Promise.all([
+      // All asset types (PM, MF, SIP, FD, etc.) are now in the assets table
+      const [assetsResult, categoriesResult] = await Promise.all([
         supabase.from('assets').select('*'),
-        supabase.from('transactions').select('*'),
-        supabase.from('price_snapshots').select('*').order('as_of', { ascending: false }).limit(10),
-        supabase.from('mf_holdings').select('*').eq('is_active', true),
-        supabase.from('mf_sips').select('*'),
-        supabase.from('mf_schemes').select('id, latest_nav'),
         supabase.from('asset_categories').select('code, name, color, icon').eq('is_active', true),
       ]);
 
       if (assetsResult.error) throw assetsResult.error;
-      if (transactionsResult.error) throw transactionsResult.error;
 
       const assets = (assetsResult.data || []) as Asset[];
-      const transactions = transactionsResult.data || [];
-      const priceSnapshots = pricesResult.data || [];
-      const mfHoldings = mfHoldingsResult.data || [];
-      const sips = sipsResult.data || [];
-      const schemes = schemesResult.data || [];
       const categories = categoriesResult.data || [];
+
+      if (assets.length === 0) return null;
 
       // Build category lookup map
       const categoryMap = new Map<string, { name: string; color: string | null; icon: string | null }>();
@@ -172,63 +161,13 @@ export function usePortfolioOverview() {
         categoryMap.set(cat.code, { name: cat.name, color: cat.color, icon: cat.icon });
       }
 
-      // Create a map of scheme id to NAV for quick lookup
-      const schemeNavMap = new Map<string, number>();
-      for (const scheme of schemes) {
-        if (scheme.latest_nav) {
-          schemeNavMap.set(scheme.id, Number(scheme.latest_nav));
-        }
-      }
-
-      // Get latest prices for XAU and XAG
-      const goldPrice = priceSnapshots.find(p => p.instrument_symbol === 'XAU');
-      const silverPrice = priceSnapshots.find(p => p.instrument_symbol === 'XAG');
-
-      // Calculate precious metals summary from transactions (legacy data)
-      let goldHoldingOz = 0;
-      let goldCostBasisAed = 0;
-      let silverHoldingOz = 0;
-      let silverCostBasisAed = 0;
-
-      for (const tx of transactions) {
-        const quantityOz = tx.quantity_unit === 'OZ' ? tx.quantity : tx.quantity / OUNCE_TO_GRAM;
-        const pricePerOz = tx.price_unit === 'AED_PER_OZ' ? tx.price : tx.price * OUNCE_TO_GRAM;
-        const totalValue = quantityOz * pricePerOz + (tx.fees || 0);
-
-        if (tx.instrument_symbol === 'XAU') {
-          if (tx.side === 'BUY') {
-            goldHoldingOz += quantityOz;
-            goldCostBasisAed += totalValue;
-          } else {
-            goldHoldingOz -= quantityOz;
-            goldCostBasisAed -= (goldCostBasisAed / (goldHoldingOz + quantityOz)) * quantityOz;
-          }
-        } else if (tx.instrument_symbol === 'XAG') {
-          if (tx.side === 'BUY') {
-            silverHoldingOz += quantityOz;
-            silverCostBasisAed += totalValue;
-          } else {
-            silverHoldingOz -= quantityOz;
-            silverCostBasisAed -= (silverCostBasisAed / (silverHoldingOz + quantityOz)) * quantityOz;
-          }
-        }
-      }
-
-      // Calculate current value for precious metals
-      const goldCurrentValue = goldPrice ? goldHoldingOz * Number(goldPrice.price_aed_per_oz) : goldCostBasisAed;
-      const silverCurrentValue = silverPrice ? silverHoldingOz * Number(silverPrice.price_aed_per_oz) : silverCostBasisAed;
-      const preciousMetalsInvested = goldCostBasisAed + silverCostBasisAed;
-      const preciousMetalsCurrentValue = goldCurrentValue + silverCurrentValue;
-      const preciousMetalsCount = (goldHoldingOz > 0 ? 1 : 0) + (silverHoldingOz > 0 ? 1 : 0);
-
-      // Calculate totals by category_code (dynamic, not hardcoded asset_type)
+      // Calculate totals by category_code
       const assetsByCategory = new Map<string, {
         total_invested: number;
         current_value: number;
         count: number;
       }>();
 
-      // Calculate totals by currency
       const byCurrency = new Map<Currency, {
         total_invested: number;
         current_value: number;
@@ -237,12 +176,11 @@ export function usePortfolioOverview() {
       let total_invested = 0;
       let total_current_value = 0;
 
-      // Process assets from assets table (non-precious-metals mostly)
       for (const asset of assets) {
         const invested = Number(asset.total_cost) || 0;
         const currentVal = Number(asset.current_value) || invested;
         
-        // Convert to AED for unified totals using dynamic rate
+        // Convert to AED for unified totals
         let investedAED = invested;
         let currentAED = currentVal;
         
@@ -254,7 +192,7 @@ export function usePortfolioOverview() {
         total_invested += investedAED;
         total_current_value += currentAED;
 
-        // By category (dynamic)
+        // By category
         const catKey = asset.category_code || asset.asset_type || 'other';
         const existing = assetsByCategory.get(catKey) || { total_invested: 0, current_value: 0, count: 0 };
         assetsByCategory.set(catKey, {
@@ -270,69 +208,6 @@ export function usePortfolioOverview() {
           total_invested: currExisting.total_invested + invested,
           current_value: currExisting.current_value + currentVal,
         });
-      }
-
-      // Add precious metals from transactions to totals
-      if (preciousMetalsCount > 0) {
-        total_invested += preciousMetalsInvested;
-        total_current_value += preciousMetalsCurrentValue;
-        
-        const existingMetals = assetsByCategory.get('precious_metals') || { total_invested: 0, current_value: 0, count: 0 };
-        assetsByCategory.set('precious_metals', {
-          total_invested: existingMetals.total_invested + preciousMetalsInvested,
-          current_value: existingMetals.current_value + preciousMetalsCurrentValue,
-          count: existingMetals.count + preciousMetalsCount,
-        });
-
-        // Add to AED currency breakdown
-        const aedExisting = byCurrency.get('AED') || { total_invested: 0, current_value: 0 };
-        byCurrency.set('AED', {
-          total_invested: aedExisting.total_invested + preciousMetalsInvested,
-          current_value: aedExisting.current_value + preciousMetalsCurrentValue,
-        });
-      }
-
-      // Calculate MF holdings summary (in INR)
-      const mfInvestedINR = mfHoldings.reduce((sum, h) => sum + Number(h.invested_amount || 0), 0);
-      const mfCurrentValueINR = mfHoldings.reduce((sum, h) => sum + Number(h.current_value || h.invested_amount || 0), 0);
-      const mfInvestedAED = mfInvestedINR * inrToAed;
-      const mfCurrentValueAED = mfCurrentValueINR * inrToAed;
-      const mfUnrealizedGainINR = mfCurrentValueINR - mfInvestedINR;
-      const mfReturnPct = mfInvestedINR > 0 ? (mfUnrealizedGainINR / mfInvestedINR) * 100 : 0;
-
-      // Add MF to totals
-      if (mfHoldings.length > 0) {
-        total_invested += mfInvestedAED;
-        total_current_value += mfCurrentValueAED;
-      }
-
-      // Calculate SIP summary with current values based on units and NAV
-      const activeSips = sips.filter(s => s.status === 'ACTIVE');
-      const sipMonthlyINR = activeSips.reduce((sum, s) => sum + Number(s.sip_amount || 0), 0);
-      const sipMonthlyAED = sipMonthlyINR * inrToAed;
-      
-      // Calculate SIP invested and current value
-      let sipInvestedINR = 0;
-      let sipCurrentValueINR = 0;
-      for (const sip of sips) {
-        sipInvestedINR += Number(sip.invested_amount || 0);
-        const units = Number(sip.current_units || 0);
-        const nav = schemeNavMap.get(sip.scheme_id) || 0;
-        sipCurrentValueINR += units * nav;
-      }
-      const sipInvestedAED = sipInvestedINR * inrToAed;
-      const sipCurrentValueAED = sipCurrentValueINR * inrToAed;
-
-      // Add SIP values to totals
-      if (sipInvestedAED > 0 || sipCurrentValueAED > 0) {
-        total_invested += sipInvestedAED;
-        total_current_value += sipCurrentValueAED;
-      }
-
-      // Return null if no assets at all
-      const hasAnyAssets = assets.length > 0 || preciousMetalsCount > 0 || mfHoldings.length > 0 || sipCurrentValueAED > 0;
-      if (!hasAnyAssets) {
-        return null;
       }
 
       const overview: PortfolioOverview = {
@@ -359,25 +234,6 @@ export function usePortfolioOverview() {
           currency,
           ...data,
         })),
-        mf_summary: mfHoldings.length > 0 ? {
-          total_invested_inr: mfInvestedINR,
-          current_value_inr: mfCurrentValueINR,
-          total_invested_aed: mfInvestedAED,
-          current_value_aed: mfCurrentValueAED,
-          unrealized_gain_inr: mfUnrealizedGainINR,
-          return_pct: mfReturnPct,
-          holdings_count: mfHoldings.length,
-        } : undefined,
-        sip_summary: sips.length > 0 ? {
-          invested_inr: sipInvestedINR,
-          invested_aed: sipInvestedAED,
-          current_value_inr: sipCurrentValueINR,
-          current_value_aed: sipCurrentValueAED,
-          monthly_commitment_inr: sipMonthlyINR,
-          monthly_commitment_aed: sipMonthlyAED,
-          active_count: activeSips.length,
-          total_count: sips.length,
-        } : undefined,
       };
 
       return overview;
@@ -399,7 +255,6 @@ export function useUserSettings() {
 
       if (error && error.code !== 'PGRST116') throw error;
       
-      // Return default settings if none exist
       if (!data) {
         return {
           usd_to_aed_rate: DEFAULT_USD_TO_AED,
@@ -431,7 +286,6 @@ export function useUpdateSettings() {
     }>) => {
       if (!user) throw new Error('Not authenticated');
 
-      // Try to update first
       const { data: existing } = await supabase
         .from('user_settings')
         .select('id')
