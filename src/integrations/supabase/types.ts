@@ -210,6 +210,68 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_transactions: {
+        Row: {
+          amount: number
+          asset_id: string
+          created_at: string
+          fees: number
+          id: string
+          notes: string | null
+          price_per_unit: number | null
+          quantity: number
+          quantity_unit: string | null
+          source_id: string | null
+          source_table: string | null
+          transaction_date: string
+          transaction_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          asset_id: string
+          created_at?: string
+          fees?: number
+          id?: string
+          notes?: string | null
+          price_per_unit?: number | null
+          quantity?: number
+          quantity_unit?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          transaction_date: string
+          transaction_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          created_at?: string
+          fees?: number
+          id?: string
+          notes?: string | null
+          price_per_unit?: number | null
+          quantity?: number
+          quantity_unit?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_transactions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_types: {
         Row: {
           category_id: string
@@ -288,6 +350,7 @@ export type Database = {
           currency: Database["public"]["Enums"]["currency"]
           current_price_per_unit: number | null
           current_value: number | null
+          folio_no: string | null
           id: string
           instrument_name: string | null
           interest_rate: number | null
@@ -305,10 +368,18 @@ export type Database = {
           quantity: number | null
           quantity_unit: string | null
           rental_income_monthly: number | null
+          scheme_id: string | null
+          sip_amount: number | null
+          sip_day_of_month: number | null
+          sip_end_date: string | null
           sip_frequency: string | null
+          sip_start_date: string | null
+          sip_status: string | null
           total_cost: number
+          units_held: number | null
           updated_at: string
           user_id: string
+          xirr_value: number | null
         }
         Insert: {
           area_sqft?: number | null
@@ -322,6 +393,7 @@ export type Database = {
           currency?: Database["public"]["Enums"]["currency"]
           current_price_per_unit?: number | null
           current_value?: number | null
+          folio_no?: string | null
           id?: string
           instrument_name?: string | null
           interest_rate?: number | null
@@ -339,10 +411,18 @@ export type Database = {
           quantity?: number | null
           quantity_unit?: string | null
           rental_income_monthly?: number | null
+          scheme_id?: string | null
+          sip_amount?: number | null
+          sip_day_of_month?: number | null
+          sip_end_date?: string | null
           sip_frequency?: string | null
+          sip_start_date?: string | null
+          sip_status?: string | null
           total_cost: number
+          units_held?: number | null
           updated_at?: string
           user_id: string
+          xirr_value?: number | null
         }
         Update: {
           area_sqft?: number | null
@@ -356,6 +436,7 @@ export type Database = {
           currency?: Database["public"]["Enums"]["currency"]
           current_price_per_unit?: number | null
           current_value?: number | null
+          folio_no?: string | null
           id?: string
           instrument_name?: string | null
           interest_rate?: number | null
@@ -373,10 +454,18 @@ export type Database = {
           quantity?: number | null
           quantity_unit?: string | null
           rental_income_monthly?: number | null
+          scheme_id?: string | null
+          sip_amount?: number | null
+          sip_day_of_month?: number | null
+          sip_end_date?: string | null
           sip_frequency?: string | null
+          sip_start_date?: string | null
+          sip_status?: string | null
           total_cost?: number
+          units_held?: number | null
           updated_at?: string
           user_id?: string
+          xirr_value?: number | null
         }
         Relationships: [
           {
@@ -384,6 +473,13 @@ export type Database = {
             columns: ["portfolio_id"]
             isOneToOne: false
             referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_scheme_id_fkey"
+            columns: ["scheme_id"]
+            isOneToOne: false
+            referencedRelation: "mf_schemes"
             referencedColumns: ["id"]
           },
         ]
@@ -1230,6 +1326,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      migrate_to_unified_assets: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
