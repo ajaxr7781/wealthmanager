@@ -1,21 +1,15 @@
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useDefaultPortfolio } from '@/hooks/usePortfolios';
-import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
 import { useAssets, usePortfolioOverview, useUserSettings } from '@/hooks/useAssets';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
-import { useActiveMfHoldings } from '@/hooks/useMfHoldings';
-import { useActiveMfSips } from '@/hooks/useMfSips';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { DEFAULT_INR_TO_AED } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Coins, Circle, Info, Plus, ChevronRight, Package, LineChart, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { formatOz, formatGrams, formatCurrency, formatPercent, formatPL } from '@/lib/calculations';
+import { Coins, Plus, ChevronRight, Package, LineChart, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { getColorClass } from '@/types/assetConfig';
 import {
   Landmark,
@@ -44,25 +38,19 @@ const IconMap: Record<string, typeof Coins> = {
 };
 
 export default function Holdings() {
-  const { data: portfolio, isLoading: portfolioLoading } = useDefaultPortfolio();
-  const { data: metalsSummary, isLoading: metalsLoading } = usePortfolioSummary(portfolio?.id);
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: overview } = usePortfolioOverview();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
-  const { data: mfHoldings, isLoading: mfLoading } = useActiveMfHoldings();
-  const { data: sips, isLoading: sipsLoading } = useActiveMfSips();
   const { data: settings } = useUserSettings();
   const { formatAed } = useCurrency();
   
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
+  const isLoading = assetsLoading || categoriesLoading;
 
-  const isLoading = portfolioLoading || metalsLoading || assetsLoading || categoriesLoading || mfLoading || sipsLoading;
-
-  // Calculate category summaries with proper currency conversion
+  // Calculate category summaries — all asset types (PM, MF, SIP) now come from assets table
   const categorySummaries = categories?.map(category => {
     const categoryAssets = assets?.filter(a => a.category_code === category.code) || [];
     
-    // Apply currency conversion for INR assets
     const totalInvested = categoryAssets.reduce((sum, a) => {
       const cost = Number(a.total_cost) || 0;
       return sum + (a.currency === 'INR' ? cost * inrToAed : cost);
@@ -70,8 +58,6 @@ export default function Holdings() {
     
     const totalValue = categoryAssets.reduce((sum, a) => {
       let value: number;
-      
-      // Special handling for Fixed Deposits - calculate accrued interest
       if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
         const fdResult = getEffectiveFDValue({
           principal: a.principal ? Number(a.principal) : null,
@@ -87,104 +73,21 @@ export default function Holdings() {
       } else {
         value = Number(a.current_value) || Number(a.total_cost) || 0;
       }
-      
       return sum + (a.currency === 'INR' ? value * inrToAed : value);
     }, 0);
-    
-    const count = categoryAssets.length;
-    
-    // For precious metals, also include legacy transaction-based holdings
-    if (category.code === 'precious_metals' && metalsSummary) {
-      const metalsValue = metalsSummary.current_value_aed ?? metalsSummary.net_cash_invested_aed;
-      const metalsInvested = metalsSummary.net_cash_invested_aed;
-      const metalsCount = metalsSummary.instruments.filter(i => i.holding_oz > 0).length;
-      
-      return {
-        ...category,
-        totalInvested: totalInvested + metalsInvested,
-        totalValue: totalValue + metalsValue,
-        count: count + metalsCount,
-        hasMetalsTransactions: metalsCount > 0,
-        metalsSummary,
-      };
-    }
     
     return {
       ...category,
       totalInvested,
       totalValue,
-      count,
-      hasMetalsTransactions: false,
-      metalsSummary: null,
+      count: categoryAssets.length,
+      path: `/holdings/${category.code}`,
     };
   }).filter(c => c.count > 0) || [];
 
-  // Calculate MF Holdings summary (INR -> AED)
-  const mfSummary = mfHoldings && mfHoldings.length > 0 ? {
-    totalInvested: mfHoldings.reduce((sum, h) => sum + (Number(h.invested_amount) * inrToAed), 0),
-    totalValue: mfHoldings.reduce((sum, h) => sum + ((Number(h.current_value) || Number(h.invested_amount)) * inrToAed), 0),
-    count: mfHoldings.length,
-  } : null;
-
-  // Calculate SIPs summary (monthly commitment in INR -> AED)
-  const sipSummary = sips && sips.length > 0 ? {
-    monthlyCommitment: sips.reduce((sum, s) => sum + (Number(s.sip_amount) * inrToAed), 0),
-    count: sips.length,
-  } : null;
-
-  // Combine all summaries for sorting
-  type CategoryItem = {
-    id: string;
-    code: string;
-    name: string;
-    icon: string;
-    color: string | null;
-    totalValue: number;
-    totalInvested: number;
-    count: number;
-    path: string;
-    type: 'category' | 'mf' | 'sip';
-    hasMetalsTransactions?: boolean;
-    metalsSummary?: typeof metalsSummary;
-  };
-
-  const allCategories: CategoryItem[] = [
-    ...categorySummaries.map(c => ({
-      ...c,
-      path: `/holdings/${c.code}`,
-      type: 'category' as const,
-    })),
-    ...(mfSummary ? [{
-      id: 'mutual_funds',
-      code: 'mutual_funds',
-      name: 'Mutual Funds',
-      icon: 'LineChart',
-      color: 'purple',
-      totalValue: mfSummary.totalValue,
-      totalInvested: mfSummary.totalInvested,
-      count: mfSummary.count,
-      path: '/mf/holdings',
-      type: 'mf' as const,
-    }] : []),
-    ...(sipSummary ? [{
-      id: 'sips',
-      code: 'sips',
-      name: 'Active SIPs',
-      icon: 'Calendar',
-      color: 'blue',
-      totalValue: sipSummary.monthlyCommitment,
-      totalInvested: sipSummary.monthlyCommitment,
-      count: sipSummary.count,
-      path: '/mf/sips',
-      type: 'sip' as const,
-    }] : []),
-  ];
-
-  // Sort by value descending, then alphabetically for zero-value
-  const sortedCategories = allCategories.sort((a, b) => {
-    if (a.totalValue !== b.totalValue) {
-      return b.totalValue - a.totalValue;
-    }
+  // Sort by value descending
+  const sortedCategories = [...categorySummaries].sort((a, b) => {
+    if (a.totalValue !== b.totalValue) return b.totalValue - a.totalValue;
     return a.name.localeCompare(b.name);
   });
 
@@ -266,111 +169,57 @@ export default function Holdings() {
             {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 rounded-lg" />)}
           </div>
         ) : sortedCategories.length > 0 ? (
-          <div className="space-y-8">
-            {/* Category Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {sortedCategories.map((category) => {
-                const Icon = IconMap[category.icon || 'Package'] || Package;
-                const pl = category.totalValue - category.totalInvested;
-                const plPercent = category.totalInvested > 0 ? (pl / category.totalInvested) * 100 : 0;
-                const isProfit = pl >= 0;
-                const isSip = category.type === 'sip';
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {sortedCategories.map((category) => {
+              const Icon = IconMap[category.icon || 'Package'] || Package;
+              const pl = category.totalValue - category.totalInvested;
+              const plPercent = category.totalInvested > 0 ? (pl / category.totalInvested) * 100 : 0;
+              const isProfit = pl >= 0;
 
-                return (
-                  <Link key={category.id} to={category.path}>
-                    <Card className="hover:shadow-md transition-all duration-200 cursor-pointer h-full group">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={cn(
-                              "w-10 h-10 rounded-lg flex items-center justify-center",
-                              getColorClass(category.color)
-                            )}>
-                              <Icon className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <CardTitle className="text-base font-medium">{category.name}</CardTitle>
-                              <p className="text-sm text-muted-foreground">
-                                {category.count} {isSip ? 'active' : 'holding'}{category.count !== 1 ? 's' : ''}
-                              </p>
-                            </div>
+              return (
+                <Link key={category.id} to={category.path}>
+                  <Card className="hover:shadow-md transition-all duration-200 cursor-pointer h-full group">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-10 h-10 rounded-lg flex items-center justify-center",
+                            getColorClass(category.color)
+                          )}>
+                            <Icon className="h-5 w-5" />
                           </div>
-                          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">
-                            {isSip ? 'Monthly' : 'Value'}
-                          </span>
-                          <span className="font-medium text-foreground">
-                            {formatAed(category.totalValue, { decimals: 0 })}
-                          </span>
-                        </div>
-                        {!isSip && (
-                          <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">P/L</span>
-                            <span className={cn(
-                              "font-medium flex items-center gap-1",
-                              isProfit ? "text-positive" : "text-negative"
-                            )}>
-                              {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                              {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
-                            </span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Precious Metals Detail Section (if exists) */}
-            {metalsSummary && metalsSummary.instruments.some(i => i.holding_oz > 0) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Coins className="h-5 w-5 text-primary" />
-                    Precious Metals Detail
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {metalsSummary.instruments.filter(i => i.holding_oz > 0).map((inst) => {
-                      const pl = formatPL(inst.unrealized_pl_aed);
-                      const isGold = inst.symbol === 'XAU';
-                      
-                      return (
-                        <div key={inst.symbol} className="p-4 rounded-lg border border-border bg-muted/30 space-y-4">
-                          <div className="flex items-center gap-3">
-                            <div className={cn(
-                              "p-2 rounded-lg",
-                              isGold ? "bg-amber-500" : "bg-muted"
-                            )}>
-                              {isGold ? <Coins className="h-5 w-5 text-white" /> : <Circle className="h-5 w-5 text-foreground fill-foreground" />}
-                            </div>
-                            <span className="font-medium text-foreground">{inst.name} ({inst.symbol})</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <MetricRow label="Holdings (oz)" value={formatOz(inst.holding_oz)} />
-                            <MetricRow label="Holdings (g)" value={formatGrams(inst.holding_grams)} />
-                            <MetricRow label="Avg Cost (AED/oz)" value={formatCurrency(inst.average_cost_aed_per_oz, false)} />
-                            <MetricRow label="Current Value" value={inst.current_value_aed !== null ? formatCurrency(inst.current_value_aed) : 'N/A'} />
-                          </div>
-                          <div className="flex justify-between pt-2 border-t border-border">
-                            <span className="text-muted-foreground">Unrealized P/L</span>
-                            <span className={cn("font-semibold", pl.colorClass)}>
-                              {pl.text} {inst.unrealized_pl_pct !== null && `(${formatPercent(inst.unrealized_pl_pct)})`}
-                            </span>
+                          <div>
+                            <CardTitle className="text-base font-medium">{category.name}</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {category.count} holding{category.count !== 1 ? 's' : ''}
+                            </p>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Value</span>
+                        <span className="font-medium text-foreground">
+                          {formatAed(category.totalValue, { decimals: 0 })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">P/L</span>
+                        <span className={cn(
+                          "font-medium flex items-center gap-1",
+                          isProfit ? "text-positive" : "text-negative"
+                        )}>
+                          {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                          {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <Card>
@@ -391,19 +240,5 @@ export default function Holdings() {
         )}
       </div>
     </AppLayout>
-  );
-}
-
-function MetricRow({ label, value, tooltip }: { label: string; value: string; tooltip?: string }) {
-  return (
-    <div>
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        {label}
-        {tooltip && (
-          <Tooltip><TooltipTrigger><Info className="h-3 w-3" /></TooltipTrigger><TooltipContent>{tooltip}</TooltipContent></Tooltip>
-        )}
-      </div>
-      <p className="font-mono font-medium text-foreground">{value}</p>
-    </div>
   );
 }

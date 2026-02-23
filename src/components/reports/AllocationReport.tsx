@@ -83,25 +83,14 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
     value: a.current_value,
     color: a.color || COLORS[i % COLORS.length],
   }));
-  // Add MF/SIP
-  if (overview.mf_summary?.current_value_aed) {
-    byType.push({ name: 'Mutual Funds', value: overview.mf_summary.current_value_aed, color: 'hsl(350, 89%, 60%)' });
-  }
-  if (overview.sip_summary?.current_value_aed) {
-    byType.push({ name: 'SIP', value: overview.sip_summary.current_value_aed, color: 'hsl(280, 65%, 60%)' });
-  }
+  // MF/SIP are now included in assets_by_type — no separate push needed
 
   // By Currency
-  const byCurrency = overview.currency_breakdown.map((c, i) => ({
+  const byCurrency = overview.currency_breakdown.map((c) => ({
     name: c.currency,
     value: c.current_value,
     color: c.currency === 'AED' ? 'hsl(217, 91%, 60%)' : 'hsl(25, 95%, 53%)',
   }));
-  // Add MF/SIP INR values
-  const inrEntry = byCurrency.find(c => c.name === 'INR');
-  if (overview.mf_summary && inrEntry) {
-    // Already included via assets typically
-  }
 
   // By Geography (heuristic: INR = India, AED = UAE)
   let indiaValue = 0, uaeValue = 0;
@@ -110,9 +99,7 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
     if (a.currency === 'INR') indiaValue += val;
     else uaeValue += val;
   }
-  // Add MF/SIP to India
-  if (overview.mf_summary) indiaValue += overview.mf_summary.current_value_inr;
-  if (overview.sip_summary) indiaValue += overview.sip_summary.current_value_inr;
+  // MF/SIP INR values are now included in assets — no separate addition needed
   
   const byGeo = [
     { name: 'UAE', value: uaeValue, color: 'hsl(217, 91%, 60%)' },

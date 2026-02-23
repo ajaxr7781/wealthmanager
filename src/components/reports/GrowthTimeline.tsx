@@ -53,15 +53,7 @@ export function GrowthTimeline({ assets, overview }: GrowthTimelineProps) {
     const lastIdx = data.length - 1;
     const last = { ...data[lastIdx] };
 
-    // Add MF and SIP to totals for current year
-    if (overview.mf_summary) {
-      last.invested = (last.invested || 0) + overview.mf_summary.total_invested_aed;
-      last.currentValue = (last.currentValue || 0) + overview.mf_summary.current_value_aed;
-    }
-    if (overview.sip_summary) {
-      last.invested = (last.invested || 0) + overview.sip_summary.invested_aed;
-      last.currentValue = (last.currentValue || 0) + overview.sip_summary.current_value_aed;
-    }
+    // MF/SIP are now in assets — totals already included in snapshots
 
     data[lastIdx] = last;
     return data;

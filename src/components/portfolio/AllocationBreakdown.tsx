@@ -55,49 +55,20 @@ const IconMap: Record<string, typeof Coins> = {
 export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
   const { formatAed, convertAed } = useCurrency();
 
-  const assetData = overview.assets_by_type.map((asset, index) => ({
-    name: asset.label,
-    value: asset.current_value,
-    displayValue: convertAed(asset.current_value),
-    color: asset.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length],
-    type: asset.type,
-    icon: asset.icon || null,
-    invested: asset.total_invested,
-    profit_loss: asset.profit_loss,
-    count: asset.count,
-  }));
-
-  if (overview.mf_summary && overview.mf_summary.holdings_count > 0) {
-    const mfProfitLoss = overview.mf_summary.current_value_aed - overview.mf_summary.total_invested_aed;
-    assetData.push({
-      name: 'Mutual Funds',
-      value: overview.mf_summary.current_value_aed,
-      displayValue: convertAed(overview.mf_summary.current_value_aed),
-      color: 'hsl(350, 89%, 60%)',
-      type: 'mutual_fund',
-      icon: 'LineChart',
-      invested: overview.mf_summary.total_invested_aed,
-      profit_loss: mfProfitLoss,
-      count: overview.mf_summary.holdings_count,
-    });
-  }
-
-  if (overview.sip_summary && (overview.sip_summary.current_value_aed > 0 || overview.sip_summary.invested_aed > 0)) {
-    const sipProfitLoss = overview.sip_summary.current_value_aed - overview.sip_summary.invested_aed;
-    assetData.push({
-      name: 'SIP',
-      value: overview.sip_summary.current_value_aed,
-      displayValue: convertAed(overview.sip_summary.current_value_aed),
-      color: 'hsl(280, 65%, 60%)',
-      type: 'sip',
-      icon: 'Calendar',
-      invested: overview.sip_summary.invested_aed,
-      profit_loss: sipProfitLoss,
-      count: overview.sip_summary.total_count,
-    });
-  }
-
-  const data = assetData.filter(d => d.value > 0);
+  // All asset types (PM, MF, SIP) are now in assets_by_type — no separate push needed
+  const data = overview.assets_by_type
+    .map((asset, index) => ({
+      name: asset.label,
+      value: asset.current_value,
+      displayValue: convertAed(asset.current_value),
+      color: asset.color || FALLBACK_COLORS[index % FALLBACK_COLORS.length],
+      type: asset.type,
+      icon: asset.icon || null,
+      invested: asset.total_invested,
+      profit_loss: asset.profit_loss,
+      count: asset.count,
+    }))
+    .filter(d => d.value > 0);
 
   const fmt = (value: number) => formatAed(value, { decimals: 0 });
 
