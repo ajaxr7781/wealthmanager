@@ -1,1 +1,19 @@
 project_id = "lhbnrywzljjtawoufmmb"
+
+[functions.fetch-metal-prices]
+verify_jwt = false
+
+[functions.fetch-forex-rates]
+verify_jwt = false
+
+[functions.fetch-mf-nav]
+verify_jwt = false
+
+[functions.daily-snapshot]
+verify_jwt = false
+
+[functions.import-amfi-scheme-data]
+verify_jwt = false
+
+[functions.import-mf-scheme-master]
+verify_jwt = false
