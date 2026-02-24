@@ -95,6 +95,15 @@ export interface Asset {
   broker_platform: string | null;
   nav_or_price: number | null;
   sip_frequency: string | null;
+  scheme_id: string | null;
+  folio_no: string | null;
+  units_held: number | null;
+  xirr_value: number | null;
+  sip_amount: number | null;
+  sip_day_of_month: number | null;
+  sip_start_date: string | null;
+  sip_end_date: string | null;
+  sip_status: string | null;
   
   created_at: string;
   updated_at: string;
