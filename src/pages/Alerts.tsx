@@ -16,7 +16,7 @@ import {
   useEvaluateAlerts,
 } from '@/hooks/useAlerts';
 import { usePortfolioOverview, useAssets } from '@/hooks/useAssets';
-import { useMfSips } from '@/hooks/useMfSips';
+
 import {
   Bell, Shield, AlertTriangle, Info, CheckCircle2, RefreshCw, Settings2,
 } from 'lucide-react';
@@ -39,7 +39,7 @@ export default function AlertsPage() {
   const evaluateAlerts = useEvaluateAlerts();
   const { data: overview } = usePortfolioOverview();
   const { data: assets } = useAssets();
-  const { data: sips } = useMfSips();
+  const sipAssets = (assets || []).filter(a => a.asset_type === 'sip');
 
   useEffect(() => {
     ensureDefaults.mutate();
@@ -51,7 +51,7 @@ export default function AlertsPage() {
 
   const handleEvaluate = () => {
     if (overview && assets) {
-      evaluateAlerts.mutate({ overview, assets, sips: sips || [] });
+      evaluateAlerts.mutate({ overview, assets, sips: sipAssets });
     }
   };
 

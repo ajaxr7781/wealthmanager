@@ -2,15 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Calendar, ArrowDownCircle, Clock, AlertCircle } from 'lucide-react';
 import { format, differenceInDays, addMonths } from 'date-fns';
-import type { Asset } from '@/types/assets';
-import type { MfSip } from '@/types/mutualFunds';
-import { getNextSipDueDate } from '@/types/mutualFunds';
-import type { PortfolioOverview } from '@/types/assets';
+import type { Asset, PortfolioOverview } from '@/types/assets';
 
 interface CashFlowReportProps {
   overview: PortfolioOverview;
   assets: Asset[];
-  sips: MfSip[];
+  sips: Asset[];
 }
 
 function formatAED(v: number) {
@@ -21,15 +18,22 @@ function formatINR(v: number) {
   return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 }
 
+function getNextSipDueDateFromAsset(asset: Asset): Date | null {
+  if (!asset.sip_day_of_month) return null;
+  const today = new Date();
+  const dueThisMonth = new Date(today.getFullYear(), today.getMonth(), asset.sip_day_of_month);
+  return dueThisMonth >= today ? dueThisMonth : new Date(today.getFullYear(), today.getMonth() + 1, asset.sip_day_of_month);
+}
+
 export function CashFlowReport({ overview, assets, sips }: CashFlowReportProps) {
   // Monthly SIP outflow
-  const activeSips = sips.filter(s => s.status === 'ACTIVE');
+  const activeSips = sips.filter(s => s.sip_status === 'ACTIVE');
   const monthlySipINR = activeSips.reduce((s, sip) => s + Number(sip.sip_amount || 0), 0);
 
   // Upcoming SIPs this month
   const today = new Date();
   const upcomingSips = activeSips
-    .map(sip => ({ ...sip, nextDue: getNextSipDueDate(sip) }))
+    .map(sip => ({ ...sip, nextDue: getNextSipDueDateFromAsset(sip) }))
     .filter(s => s.nextDue && s.nextDue.getMonth() === today.getMonth() && s.nextDue.getFullYear() === today.getFullYear())
     .sort((a, b) => (a.nextDue?.getTime() || 0) - (b.nextDue?.getTime() || 0));
 
@@ -117,12 +121,12 @@ export function CashFlowReport({ overview, assets, sips }: CashFlowReportProps) 
                 {upcomingSips.map(sip => (
                   <div key={sip.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
                     <div>
-                      <p className="font-medium text-sm">{sip.scheme?.scheme_name || 'SIP'}</p>
+                      <p className="font-medium text-sm">{sip.asset_name || 'SIP'}</p>
                       <p className="text-xs text-muted-foreground">
                         Due: {sip.nextDue ? format(sip.nextDue, 'MMM d, yyyy') : '—'}
                       </p>
                     </div>
-                    <span className="font-medium text-sm">{formatINR(sip.sip_amount)}</span>
+                    <span className="font-medium text-sm">{formatINR(Number(sip.sip_amount || 0))}</span>
                   </div>
                 ))}
               </div>
