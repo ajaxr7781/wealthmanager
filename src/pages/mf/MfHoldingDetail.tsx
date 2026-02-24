@@ -4,15 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMfHolding, useMfTransactions, useDeleteMfHolding } from '@/hooks/useMfHoldings';
-import { formatINR, formatNAV, formatPercent } from '@/types/mutualFunds';
+import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
+import { useAssetTransactions } from '@/hooks/useAssetTransactions';
+import { cn } from '@/lib/utils';
 import { 
   ArrowLeft, 
   Edit, 
   Trash2, 
   TrendingUp, 
   TrendingDown,
-  Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -30,15 +30,17 @@ import {
 export default function MfHoldingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: holding, isLoading } = useMfHolding(id);
-  const { data: transactions } = useMfTransactions(id);
-  const deleteHolding = useDeleteMfHolding();
+  const { data: asset, isLoading } = useAsset(id);
+  const { data: transactions } = useAssetTransactions(id);
+  const deleteAsset = useDeleteAsset();
 
   const handleDelete = async () => {
     if (!id) return;
-    await deleteHolding.mutateAsync(id);
-    navigate('/mf/holdings');
+    await deleteAsset.mutateAsync(id);
+    navigate('/holdings');
   };
+
+  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
 
   if (isLoading) {
     return (
@@ -53,15 +55,15 @@ export default function MfHoldingDetail() {
     );
   }
 
-  if (!holding) {
+  if (!asset) {
     return (
       <AppLayout>
         <div className="p-4 lg:p-8">
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">Holding not found</p>
+              <p className="text-muted-foreground mb-4">Asset not found</p>
               <Button asChild>
-                <Link to="/mf/holdings">
+                <Link to="/holdings">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Holdings
                 </Link>
@@ -73,9 +75,10 @@ export default function MfHoldingDetail() {
     );
   }
 
-  const scheme = holding.scheme;
-  const gain = holding.unrealized_gain || 0;
-  const returnPct = holding.absolute_return_pct || 0;
+  const invested = Number(asset.total_cost);
+  const value = Number(asset.current_value) || invested;
+  const gain = value - invested;
+  const returnPct = invested > 0 ? (gain / invested) * 100 : 0;
 
   return (
     <AppLayout>
@@ -83,27 +86,20 @@ export default function MfHoldingDetail() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/mf/holdings">
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">{scheme?.scheme_name || 'Unknown Scheme'}</h1>
+              <h1 className="text-2xl font-bold">{asset.asset_name}</h1>
               <div className="flex items-center gap-2 text-muted-foreground">
-                {scheme?.fund_house && <span>{scheme.fund_house}</span>}
-                {scheme?.plan_type && (
-                  <Badge variant="secondary">{scheme.plan_type}</Badge>
-                )}
-                {scheme?.option_type && (
-                  <Badge variant="outline">{scheme.option_type}</Badge>
-                )}
+                {asset.instrument_name && <span>{asset.instrument_name}</span>}
+                {asset.folio_no && <Badge variant="secondary">{asset.folio_no}</Badge>}
               </div>
             </div>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link to={`/mf/holdings/${id}/edit`}>
+              <Link to={`/asset/${id}/edit`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Link>
@@ -120,7 +116,6 @@ export default function MfHoldingDetail() {
                   <AlertDialogTitle>Delete Holding?</AlertDialogTitle>
                   <AlertDialogDescription>
                     This will permanently delete this holding and all its transactions.
-                    This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -137,22 +132,22 @@ export default function MfHoldingDetail() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Units Held</p>
-              <p className="text-2xl font-bold">{holding.units_held.toFixed(4)}</p>
+              <p className="text-2xl font-bold">{Number(asset.units_held || 0).toFixed(4)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Invested Amount</p>
-              <p className="text-2xl font-bold">{formatINR(holding.invested_amount)}</p>
+              <p className="text-2xl font-bold">{fmtINR(invested)}</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Current Value</p>
-              <p className="text-2xl font-bold">{formatINR(holding.current_value || 0)}</p>
-              {scheme?.latest_nav && (
+              <p className="text-2xl font-bold">{fmtINR(value)}</p>
+              {asset.nav_or_price && (
                 <p className="text-xs text-muted-foreground">
-                  NAV: ₹{formatNAV(scheme.latest_nav)}
+                  NAV: ₹{Number(asset.nav_or_price).toFixed(4)}
                 </p>
               )}
             </CardContent>
@@ -160,47 +155,47 @@ export default function MfHoldingDetail() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Returns</p>
-              <p className={`text-2xl font-bold flex items-center gap-1 ${
-                gain >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <p className={cn("text-2xl font-bold flex items-center gap-1",
+                gain >= 0 ? 'text-positive' : 'text-negative'
+              )}>
                 {gain >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                {formatINR(Math.abs(gain))}
+                {fmtINR(Math.abs(gain))}
               </p>
-              <p className={`text-sm ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatPercent(returnPct)}
+              <p className={cn("text-sm", gain >= 0 ? 'text-positive' : 'text-negative')}>
+                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Additional Info */}
+        {/* Details */}
         <Card>
           <CardHeader>
             <CardTitle>Holding Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {holding.folio_no && (
+            {asset.folio_no && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Folio Number</span>
-                <span className="font-medium">{holding.folio_no}</span>
+                <span className="font-medium">{asset.folio_no}</span>
               </div>
             )}
-            {scheme?.isin && (
+            {asset.broker_platform && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">ISIN</span>
-                <span className="font-medium">{scheme.isin}</span>
+                <span className="text-muted-foreground">Platform</span>
+                <span className="font-medium">{asset.broker_platform}</span>
               </div>
             )}
-            {scheme?.amfi_scheme_code && (
+            {asset.scheme_id && (
               <div className="flex justify-between">
-                <span className="text-muted-foreground">AMFI Code</span>
-                <span className="font-medium">{scheme.amfi_scheme_code}</span>
+                <span className="text-muted-foreground">Scheme ID</span>
+                <span className="font-medium text-xs">{asset.scheme_id}</span>
               </div>
             )}
-            {scheme?.category && (
+            {asset.category_code && (
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Category</span>
-                <span className="font-medium">{scheme.category}</span>
+                <span className="font-medium">{asset.category_code}</span>
               </div>
             )}
           </CardContent>
@@ -208,12 +203,8 @@ export default function MfHoldingDetail() {
 
         {/* Transactions */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>Transactions</CardTitle>
-            <Button size="sm" disabled>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Transaction
-            </Button>
           </CardHeader>
           <CardContent>
             {!transactions || transactions.length === 0 ? (
@@ -222,24 +213,28 @@ export default function MfHoldingDetail() {
               </p>
             ) : (
               <div className="space-y-2">
-                {transactions.map((tx) => (
-                  <div key={tx.id} className="flex justify-between items-center p-3 border rounded-lg">
-                    <div>
-                      <Badge variant={tx.transaction_type === 'PURCHASE' ? 'default' : 'secondary'}>
-                        {tx.transaction_type}
-                      </Badge>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
-                      </p>
+                {transactions.map((tx) => {
+                  const isBuy = ['BUY', 'PURCHASE', 'SWITCH_IN'].includes(tx.transaction_type);
+                  return (
+                    <div key={tx.id} className="flex justify-between items-center p-3 border rounded-lg">
+                      <div>
+                        <Badge variant={isBuy ? 'default' : 'secondary'}>
+                          {tx.transaction_type}
+                        </Badge>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">{fmtINR(Number(tx.amount))}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {Number(tx.quantity).toFixed(4)} {tx.quantity_unit || 'units'}
+                          {tx.price_per_unit ? ` @ ₹${Number(tx.price_per_unit).toFixed(4)}` : ''}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{formatINR(tx.amount)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tx.units.toFixed(4)} units @ ₹{formatNAV(tx.nav_at_transaction || 0)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

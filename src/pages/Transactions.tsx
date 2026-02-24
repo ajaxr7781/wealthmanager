@@ -1,92 +1,55 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useDefaultPortfolio } from '@/hooks/usePortfolios';
-import { useProcessedTransactions, useCreateTransaction } from '@/hooks/useTransactions';
-import { useLatestPrices } from '@/hooks/usePrices';
-import { TransactionForm } from '@/components/transactions/TransactionForm';
-import { TransactionTable } from '@/components/transactions/TransactionTable';
-import { TransactionFilters, TransactionFilter } from '@/components/transactions/TransactionFilters';
-import { Button } from '@/components/ui/button';
+import { useAssets } from '@/hooks/useAssets';
+import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-
-export type { TransactionFilter } from '@/components/transactions/TransactionFilters';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 export default function Transactions() {
-  const [searchParams] = useSearchParams();
-  const [dialogOpen, setDialogOpen] = useState(searchParams.get('action') === 'add');
-  const [filters, setFilters] = useState<TransactionFilter>({
-    assetType: 'all',
-    assetName: 'all',
-    side: 'all',
-  });
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sideFilter, setSideFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
-  const { data: portfolio, isLoading: portfolioLoading } = useDefaultPortfolio();
-  const { data: txData, isLoading: txLoading } = useProcessedTransactions(portfolio?.id);
-  const { data: prices } = useLatestPrices();
-  const createTransaction = useCreateTransaction();
+  const { data: assets, isLoading: assetsLoading } = useAssets();
+  const { data: allTxs, isLoading: txLoading } = useAllAssetTransactions();
 
-  // Combine and sort all transactions
-  const allTransactions = useMemo(() => {
-    if (!txData) return [];
-    const combined = [...txData.gold.transactions, ...txData.silver.transactions];
-    return combined.sort((a, b) => {
-      const dateCompare = a.trade_date.localeCompare(b.trade_date);
-      if (dateCompare !== 0) return dateCompare;
-      return 0;
-    });
-  }, [txData]);
+  const isLoading = assetsLoading || txLoading;
 
-  // Get unique asset names for filter dropdown
-  const availableAssetNames = useMemo(() => {
-    if (!allTransactions.length) return [];
-    const names = new Set<string>();
-    allTransactions.forEach(tx => {
-      if (tx.instrument_symbol) names.add(tx.instrument_symbol);
-    });
-    return Array.from(names);
-  }, [allTransactions]);
+  // Build asset lookup
+  const assetMap = useMemo(() => {
+    const map = new Map<string, { name: string; type: string; currency: string }>();
+    for (const a of assets || []) {
+      map.set(a.id, { name: a.asset_name, type: a.asset_type, currency: a.currency });
+    }
+    return map;
+  }, [assets]);
 
-  // Apply filters
-  const filteredTransactions = useMemo(() => {
-    return allTransactions.filter(tx => {
-      // Asset type filter - support both legacy XAU/XAG and new asset type codes
-      if (filters.assetType && filters.assetType !== 'all') {
-        if (filters.assetType === 'XAU' || filters.assetType === 'XAG') {
-          if (tx.instrument_symbol !== filters.assetType) return false;
-        }
-        // For new asset types, would need to check against asset_type_code
-      }
-      if (filters.assetName && filters.assetName !== 'all' && tx.instrument_symbol !== filters.assetName) {
-        return false;
-      }
-      if (filters.side && filters.side !== 'all' && tx.side !== filters.side) {
-        return false;
-      }
-      if (filters.dateFrom && tx.trade_date < filters.dateFrom) {
-        return false;
-      }
-      if (filters.dateTo && tx.trade_date > filters.dateTo) {
-        return false;
-      }
+  // Get unique asset types for filter
+  const assetTypes = useMemo(() => {
+    const types = new Set<string>();
+    for (const a of assets || []) types.add(a.asset_type);
+    return Array.from(types);
+  }, [assets]);
+
+  // Filter transactions
+  const filteredTxs = useMemo(() => {
+    if (!allTxs) return [];
+    return allTxs.filter(tx => {
+      const asset = assetMap.get(tx.asset_id);
+      if (typeFilter !== 'all' && asset?.type !== typeFilter) return false;
+      if (sideFilter !== 'all' && tx.transaction_type !== sideFilter) return false;
+      if (dateFrom && tx.transaction_date < dateFrom) return false;
+      if (dateTo && tx.transaction_date > dateTo) return false;
       return true;
     });
-  }, [allTransactions, filters]);
-
-  const isLoading = portfolioLoading || txLoading;
-
-  const handleFormSuccess = () => {
-    setDialogOpen(false);
-  };
-
-  // Get current holdings for validation
-  const currentHoldings = useMemo(() => ({
-    XAU: txData?.gold.position.holding_oz ?? 0,
-    XAG: txData?.silver.position.holding_oz ?? 0,
-  }), [txData]);
+  }, [allTxs, assetMap, typeFilter, sideFilter, dateFrom, dateTo]);
 
   return (
     <AppLayout>
@@ -96,43 +59,51 @@ export default function Transactions() {
           <div>
             <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Transactions</h1>
             <p className="text-muted-foreground">
-              Track all your precious metals trades
+              All asset transactions across your portfolio
             </p>
           </div>
-
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Transaction
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add Transaction</DialogTitle>
-              </DialogHeader>
-              {portfolio && (
-                <TransactionForm
-                  portfolioId={portfolio.id}
-                  currentHoldings={currentHoldings}
-                  latestPrices={{
-                    XAU: prices?.XAU?.price_aed_per_oz ?? null,
-                    XAG: prices?.XAG?.price_aed_per_oz ?? null,
-                  }}
-                  onSuccess={handleFormSuccess}
-                  onCancel={() => setDialogOpen(false)}
-                />
-              )}
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Filters */}
-        <TransactionFilters 
-          filters={filters} 
-          onFiltersChange={setFilters} 
-          availableAssetNames={availableAssetNames}
-        />
+        <div className="flex flex-wrap gap-3">
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Asset Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {assetTypes.map(t => (
+                <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sideFilter} onValueChange={setSideFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Side" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="BUY">Buy</SelectItem>
+              <SelectItem value="SELL">Sell</SelectItem>
+              <SelectItem value="PURCHASE">Purchase</SelectItem>
+              <SelectItem value="REDEMPTION">Redemption</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-[160px]"
+            placeholder="From"
+          />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-[160px]"
+            placeholder="To"
+          />
+        </div>
 
         {/* Transactions Table */}
         {isLoading ? (
@@ -145,31 +116,78 @@ export default function Transactions() {
               </div>
             </CardContent>
           </Card>
-        ) : filteredTransactions.length === 0 ? (
+        ) : filteredTxs.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
-              {allTransactions.length === 0 ? (
-                <>
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                    <Plus className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium text-foreground mb-1">No transactions yet</h3>
-                  <p className="text-muted-foreground">Add your first transaction to start tracking.</p>
-                </>
-              ) : (
-                <p className="text-muted-foreground">No transactions match your filters.</p>
-              )}
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+                <Plus className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium text-foreground mb-1">No transactions</h3>
+              <p className="text-muted-foreground">
+                {(allTxs?.length || 0) > 0 ? 'No transactions match your filters.' : 'Transactions will appear here when you add them.'}
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <TransactionTable 
-            transactions={filteredTransactions} 
-            portfolioId={portfolio?.id ?? ''}
-            currentPrices={{
-              XAU: prices?.XAU?.price_aed_per_oz ?? null,
-              XAG: prices?.XAG?.price_aed_per_oz ?? null,
-            }}
-          />
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Date</th>
+                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Asset</th>
+                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Type</th>
+                      <th className="text-right p-4 text-sm font-medium text-muted-foreground">Quantity</th>
+                      <th className="text-right p-4 text-sm font-medium text-muted-foreground">Price</th>
+                      <th className="text-right p-4 text-sm font-medium text-muted-foreground">Amount</th>
+                      <th className="text-right p-4 text-sm font-medium text-muted-foreground">Fees</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTxs.map((tx) => {
+                      const asset = assetMap.get(tx.asset_id);
+                      const isBuy = ['BUY', 'PURCHASE', 'SWITCH_IN'].includes(tx.transaction_type);
+                      return (
+                        <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/50">
+                          <td className="p-4 text-sm">
+                            {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
+                          </td>
+                          <td className="p-4 text-sm font-medium">
+                            {asset?.name || 'Unknown'}
+                          </td>
+                          <td className="p-4">
+                            <Badge
+                              variant={isBuy ? 'default' : 'secondary'}
+                              className={cn(
+                                "text-xs",
+                                isBuy ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
+                              )}
+                            >
+                              {isBuy ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
+                              {tx.transaction_type}
+                            </Badge>
+                          </td>
+                          <td className="p-4 text-sm text-right">
+                            {Number(tx.quantity).toLocaleString()} {tx.quantity_unit || ''}
+                          </td>
+                          <td className="p-4 text-sm text-right">
+                            {tx.price_per_unit ? Number(tx.price_per_unit).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
+                          </td>
+                          <td className="p-4 text-sm text-right font-medium">
+                            {Number(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </td>
+                          <td className="p-4 text-sm text-right text-muted-foreground">
+                            {Number(tx.fees) > 0 ? Number(tx.fees).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </AppLayout>

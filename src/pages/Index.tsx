@@ -1,6 +1,4 @@
-import { useDefaultPortfolio } from '@/hooks/usePortfolios';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
-import { useCreatePrice } from '@/hooks/usePrices';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
@@ -11,11 +9,7 @@ import { PortfolioTrendChart } from '@/components/dashboard/PortfolioTrendChart'
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
-  const { data: portfolio, isLoading: portfolioLoading } = useDefaultPortfolio();
-  const { data: summary, isLoading: summaryLoading, prices } = usePortfolioSummary(portfolio?.id);
-  const createPrice = useCreatePrice();
-
-  const isLoading = portfolioLoading || summaryLoading;
+  const { data: summary, isLoading, prices } = usePortfolioSummary();
 
   return (
     <AppLayout>
@@ -62,7 +56,7 @@ export default function Dashboard() {
               </svg>
             </div>
             <h3 className="text-lg font-medium text-foreground mb-1">No data yet</h3>
-            <p className="text-muted-foreground mb-4">Add your first transaction to get started!</p>
+            <p className="text-muted-foreground mb-4">Add your first asset to get started!</p>
           </div>
         )}
       </div>
