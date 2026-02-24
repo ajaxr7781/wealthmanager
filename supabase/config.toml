@@ -1,7 +1,1 @@
-project_id = "hqorwwhnnvixyvbcogcz"
-
-[functions.fetch-metal-prices]
-verify_jwt = false
-
-[functions.daily-snapshot]
-verify_jwt = false
+project_id = "lhbnrywzljjtawoufmmb"
