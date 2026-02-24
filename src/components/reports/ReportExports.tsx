@@ -5,11 +5,11 @@ import { format } from 'date-fns';
 import type { Asset } from '@/types/assets';
 import { ASSET_TYPE_LABELS } from '@/types/assets';
 import type { PortfolioOverview } from '@/types/assets';
-import type { RawTransaction } from '@/lib/calculations';
+import type { AssetTransaction } from '@/hooks/useAssetTransactions';
 
 interface ReportExportsProps {
   assets: Asset[] | undefined;
-  transactions: RawTransaction[] | undefined;
+  transactions: AssetTransaction[] | undefined;
   overview: PortfolioOverview | null | undefined;
 }
 
@@ -34,10 +34,10 @@ function escapeCSV(val: string | number | null | undefined): string {
 export function ReportExports({ assets, transactions, overview }: ReportExportsProps) {
   const exportTransactionsCSV = () => {
     if (!transactions?.length) return;
-    const headers = ['Date', 'Metal', 'Side', 'Quantity', 'Unit', 'Price', 'Price Unit', 'Fees', 'Notes'];
+    const headers = ['Date', 'Type', 'Quantity', 'Unit', 'Price/Unit', 'Amount', 'Fees', 'Notes'];
     const rows = transactions.map(tx => [
-      tx.trade_date, tx.instrument_symbol, tx.side, tx.quantity,
-      tx.quantity_unit, tx.price, tx.price_unit, tx.fees, tx.notes || ''
+      tx.transaction_date, tx.transaction_type, tx.quantity,
+      tx.quantity_unit, tx.price_per_unit, tx.amount, tx.fees, tx.notes || ''
     ]);
     const csv = [headers.join(','), ...rows.map(r => r.map(escapeCSV).join(','))].join('\n');
     downloadCSV(csv, `transactions-${format(new Date(), 'yyyy-MM-dd')}.csv`);
@@ -89,7 +89,7 @@ export function ReportExports({ assets, transactions, overview }: ReportExportsP
             <FileSpreadsheet className="h-5 w-5 text-primary" />
             Transactions
           </CardTitle>
-          <CardDescription>Export precious metals trade history</CardDescription>
+          <CardDescription>Export all asset transaction history</CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={exportTransactionsCSV} disabled={!transactions?.length} className="w-full">

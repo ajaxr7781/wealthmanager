@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveMfSchemes } from '@/hooks/useMfSchemes';
-import { useMfSip, useUpdateMfSip, useDeleteMfSip } from '@/hooks/useMfSips';
+import { useAsset, useUpdateAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -25,10 +25,10 @@ import {
 export default function EditSipPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: sip, isLoading: sipLoading } = useMfSip(id);
+  const { data: asset, isLoading: assetLoading } = useAsset(id);
   const { data: schemes, isLoading: schemesLoading } = useActiveMfSchemes();
-  const updateSip = useUpdateMfSip();
-  const deleteSip = useDeleteMfSip();
+  const updateAsset = useUpdateAsset();
+  const deleteAsset = useDeleteAsset();
   const [showDelete, setShowDelete] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -44,36 +44,42 @@ export default function EditSipPage() {
   });
 
   useEffect(() => {
-    if (sip) {
+    if (asset) {
       setFormData({
-        scheme_id: sip.scheme_id,
-        folio_no: sip.folio_no || '',
-        sip_amount: sip.sip_amount.toString(),
-        sip_day_of_month: sip.sip_day_of_month.toString(),
-        start_date: sip.start_date,
-        end_date: sip.end_date || '',
-        current_units: (sip.current_units || 0).toString(),
-        invested_amount: (sip.invested_amount || 0).toString(),
-        notes: sip.notes || ''
+        scheme_id: asset.scheme_id || '',
+        folio_no: asset.folio_no || '',
+        sip_amount: (asset.sip_amount || 0).toString(),
+        sip_day_of_month: (asset.sip_day_of_month || 1).toString(),
+        start_date: asset.sip_start_date || asset.purchase_date,
+        end_date: asset.sip_end_date || '',
+        current_units: (asset.units_held || asset.quantity || 0).toString(),
+        invested_amount: (asset.total_cost || 0).toString(),
+        notes: asset.notes || ''
       });
     }
-  }, [sip]);
+  }, [asset]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    updateSip.mutate({
+    const selectedScheme = schemes?.find(s => s.id === formData.scheme_id);
+
+    updateAsset.mutate({
       id: id!,
-      scheme_id: formData.scheme_id,
+      scheme_id: formData.scheme_id || null,
       folio_no: formData.folio_no || null,
-      sip_amount: parseFloat(formData.sip_amount),
-      sip_day_of_month: parseInt(formData.sip_day_of_month),
-      start_date: formData.start_date,
-      end_date: formData.end_date || null,
-      current_units: formData.current_units ? parseFloat(formData.current_units) : 0,
-      invested_amount: formData.invested_amount ? parseFloat(formData.invested_amount) : 0,
-      notes: formData.notes || null
-    }, {
+      sip_amount: parseFloat(formData.sip_amount) || null,
+      sip_day_of_month: parseInt(formData.sip_day_of_month) || null,
+      sip_start_date: formData.start_date || null,
+      sip_end_date: formData.end_date || null,
+      units_held: formData.current_units ? parseFloat(formData.current_units) : 0,
+      quantity: formData.current_units ? parseFloat(formData.current_units) : 0,
+      total_cost: formData.invested_amount ? parseFloat(formData.invested_amount) : 0,
+      notes: formData.notes || null,
+      asset_name: selectedScheme ? 'SIP - ' + selectedScheme.scheme_name : asset?.asset_name,
+      instrument_name: selectedScheme?.scheme_name || asset?.instrument_name,
+      purchase_date: formData.start_date || asset?.purchase_date,
+    } as any, {
       onSuccess: () => {
         navigate('/mf/sips');
       }
@@ -81,12 +87,12 @@ export default function EditSipPage() {
   };
 
   const handleDelete = () => {
-    deleteSip.mutate(id!, {
+    deleteAsset.mutate(id!, {
       onSuccess: () => navigate('/mf/sips')
     });
   };
 
-  if (sipLoading) {
+  if (assetLoading) {
     return (
       <AppLayout>
         <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-4">
@@ -97,7 +103,7 @@ export default function EditSipPage() {
     );
   }
 
-  if (!sip) {
+  if (!asset) {
     return (
       <AppLayout>
         <div className="p-4 lg:p-8 text-center">
@@ -238,9 +244,6 @@ export default function EditSipPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, invested_amount: e.target.value }))}
                     placeholder="e.g., 50000"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Total amount invested so far
-                  </p>
                 </div>
 
                 <div>
@@ -254,9 +257,6 @@ export default function EditSipPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, current_units: e.target.value }))}
                     placeholder="e.g., 125.4567"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Total units held in this SIP
-                  </p>
                 </div>
               </div>
 
@@ -287,9 +287,9 @@ export default function EditSipPage() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={updateSip.isPending || !formData.scheme_id || !formData.sip_amount || !formData.sip_day_of_month}
+                  disabled={updateAsset.isPending || !formData.scheme_id || !formData.sip_amount || !formData.sip_day_of_month}
                 >
-                  {updateSip.isPending ? (
+                  {updateAsset.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Saving...

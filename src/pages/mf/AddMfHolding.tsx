@@ -7,14 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useActiveMfSchemes } from '@/hooks/useMfSchemes';
-import { useAddMfHolding } from '@/hooks/useMfHoldings';
+import { useCreateAsset } from '@/hooks/useAssets';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AddMfHolding() {
   const navigate = useNavigate();
   const { data: schemes, isLoading: schemesLoading } = useActiveMfSchemes();
-  const addHolding = useAddMfHolding();
+  const createAsset = useCreateAsset();
 
   const [formData, setFormData] = useState({
     scheme_id: '',
@@ -26,12 +26,25 @@ export default function AddMfHolding() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    addHolding.mutate({
-      scheme_id: formData.scheme_id,
-      folio_no: formData.folio_no || undefined,
-      invested_amount: parseFloat(formData.invested_amount),
-      units_held: parseFloat(formData.units_held)
-    }, {
+    const selectedScheme = schemes?.find(s => s.id === formData.scheme_id);
+    const units = parseFloat(formData.units_held);
+    const invested = parseFloat(formData.invested_amount);
+    const currentValue = selectedScheme?.latest_nav ? selectedScheme.latest_nav * units : invested;
+
+    createAsset.mutate({
+      asset_type: 'mutual_fund',
+      asset_type_code: 'mutual_fund',
+      category_code: 'equity',
+      asset_name: selectedScheme?.scheme_name || 'Mutual Fund',
+      currency: 'INR',
+      purchase_date: new Date().toISOString().split('T')[0],
+      total_cost: invested,
+      current_value: currentValue,
+      quantity: units,
+      quantity_unit: 'units',
+      instrument_name: selectedScheme?.scheme_name,
+      nav_or_price: selectedScheme?.latest_nav || undefined,
+    } as any, {
       onSuccess: () => {
         navigate('/mf/holdings');
       }
@@ -162,9 +175,9 @@ export default function AddMfHolding() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={addHolding.isPending || !formData.scheme_id || !formData.invested_amount || !formData.units_held}
+                  disabled={createAsset.isPending || !formData.scheme_id || !formData.invested_amount || !formData.units_held}
                 >
-                  {addHolding.isPending ? (
+                  {createAsset.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Adding...

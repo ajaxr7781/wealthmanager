@@ -1,7 +1,6 @@
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useDefaultPortfolio } from '@/hooks/usePortfolios';
-import { useTransactions } from '@/hooks/useTransactions';
 import { useAssets, usePortfolioOverview } from '@/hooks/useAssets';
+import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
 import { useMfSips } from '@/hooks/useMfSips';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,11 +21,10 @@ import { GrowthTimeline } from '@/components/reports/GrowthTimeline';
 import { ReportExports } from '@/components/reports/ReportExports';
 
 export default function Reports() {
-  const { data: portfolio } = useDefaultPortfolio();
-  const { data: transactions } = useTransactions(portfolio?.id);
+  const { data: allTransactions } = useAllAssetTransactions();
   const { data: assets } = useAssets();
   const { data: overview } = usePortfolioOverview();
-  const { data: preciousMetalsSummary } = usePortfolioSummary(portfolio?.id);
+  const { data: preciousMetalsSummary } = usePortfolioSummary();
   const { data: sips } = useMfSips();
 
   return (
@@ -145,7 +143,7 @@ export default function Reports() {
           </TabsContent>
 
           <TabsContent value="export">
-            <ReportExports assets={assets} transactions={transactions} overview={overview} />
+            <ReportExports assets={assets} transactions={allTransactions} overview={overview} />
           </TabsContent>
         </Tabs>
       </div>
