@@ -2,7 +2,6 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, usePortfolioOverview } from '@/hooks/useAssets';
 import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
-import { useMfSips } from '@/hooks/useMfSips';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BarChart3, PieChart, TrendingUp, Wallet,
@@ -25,7 +24,7 @@ export default function Reports() {
   const { data: assets } = useAssets();
   const { data: overview } = usePortfolioOverview();
   const { data: preciousMetalsSummary } = usePortfolioSummary();
-  const { data: sips } = useMfSips();
+  const sipAssets = (assets || []).filter(a => a.asset_type === 'sip');
 
   return (
     <AppLayout>
@@ -102,7 +101,7 @@ export default function Reports() {
 
           <TabsContent value="cashflow">
             {overview ? (
-              <CashFlowReport overview={overview} assets={assets || []} sips={sips || []} />
+              <CashFlowReport overview={overview} assets={assets || []} sips={sipAssets} />
             ) : (
               <EmptyState message="Add assets to view cash flow report" />
             )}
