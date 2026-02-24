@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, usePortfolioOverview, useUserSettings } from '@/hooks/useAssets';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
+import { useLatestPrices } from '@/hooks/usePrices';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -42,10 +43,36 @@ export default function Holdings() {
   const { data: overview } = usePortfolioOverview();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
   const { data: settings } = useUserSettings();
+  const { data: prices } = useLatestPrices();
   const { formatAed } = useCurrency();
   
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const isLoading = assetsLoading || categoriesLoading;
+
+  const getAssetCurrentValue = (a: any): number => {
+    if (a.asset_type === 'precious_metals' && a.metal_type) {
+      const priceData = a.metal_type === 'XAU' ? prices?.XAU : prices?.XAG;
+      if (priceData && a.quantity) {
+        const qty = Number(a.quantity);
+        const unit = (a.quantity_unit || 'oz').toLowerCase();
+        const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
+        return qtyOz * priceData.price_aed_per_oz;
+      }
+    }
+    if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
+      return getEffectiveFDValue({
+        principal: a.principal ? Number(a.principal) : null,
+        interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
+        purchase_date: a.purchase_date,
+        maturity_date: a.maturity_date,
+        maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
+        current_value: a.current_value ? Number(a.current_value) : null,
+        is_current_value_manual: a.is_current_value_manual,
+        total_cost: Number(a.total_cost),
+      }).currentValue;
+    }
+    return Number(a.current_value) || Number(a.total_cost) || 0;
+  };
 
   // Calculate category summaries — all asset types (PM, MF, SIP) now come from assets table
   const categorySummaries = categories?.map(category => {
@@ -57,22 +84,7 @@ export default function Holdings() {
     }, 0);
     
     const totalValue = categoryAssets.reduce((sum, a) => {
-      let value: number;
-      if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
-        const fdResult = getEffectiveFDValue({
-          principal: a.principal ? Number(a.principal) : null,
-          interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
-          purchase_date: a.purchase_date,
-          maturity_date: a.maturity_date,
-          maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
-          current_value: a.current_value ? Number(a.current_value) : null,
-          is_current_value_manual: a.is_current_value_manual,
-          total_cost: Number(a.total_cost),
-        });
-        value = fdResult.currentValue;
-      } else {
-        value = Number(a.current_value) || Number(a.total_cost) || 0;
-      }
+      const value = getAssetCurrentValue(a);
       return sum + (a.currency === 'INR' ? value * inrToAed : value);
     }, 0);
     
