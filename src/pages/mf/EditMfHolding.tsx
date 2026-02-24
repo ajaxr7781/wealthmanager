@@ -6,15 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
-import { useMfHolding, useUpdateMfHolding } from '@/hooks/useMfHoldings';
+
+import { useAsset, useUpdateAsset } from '@/hooks/useAssets';
 import { ArrowLeft, Save } from 'lucide-react';
 
 export default function EditMfHolding() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: holding, isLoading } = useMfHolding(id);
-  const updateHolding = useUpdateMfHolding();
+  const { data: asset, isLoading } = useAsset(id);
+  const updateAsset = useUpdateAsset();
 
   const [formData, setFormData] = useState({
     folio_no: '',
@@ -24,26 +24,26 @@ export default function EditMfHolding() {
   });
 
   useEffect(() => {
-    if (holding) {
+    if (asset) {
       setFormData({
-        folio_no: holding.folio_no || '',
-        units_held: holding.units_held.toString(),
-        invested_amount: holding.invested_amount.toString(),
-        is_active: holding.is_active
+        folio_no: asset.folio_no || '',
+        units_held: (asset.units_held || asset.quantity || 0).toString(),
+        invested_amount: asset.total_cost.toString(),
+        is_active: asset.sip_status !== 'COMPLETED'
       });
     }
-  }, [holding]);
+  }, [asset]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
 
-    await updateHolding.mutateAsync({
+    await updateAsset.mutateAsync({
       id,
       folio_no: formData.folio_no || null,
       units_held: parseFloat(formData.units_held) || 0,
-      invested_amount: parseFloat(formData.invested_amount) || 0,
-      is_active: formData.is_active
+      quantity: parseFloat(formData.units_held) || 0,
+      total_cost: parseFloat(formData.invested_amount) || 0,
     });
 
     navigate(`/mf/holdings/${id}`);
@@ -60,7 +60,7 @@ export default function EditMfHolding() {
     );
   }
 
-  if (!holding) {
+  if (!asset) {
     return (
       <AppLayout>
         <div className="p-4 lg:p-8">
@@ -92,7 +92,7 @@ export default function EditMfHolding() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Edit Holding</h1>
-            <p className="text-muted-foreground">{holding.scheme?.scheme_name}</p>
+            <p className="text-muted-foreground">{asset.asset_name}</p>
           </div>
         </div>
 
@@ -137,25 +137,12 @@ export default function EditMfHolding() {
                     required
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <div className="flex items-center gap-2 pt-2">
-                    <Switch
-                      checked={formData.is_active}
-                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
-                    />
-                    <span className="text-sm">
-                      {formData.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={updateHolding.isPending}>
+                <Button type="submit" disabled={updateAsset.isPending}>
                   <Save className="h-4 w-4 mr-2" />
-                  {updateHolding.isPending ? 'Saving...' : 'Save Changes'}
+                  {updateAsset.isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
                 <Button type="button" variant="outline" asChild>
                   <Link to={`/mf/holdings/${id}`}>Cancel</Link>

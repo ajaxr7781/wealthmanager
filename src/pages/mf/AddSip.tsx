@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useActiveMfSchemes } from '@/hooks/useMfSchemes';
-import { useAddMfSip } from '@/hooks/useMfSips';
+import { useCreateAsset } from '@/hooks/useAssets';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 export default function AddSipPage() {
   const navigate = useNavigate();
   const { data: schemes, isLoading: schemesLoading } = useActiveMfSchemes();
-  const addSip = useAddMfSip();
+  const createAsset = useCreateAsset();
 
   const [formData, setFormData] = useState({
     scheme_id: '',
@@ -33,17 +33,28 @@ export default function AddSipPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    addSip.mutate({
-      scheme_id: formData.scheme_id,
-      folio_no: formData.folio_no || undefined,
-      sip_amount: parseFloat(formData.sip_amount),
-      sip_day_of_month: parseInt(formData.sip_day_of_month),
-      start_date: formData.start_date,
-      end_date: formData.end_date || undefined,
-      current_units: formData.current_units ? parseFloat(formData.current_units) : 0,
-      invested_amount: formData.invested_amount ? parseFloat(formData.invested_amount) : 0,
-      notes: formData.notes || undefined
-    }, {
+    const selectedScheme = schemes?.find(s => s.id === formData.scheme_id);
+    const units = formData.current_units ? parseFloat(formData.current_units) : 0;
+    const invested = formData.invested_amount ? parseFloat(formData.invested_amount) : 0;
+    const latestNav = selectedScheme?.latest_nav || 0;
+    const currentValue = units > 0 && latestNav > 0 ? units * latestNav : invested;
+
+    createAsset.mutate({
+      asset_type: 'sip',
+      asset_type_code: 'sip',
+      category_code: 'equity',
+      asset_name: 'SIP - ' + (selectedScheme?.scheme_name || 'Unknown'),
+      currency: 'INR',
+      purchase_date: formData.start_date,
+      total_cost: invested,
+      current_value: currentValue,
+      quantity: units,
+      quantity_unit: 'units',
+      instrument_name: selectedScheme?.scheme_name,
+      nav_or_price: latestNav || undefined,
+      notes: formData.notes || undefined,
+      sip_frequency: 'monthly',
+    } as any, {
       onSuccess: () => {
         navigate('/mf/sips');
       }
@@ -226,9 +237,9 @@ export default function AddSipPage() {
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={addSip.isPending || !formData.scheme_id || !formData.sip_amount || !formData.sip_day_of_month}
+                  disabled={createAsset.isPending || !formData.scheme_id || !formData.sip_amount || !formData.sip_day_of_month}
                 >
-                  {addSip.isPending ? (
+                  {createAsset.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Creating...

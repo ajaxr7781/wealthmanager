@@ -8,9 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { Asset } from '@/types/assets';
 import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
-import { useActiveMfHoldings } from '@/hooks/useMfHoldings';
-import { useActiveMfSips } from '@/hooks/useMfSips';
-import { calculateSipCurrentValue } from '@/types/mutualFunds';
 import {
   Coins,
   Building2,
@@ -58,8 +55,6 @@ type SortDir = 'asc' | 'desc';
 
 export function AssetList({ assets }: AssetListProps) {
   const { data: settings } = useUserSettings();
-  const { data: mfHoldings } = useActiveMfHoldings();
-  const { data: activeSips } = useActiveMfSips();
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   const [search, setSearch] = useState('');
@@ -90,15 +85,17 @@ export function AssetList({ assets }: AssetListProps) {
     return { pl, pct: cost > 0 ? (pl / cost) * 100 : 0 };
   };
 
-  // MF totals
-  const mfTotalInvested = mfHoldings?.reduce((s, h) => s + h.invested_amount, 0) || 0;
-  const mfCurrentValue = mfHoldings?.reduce((s, h) => s + (h.current_value || h.invested_amount), 0) || 0;
+  // Derive MF and SIP summaries from the unified assets array
+  const mfAssets = useMemo(() => assets.filter(a => a.asset_type === 'mutual_fund'), [assets]);
+  const sipAssets = useMemo(() => assets.filter(a => a.asset_type === 'sip' && a.sip_status === 'ACTIVE'), [assets]);
+
+  const mfTotalInvested = mfAssets.reduce((s, a) => s + Number(a.total_cost), 0);
+  const mfCurrentValue = mfAssets.reduce((s, a) => s + (Number(a.current_value) || Number(a.total_cost)), 0);
   const mfPL = mfCurrentValue - mfTotalInvested;
   const mfPLPct = mfTotalInvested > 0 ? (mfPL / mfTotalInvested) * 100 : 0;
 
-  // SIP totals
-  const sipMonthly = activeSips?.reduce((s, sip) => s + sip.sip_amount, 0) || 0;
-  const sipValue = activeSips?.reduce((s, sip) => s + calculateSipCurrentValue(sip), 0) || 0;
+  const sipMonthly = sipAssets.reduce((s, a) => s + (Number(a.sip_amount) || 0), 0);
+  const sipValue = sipAssets.reduce((s, a) => s + (Number(a.current_value) || Number(a.total_cost)), 0);
 
   // Unique asset types for filter
   const assetTypes = useMemo(() => {
@@ -136,8 +133,6 @@ export function AssetList({ assets }: AssetListProps) {
   const safePage = Math.min(page, totalPages);
   const paged = processed.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  const hasAssets = assets.length > 0 || (mfHoldings && mfHoldings.length > 0);
-
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -153,7 +148,7 @@ export function AssetList({ assets }: AssetListProps) {
     return sortDir === 'asc' ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
   };
 
-  if (!hasAssets) {
+  if (assets.length === 0) {
     return (
       <Card className="shadow-pro">
         <CardHeader>
@@ -211,10 +206,10 @@ export function AssetList({ assets }: AssetListProps) {
       </CardHeader>
 
       <CardContent className="px-0 pb-0">
-        {/* Summary rows — MF & SIPs (pinned above the table) */}
-        {((mfHoldings && mfHoldings.length > 0) || (activeSips && activeSips.length > 0)) && (
+        {/* Summary rows — MF & SIPs derived from unified assets */}
+        {(mfAssets.length > 0 || sipAssets.length > 0) && (
           <div className="px-6 pb-4 space-y-2">
-            {mfHoldings && mfHoldings.length > 0 && (
+            {mfAssets.length > 0 && (
               <Link to="/mf/holdings" className="flex items-center justify-between p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors group">
                 <div className="flex items-center gap-3">
                   <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", ASSET_COLORS['mutual_fund'])}>
@@ -223,7 +218,7 @@ export function AssetList({ assets }: AssetListProps) {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">Mutual Funds</span>
-                      <Badge variant="secondary" className="text-[10px]">{mfHoldings.length}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{mfAssets.length}</Badge>
                       <Badge variant="outline" className="text-[10px]">INR</Badge>
                     </div>
                     <span className="text-xs text-muted-foreground">{formatINR(mfTotalInvested)} invested</span>
@@ -240,7 +235,7 @@ export function AssetList({ assets }: AssetListProps) {
                 </div>
               </Link>
             )}
-            {activeSips && activeSips.length > 0 && (
+            {sipAssets.length > 0 && (
               <Link to="/mf/sips" className="flex items-center justify-between p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors group">
                 <div className="flex items-center gap-3">
                   <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", ASSET_COLORS['sip'])}>
@@ -249,7 +244,7 @@ export function AssetList({ assets }: AssetListProps) {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-sm">Active SIPs</span>
-                      <Badge variant="secondary" className="text-[10px]">{activeSips.length}</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{sipAssets.length}</Badge>
                       <Badge variant="outline" className="text-[10px]">INR</Badge>
                     </div>
                     <span className="text-xs text-muted-foreground">{formatINR(sipMonthly)}/mo</span>
