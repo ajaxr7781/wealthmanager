@@ -74,7 +74,17 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
   const { data: priceFeedTypes } = usePriceFeedSupportedTypes();
   const { data: categoryTotals } = useCategoryTotals();
   
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => new Set());
+  // Auto-expand sections based on current route, and keep them expanded until explicitly collapsed
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => {
+    const initial = new Set<string>();
+    // Always start with assets expanded
+    initial.add('assets');
+    // Auto-expand settings if on a settings route
+    if (location.pathname.startsWith('/settings')) {
+      initial.add('settings');
+    }
+    return initial;
+  });
 
   const toggleCategory = (key: string) => {
     setExpandedCategories(prev => {

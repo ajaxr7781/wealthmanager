@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { Asset, AssetFormData, AssetType, PortfolioOverview, Currency } from '@/types/assets';
 import { ASSET_TYPE_LABELS, DEFAULT_USD_TO_AED, DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
+import { getEffectiveFDValue } from '@/lib/fdCalculations';
+import { useLatestPrices } from './usePrices';
 
 export function useAssets(assetType?: AssetType) {
   const { user } = useAuth();
@@ -136,13 +138,13 @@ export function useDeleteAsset() {
 export function usePortfolioOverview() {
   const { user } = useAuth();
   const { data: settings } = useUserSettings();
+  const { data: prices } = useLatestPrices();
   
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   return useQuery({
-    queryKey: ['portfolio-overview', user?.id, inrToAed],
+    queryKey: ['portfolio-overview', user?.id, inrToAed, prices?.XAU?.price_aed_per_oz, prices?.XAG?.price_aed_per_oz],
     queryFn: async () => {
-      // All asset types (PM, MF, SIP, FD, etc.) are now in the assets table
       const [assetsResult, categoriesResult] = await Promise.all([
         supabase.from('assets').select('*'),
         supabase.from('asset_categories').select('code, name, color, icon').eq('is_active', true),
@@ -155,13 +157,11 @@ export function usePortfolioOverview() {
 
       if (assets.length === 0) return null;
 
-      // Build category lookup map
       const categoryMap = new Map<string, { name: string; color: string | null; icon: string | null }>();
       for (const cat of categories) {
         categoryMap.set(cat.code, { name: cat.name, color: cat.color, icon: cat.icon });
       }
 
-      // Calculate totals by category_code
       const assetsByCategory = new Map<string, {
         total_invested: number;
         current_value: number;
@@ -178,7 +178,38 @@ export function usePortfolioOverview() {
 
       for (const asset of assets) {
         const invested = Number(asset.total_cost) || 0;
-        const currentVal = Number(asset.current_value) || invested;
+        let currentVal: number;
+
+        // Calculate current value based on asset type
+        if (asset.asset_type === 'precious_metals' && asset.metal_type) {
+          // Use live price for precious metals
+          const priceData = asset.metal_type === 'XAU' ? prices?.XAU : prices?.XAG;
+          if (priceData && asset.quantity) {
+            const qty = Number(asset.quantity);
+            const unit = (asset.quantity_unit || 'oz').toLowerCase();
+            const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g'
+              ? qty / OUNCE_TO_GRAM
+              : qty;
+            currentVal = qtyOz * priceData.price_aed_per_oz;
+          } else {
+            currentVal = Number(asset.current_value) || invested;
+          }
+        } else if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
+          // Use FD calculation for fixed deposits
+          const fdResult = getEffectiveFDValue({
+            principal: asset.principal ? Number(asset.principal) : null,
+            interest_rate: asset.interest_rate ? Number(asset.interest_rate) : null,
+            purchase_date: asset.purchase_date,
+            maturity_date: asset.maturity_date,
+            maturity_amount: asset.maturity_amount ? Number(asset.maturity_amount) : null,
+            current_value: asset.current_value ? Number(asset.current_value) : null,
+            is_current_value_manual: asset.is_current_value_manual,
+            total_cost: Number(asset.total_cost),
+          });
+          currentVal = fdResult.currentValue;
+        } else {
+          currentVal = Number(asset.current_value) || invested;
+        }
         
         // Convert to AED for unified totals
         let investedAED = invested;
@@ -192,7 +223,6 @@ export function usePortfolioOverview() {
         total_invested += investedAED;
         total_current_value += currentAED;
 
-        // By category
         const catKey = asset.category_code || asset.asset_type || 'other';
         const existing = assetsByCategory.get(catKey) || { total_invested: 0, current_value: 0, count: 0 };
         assetsByCategory.set(catKey, {
@@ -201,7 +231,6 @@ export function usePortfolioOverview() {
           count: existing.count + 1,
         });
 
-        // By currency
         const currKey = asset.currency as Currency;
         const currExisting = byCurrency.get(currKey) || { total_invested: 0, current_value: 0 };
         byCurrency.set(currKey, {
