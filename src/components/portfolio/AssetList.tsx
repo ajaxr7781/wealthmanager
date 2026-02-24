@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Asset } from '@/types/assets';
-import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED } from '@/types/assets';
+import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
+import { useLatestPrices } from '@/hooks/usePrices';
+import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import {
   Coins,
   Building2,
@@ -55,6 +57,7 @@ type SortDir = 'asc' | 'desc';
 
 export function AssetList({ assets }: AssetListProps) {
   const { data: settings } = useUserSettings();
+  const { data: prices } = useLatestPrices();
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
 
   const [search, setSearch] = useState('');
@@ -70,8 +73,44 @@ export function AssetList({ assets }: AssetListProps) {
   const formatINR = (v: number) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
 
+  const getLivePreciousMetalValueAED = (a: Asset): number | null => {
+    if (a.asset_type !== 'precious_metals' || !a.metal_type || !a.quantity) return null;
+
+    const priceData = a.metal_type === 'XAU' ? prices?.XAU : prices?.XAG;
+    if (!priceData) return null;
+
+    const qty = Number(a.quantity);
+    const unit = (a.quantity_unit || 'oz').toLowerCase();
+    const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
+    return qtyOz * priceData.price_aed_per_oz;
+  };
+
+  const getAssetCurrentValue = (a: Asset) => {
+    const pmLiveAed = getLivePreciousMetalValueAED(a);
+    if (pmLiveAed !== null) return pmLiveAed;
+
+    if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
+      const fdResult = getEffectiveFDValue({
+        principal: a.principal ? Number(a.principal) : null,
+        interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
+        purchase_date: a.purchase_date,
+        maturity_date: a.maturity_date,
+        maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
+        current_value: a.current_value ? Number(a.current_value) : null,
+        is_current_value_manual: a.is_current_value_manual,
+        total_cost: Number(a.total_cost),
+      });
+      return fdResult.currentValue;
+    }
+
+    return Number(a.current_value) || Number(a.total_cost) || 0;
+  };
+
   const getValueAED = (a: Asset) => {
-    const v = Number(a.current_value) || Number(a.total_cost);
+    const pmLiveAed = getLivePreciousMetalValueAED(a);
+    if (pmLiveAed !== null) return pmLiveAed;
+
+    const v = getAssetCurrentValue(a);
     return a.currency === 'INR' ? v * inrToAed : v;
   };
   const getCostAED = (a: Asset) => {
@@ -95,7 +134,10 @@ export function AssetList({ assets }: AssetListProps) {
   const mfPLPct = mfTotalInvested > 0 ? (mfPL / mfTotalInvested) * 100 : 0;
 
   const sipMonthly = sipAssets.reduce((s, a) => s + (Number(a.sip_amount) || 0), 0);
-  const sipValue = sipAssets.reduce((s, a) => s + (Number(a.current_value) || Number(a.total_cost)), 0);
+  const sipValue = sipAssets.reduce((s, a) => {
+    const v = Number(a.current_value) || Number(a.total_cost) || 0;
+    return s + v;
+  }, 0);
 
   // Unique asset types for filter
   const assetTypes = useMemo(() => {
