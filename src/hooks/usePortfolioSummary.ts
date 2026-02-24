@@ -9,7 +9,8 @@ import {
   PortfolioSummary,
   RawTransaction,
 } from '@/lib/calculations';
-import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
+import { getEffectiveFDValue } from '@/lib/fdCalculations';
 
 /**
  * Unified portfolio summary hook.
@@ -89,7 +90,24 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
       if (asset.asset_type === 'precious_metals') continue; // Already handled
 
       const invested = Number(asset.total_cost) || 0;
-      const currentVal = Number(asset.current_value) || invested;
+      let currentVal: number;
+
+      if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
+        // Use FD calculation for fixed deposits
+        const fdResult = getEffectiveFDValue({
+          principal: asset.principal ? Number(asset.principal) : null,
+          interest_rate: asset.interest_rate ? Number(asset.interest_rate) : null,
+          purchase_date: asset.purchase_date,
+          maturity_date: asset.maturity_date,
+          maturity_amount: asset.maturity_amount ? Number(asset.maturity_amount) : null,
+          current_value: asset.current_value ? Number(asset.current_value) : null,
+          is_current_value_manual: asset.is_current_value_manual,
+          total_cost: invested,
+        });
+        currentVal = fdResult.currentValue;
+      } else {
+        currentVal = Number(asset.current_value) || invested;
+      }
 
       // Convert to AED
       const factor = asset.currency === 'INR' ? inrToAed : 1;
