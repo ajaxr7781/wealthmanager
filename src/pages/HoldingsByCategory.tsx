@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
+import { useLatestPrices } from '@/hooks/usePrices';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,7 @@ import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
-import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { differenceInDays, parseISO } from 'date-fns';
 import {
   Landmark,
@@ -47,10 +48,36 @@ export default function HoldingsByCategory() {
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
   const { data: settings } = useUserSettings();
+  const { data: prices } = useLatestPrices();
 
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const { formatAed } = useCurrency();
   const isLoading = assetsLoading || categoriesLoading;
+
+  const getAssetCurrentValue = (a: any): number => {
+    if (a.asset_type === 'precious_metals' && a.metal_type) {
+      const priceData = a.metal_type === 'XAU' ? prices?.XAU : prices?.XAG;
+      if (priceData && a.quantity) {
+        const qty = Number(a.quantity);
+        const unit = (a.quantity_unit || 'oz').toLowerCase();
+        const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
+        return qtyOz * priceData.price_aed_per_oz;
+      }
+    }
+    if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
+      return getEffectiveFDValue({
+        principal: a.principal ? Number(a.principal) : null,
+        interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
+        purchase_date: a.purchase_date,
+        maturity_date: a.maturity_date,
+        maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
+        current_value: a.current_value ? Number(a.current_value) : null,
+        is_current_value_manual: a.is_current_value_manual,
+        total_cost: Number(a.total_cost),
+      }).currentValue;
+    }
+    return Number(a.current_value) || Number(a.total_cost) || 0;
+  };
 
   const category = categories?.find(c => c.code === categoryCode);
   const categoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
@@ -67,22 +94,7 @@ export default function HoldingsByCategory() {
     
     const catTotalInvested = categoryAssets.reduce((sum, a) => sum + convertToAed(Number(a.total_cost), a.currency), 0);
     const catTotalValue = categoryAssets.reduce((sum, a) => {
-      let value: number;
-      if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
-        const fdResult = getEffectiveFDValue({
-          principal: a.principal ? Number(a.principal) : null,
-          interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
-          purchase_date: a.purchase_date,
-          maturity_date: a.maturity_date,
-          maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
-          current_value: a.current_value ? Number(a.current_value) : null,
-          is_current_value_manual: a.is_current_value_manual,
-          total_cost: Number(a.total_cost),
-        });
-        value = fdResult.currentValue;
-      } else {
-        value = Number(a.current_value) || Number(a.total_cost);
-      }
+      const value = getAssetCurrentValue(a);
       return sum + convertToAed(value, a.currency);
     }, 0);
 
@@ -132,22 +144,7 @@ export default function HoldingsByCategory() {
   }, 0);
   
   const totalValue = categoryAssets.reduce((sum, a) => {
-    let value: number;
-    if (a.asset_type === 'fixed_deposit' || a.asset_type_code === 'fixed_deposit') {
-      const fdResult = getEffectiveFDValue({
-        principal: a.principal ? Number(a.principal) : null,
-        interest_rate: a.interest_rate ? Number(a.interest_rate) : null,
-        purchase_date: a.purchase_date,
-        maturity_date: a.maturity_date,
-        maturity_amount: a.maturity_amount ? Number(a.maturity_amount) : null,
-        current_value: a.current_value ? Number(a.current_value) : null,
-        is_current_value_manual: a.is_current_value_manual,
-        total_cost: Number(a.total_cost),
-      });
-      value = fdResult.currentValue;
-    } else {
-      value = Number(a.current_value) || Number(a.total_cost);
-    }
+    const value = getAssetCurrentValue(a);
     return sum + convertToAed(value, a.currency);
   }, 0);
 
@@ -263,24 +260,8 @@ export default function HoldingsByCategory() {
             ) : (
               <div className="space-y-3">
                 {categoryAssets.map((asset) => {
-                  let currentValue: number;
+                  const currentValue = getAssetCurrentValue(asset);
                   const isINR = asset.currency === 'INR';
-                  
-                  if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
-                    const fdResult = getEffectiveFDValue({
-                      principal: asset.principal ? Number(asset.principal) : null,
-                      interest_rate: asset.interest_rate ? Number(asset.interest_rate) : null,
-                      purchase_date: asset.purchase_date,
-                      maturity_date: asset.maturity_date,
-                      maturity_amount: asset.maturity_amount ? Number(asset.maturity_amount) : null,
-                      current_value: asset.current_value ? Number(asset.current_value) : null,
-                      is_current_value_manual: asset.is_current_value_manual,
-                      total_cost: Number(asset.total_cost),
-                    });
-                    currentValue = fdResult.currentValue;
-                  } else {
-                    currentValue = Number(asset.current_value) || Number(asset.total_cost);
-                  }
                   
                   const currentValueAed = convertToAed(currentValue, asset.currency);
                   const totalCostAed = convertToAed(Number(asset.total_cost), asset.currency);
