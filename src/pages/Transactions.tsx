@@ -11,6 +11,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+interface UnifiedTransaction {
+  id: string;
+  date: string;
+  assetName: string;
+  assetType: string;
+  transactionType: string;
+  quantity: number;
+  quantityUnit: string;
+  pricePerUnit: number | null;
+  amount: number;
+  fees: number;
+  currency: string;
+  source: 'asset_transactions' | 'asset_record';
+}
+
 export default function Transactions() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sideFilter, setSideFilter] = useState('all');
@@ -31,25 +46,86 @@ export default function Transactions() {
     return map;
   }, [assets]);
 
+  // Build unified transaction list: explicit transactions + synthesized from assets
+  const unifiedTxs = useMemo(() => {
+    const result: UnifiedTransaction[] = [];
+
+    // IDs of assets that have explicit transactions
+    const assetsWithTxs = new Set<string>();
+    for (const tx of allTxs || []) {
+      assetsWithTxs.add(tx.asset_id);
+      const asset = assetMap.get(tx.asset_id);
+      result.push({
+        id: tx.id,
+        date: tx.transaction_date,
+        assetName: asset?.name || 'Unknown',
+        assetType: asset?.type || '',
+        transactionType: tx.transaction_type,
+        quantity: Number(tx.quantity),
+        quantityUnit: tx.quantity_unit || '',
+        pricePerUnit: tx.price_per_unit ? Number(tx.price_per_unit) : null,
+        amount: Number(tx.amount),
+        fees: Number(tx.fees),
+        currency: asset?.currency || 'AED',
+        source: 'asset_transactions',
+      });
+    }
+
+    // Synthesize purchase records for assets without explicit transactions
+    for (const a of assets || []) {
+      if (assetsWithTxs.has(a.id)) continue;
+
+      const txType = a.asset_type === 'sip' ? 'SIP' : 'PURCHASE';
+      const amount = Number(a.total_cost) || 0;
+      const qty = Number(a.quantity) || Number(a.units_held) || 1;
+      const unit = a.quantity_unit || (a.asset_type === 'real_estate' ? 'unit' : '');
+      const ppu = amount > 0 && qty > 0 ? amount / qty : null;
+
+      result.push({
+        id: `asset-${a.id}`,
+        date: a.purchase_date,
+        assetName: a.asset_name,
+        assetType: a.asset_type,
+        transactionType: txType,
+        quantity: qty,
+        quantityUnit: unit,
+        pricePerUnit: a.purchase_price_per_unit ? Number(a.purchase_price_per_unit) : ppu,
+        amount,
+        fees: 0,
+        currency: a.currency,
+        source: 'asset_record',
+      });
+    }
+
+    // Sort by date descending
+    result.sort((a, b) => b.date.localeCompare(a.date));
+    return result;
+  }, [allTxs, assets, assetMap]);
+
   // Get unique asset types for filter
   const assetTypes = useMemo(() => {
     const types = new Set<string>();
-    for (const a of assets || []) types.add(a.asset_type);
+    for (const tx of unifiedTxs) if (tx.assetType) types.add(tx.assetType);
     return Array.from(types);
-  }, [assets]);
+  }, [unifiedTxs]);
+
+  // Get unique transaction types for filter
+  const txTypes = useMemo(() => {
+    const types = new Set<string>();
+    for (const tx of unifiedTxs) types.add(tx.transactionType);
+    return Array.from(types);
+  }, [unifiedTxs]);
 
   // Filter transactions
   const filteredTxs = useMemo(() => {
-    if (!allTxs) return [];
-    return allTxs.filter(tx => {
-      const asset = assetMap.get(tx.asset_id);
-      if (typeFilter !== 'all' && asset?.type !== typeFilter) return false;
-      if (sideFilter !== 'all' && tx.transaction_type !== sideFilter) return false;
-      if (dateFrom && tx.transaction_date < dateFrom) return false;
-      if (dateTo && tx.transaction_date > dateTo) return false;
+    return unifiedTxs.filter(tx => {
+      if (typeFilter !== 'all' && tx.assetType !== typeFilter) return false;
+      if (sideFilter !== 'all' && tx.transactionType !== sideFilter) return false;
+      if (dateFrom && tx.date < dateFrom) return false;
+      if (dateTo && tx.date > dateTo) return false;
       return true;
     });
-  }, [allTxs, assetMap, typeFilter, sideFilter, dateFrom, dateTo]);
+  }, [unifiedTxs, typeFilter, sideFilter, dateFrom, dateTo]);
 
   return (
     <AppLayout>
@@ -78,15 +154,14 @@ export default function Transactions() {
             </SelectContent>
           </Select>
           <Select value={sideFilter} onValueChange={setSideFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Side" />
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Transaction Type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="BUY">Buy</SelectItem>
-              <SelectItem value="SELL">Sell</SelectItem>
-              <SelectItem value="PURCHASE">Purchase</SelectItem>
-              <SelectItem value="REDEMPTION">Redemption</SelectItem>
+              {txTypes.map(t => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Input
@@ -124,7 +199,7 @@ export default function Transactions() {
               </div>
               <h3 className="text-lg font-medium text-foreground mb-1">No transactions</h3>
               <p className="text-muted-foreground">
-                {(allTxs?.length || 0) > 0 ? 'No transactions match your filters.' : 'Transactions will appear here when you add them.'}
+                {unifiedTxs.length > 0 ? 'No transactions match your filters.' : 'Transactions will appear here when you add them.'}
               </p>
             </CardContent>
           </Card>
@@ -146,15 +221,14 @@ export default function Transactions() {
                   </thead>
                   <tbody>
                     {filteredTxs.map((tx) => {
-                      const asset = assetMap.get(tx.asset_id);
-                      const isBuy = ['BUY', 'PURCHASE', 'SWITCH_IN'].includes(tx.transaction_type);
+                      const isBuy = ['BUY', 'PURCHASE', 'SIP', 'SWITCH_IN'].includes(tx.transactionType);
                       return (
                         <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/50">
                           <td className="p-4 text-sm">
-                            {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
+                            {format(new Date(tx.date), 'dd MMM yyyy')}
                           </td>
                           <td className="p-4 text-sm font-medium">
-                            {asset?.name || 'Unknown'}
+                            {tx.assetName}
                           </td>
                           <td className="p-4">
                             <Badge
@@ -165,20 +239,20 @@ export default function Transactions() {
                               )}
                             >
                               {isBuy ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
-                              {tx.transaction_type}
+                              {tx.transactionType}
                             </Badge>
                           </td>
                           <td className="p-4 text-sm text-right">
-                            {Number(tx.quantity).toLocaleString()} {tx.quantity_unit || ''}
+                            {tx.quantity.toLocaleString()} {tx.quantityUnit}
                           </td>
                           <td className="p-4 text-sm text-right">
-                            {tx.price_per_unit ? Number(tx.price_per_unit).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
+                            {tx.pricePerUnit ? tx.pricePerUnit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
                           </td>
                           <td className="p-4 text-sm text-right font-medium">
-                            {Number(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
                           <td className="p-4 text-sm text-right text-muted-foreground">
-                            {Number(tx.fees) > 0 ? Number(tx.fees).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
+                            {tx.fees > 0 ? tx.fees.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '—'}
                           </td>
                         </tr>
                       );
