@@ -230,7 +230,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           {hasTransactionTypes && (
             <Link to="/transactions" onClick={onItemClick} className={mobileNavItemClass(isActive('/transactions'))}>
               <Receipt className="h-4 w-4 flex-shrink-0" />
-              <span>Trades</span>
+              <span>Transactions</span>
             </Link>
           )}
         </div>
@@ -388,7 +388,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
       {/* Markets section - Market data first, then Trades */}
       <SectionLabel collapsed={collapsed}>Markets</SectionLabel>
       {hasPriceFeedTypes && renderDesktopItem('/prices', <TrendingUp className="h-4 w-4 flex-shrink-0" />, 'Market')}
-      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Trades')}
+      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Transactions')}
 
       {/* Insights section */}
       <SectionLabel collapsed={collapsed}>Insights</SectionLabel>
