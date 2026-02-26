@@ -11,8 +11,22 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate: require either a valid service-role JWT or a shared secret token
+    const authHeader = req.headers.get('Authorization') ?? ''
+    const cronSecret = Deno.env.get('CRON_SECRET')
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    const isCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`
+    const isServiceRole = authHeader === `Bearer ${serviceKey}`
+
+    if (!isCronAuth && !isServiceRole) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const supabase = createClient(supabaseUrl, serviceKey)
 
     // Get all users who have assets
