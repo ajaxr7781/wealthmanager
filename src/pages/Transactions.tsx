@@ -129,7 +129,7 @@ export default function Transactions() {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -141,9 +141,9 @@ export default function Transactions() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Asset Type" />
             </SelectTrigger>
             <SelectContent>
@@ -154,7 +154,7 @@ export default function Transactions() {
             </SelectContent>
           </Select>
           <Select value={sideFilter} onValueChange={setSideFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="Transaction Type" />
             </SelectTrigger>
             <SelectContent>
@@ -168,14 +168,14 @@ export default function Transactions() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-[160px]"
+            className="w-full sm:w-[160px]"
             placeholder="From"
           />
           <Input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="w-[160px]"
+            className="w-full sm:w-[160px]"
             placeholder="To"
           />
         </div>

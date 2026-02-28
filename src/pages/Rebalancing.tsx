@@ -176,8 +176,8 @@ export default function RebalancingPage() {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Rebalancing Engine</h1>
             <p className="text-muted-foreground text-sm">Monitor allocation drift and get rebalancing recommendations</p>
@@ -295,8 +295,8 @@ export default function RebalancingPage() {
                   <CardTitle className="text-base">Rebalancing Actions (Preview)</CardTitle>
                   <CardDescription>These are simulated recommendations — no transactions will be created</CardDescription>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <Table>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table className="min-w-[600px]">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Category</TableHead>

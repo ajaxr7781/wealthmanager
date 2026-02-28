@@ -191,7 +191,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         "w-full transition-all duration-300 ease-in-out",
         sidebarCollapsed ? "lg:pl-[60px]" : "lg:pl-[252px]"
       )}>
-        <div className="pt-16 lg:pt-0 min-h-screen px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="pt-14 lg:pt-0 min-h-screen">
           {children}
         </div>
       </main>

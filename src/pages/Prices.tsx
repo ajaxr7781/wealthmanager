@@ -88,7 +88,7 @@ export default function Prices() {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8">
         <div>
           <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">Prices</h1>
           <p className="text-muted-foreground">Fetch live prices or update manually</p>
@@ -96,7 +96,7 @@ export default function Prices() {
 
         {/* Live Prices Card */}
         <Card className="border-primary/20">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <RefreshCw className="h-5 w-5 text-primary" />

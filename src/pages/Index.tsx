@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8 space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">
