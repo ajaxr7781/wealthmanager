@@ -204,9 +204,8 @@ export default function LiabilitiesPage() {
 
         {/* Table - scrollable on mobile */}
         <Card>
-          <CardContent className="p-0">
-            <ScrollArea className="w-full">
-              <Table>
+          <CardContent className="p-0 overflow-x-auto">
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
@@ -250,7 +249,6 @@ export default function LiabilitiesPage() {
                   ))}
                 </TableBody>
               </Table>
-            </ScrollArea>
           </CardContent>
         </Card>
       </div>
