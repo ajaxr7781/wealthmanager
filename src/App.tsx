@@ -17,6 +17,7 @@ import AssetDetail from "./pages/AssetDetail";
 import Transactions from "./pages/Transactions";
 import Holdings from "./pages/Holdings";
 import HoldingsByCategory from "./pages/HoldingsByCategory";
+import MetalDetail from "./pages/MetalDetail";
 import Prices from "./pages/Prices";
 import Reports from "./pages/Reports";
 import AssetTypesSettings from "./pages/settings/AssetTypes";
@@ -62,6 +63,7 @@ const App = () => (
                 
                 {/* Holdings Routes */}
                 <Route path="/holdings" element={<ProtectedRoute><Holdings /></ProtectedRoute>} />
+                <Route path="/holdings/precious_metals/:metalType" element={<ProtectedRoute><MetalDetail /></ProtectedRoute>} />
                 <Route path="/holdings/:categoryCode" element={<ProtectedRoute><HoldingsByCategory /></ProtectedRoute>} />
                 
                 {/* Other Routes */}

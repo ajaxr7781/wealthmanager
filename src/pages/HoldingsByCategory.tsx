@@ -106,6 +106,35 @@ export default function HoldingsByCategory() {
     return (Math.pow(catTotalValue / catTotalInvested, 1 / years) - 1) * 100;
   }, [category, categoryAssets, inrToAed]);
 
+  // Detect if this is a precious metals category — group by metal_type
+  const isPreciousMetals = categoryCode === 'precious_metals';
+
+  // Group precious metals by metal_type
+  const metalGroups = useMemo(() => {
+    if (!isPreciousMetals) return [];
+    const groups = new Map<string, { label: string; assets: typeof categoryAssets; totalInvested: number; totalValue: number; totalQtyOz: number }>();
+    for (const a of categoryAssets) {
+      const key = a.metal_type || 'unknown';
+      const label = key === 'XAU' ? 'Gold' : key === 'XAG' ? 'Silver' : key;
+      if (!groups.has(key)) {
+        groups.set(key, { label, assets: [], totalInvested: 0, totalValue: 0, totalQtyOz: 0 });
+      }
+      const g = groups.get(key)!;
+      g.assets.push(a);
+      g.totalInvested += convertToAed(Number(a.total_cost), a.currency);
+      const val = getAssetCurrentValue(a);
+      g.totalValue += convertToAed(val, a.currency);
+      if (a.quantity) {
+        const qty = Number(a.quantity);
+        const unit = (a.quantity_unit || 'oz').toLowerCase();
+        g.totalQtyOz += unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
+      }
+    }
+    return Array.from(groups.entries())
+      .map(([key, g]) => ({ metalType: key, ...g }))
+      .sort((a, b) => b.totalValue - a.totalValue);
+  }, [isPreciousMetals, categoryAssets, prices, inrToAed]);
+
   if (isLoading) {
     return (
       <AppLayout>
@@ -256,6 +285,53 @@ export default function HoldingsByCategory() {
                     Add Asset
                   </Button>
                 </Link>
+              </div>
+            ) : isPreciousMetals ? (
+              /* Grouped view for precious metals */
+              <div className="space-y-3">
+                {metalGroups.map((group) => {
+                  const pl = group.totalValue - group.totalInvested;
+                  const plPct = group.totalInvested > 0 ? (pl / group.totalInvested) * 100 : 0;
+                  const isProfit = pl >= 0;
+
+                  return (
+                    <Link
+                      key={group.metalType}
+                      to={`/holdings/precious_metals/${group.metalType}`}
+                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center",
+                          getColorClass(category.color)
+                        )}>
+                          <Coins className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{group.label}</p>
+                          <div className="text-sm text-muted-foreground">
+                            <span>{fmtAed(group.totalInvested)} invested</span>
+                            <span className="ml-2">· {group.totalQtyOz.toFixed(3)} oz</span>
+                            <span className="ml-2">· {group.assets.length} purchase{group.assets.length !== 1 ? 's' : ''}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="font-medium">{fmtAed(group.totalValue)}</p>
+                          <p className={cn(
+                            "text-sm",
+                            isProfit ? "text-positive" : "text-negative"
+                          )}>
+                            {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          </p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className="space-y-3">
