@@ -1,15 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useAssets, useUserSettings } from '@/hooks/useAssets';
+import { useAssets, useUserSettings, useUpdateAsset } from '@/hooks/useAssets';
 import { useLatestPrices } from '@/hooks/usePrices';
-import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
+import { useAllAssetTransactions, useCreateAssetTransaction } from '@/hooks/useAssetTransactions';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Plus, Coins, HelpCircle, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,6 +50,56 @@ export default function MetalDetail() {
   );
 
   const isLoading = assetsLoading || txLoading;
+
+  const createTx = useCreateAssetTransaction();
+  const updateAsset = useUpdateAsset();
+  const [addOpen, setAddOpen] = useState(false);
+  const [txDate, setTxDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [txQty, setTxQty] = useState('');
+  const [txPrice, setTxPrice] = useState('');
+  const [txNotes, setTxNotes] = useState('');
+  const [txSubmitting, setTxSubmitting] = useState(false);
+
+  // Find the primary asset for this metal type (first one, used for adding transactions)
+  const primaryAsset = metalAssets[0];
+
+  const handleAddPurchase = async () => {
+    if (!primaryAsset || !txQty || !txPrice) return;
+    setTxSubmitting(true);
+    try {
+      const qty = Number(txQty);
+      const price = Number(txPrice);
+      const amount = qty * price;
+
+      await createTx.mutateAsync({
+        asset_id: primaryAsset.id,
+        transaction_type: 'BUY',
+        transaction_date: txDate,
+        quantity: qty,
+        quantity_unit: 'OZ',
+        price_per_unit: price,
+        amount,
+        fees: 0,
+        notes: txNotes || undefined,
+      });
+
+      // Update the asset's total_cost and quantity
+      const newQty = Number(primaryAsset.quantity || 0) + qty;
+      const newCost = Number(primaryAsset.total_cost) + amount;
+      await updateAsset.mutateAsync({
+        id: primaryAsset.id,
+        quantity: newQty,
+        total_cost: newCost,
+      });
+
+      setAddOpen(false);
+      setTxQty('');
+      setTxPrice('');
+      setTxNotes('');
+    } finally {
+      setTxSubmitting(false);
+    }
+  };
 
   const getAssetValue = (a: any): number => {
     const priceData = metalType === 'XAU' ? prices?.XAU : prices?.XAG;
@@ -127,16 +180,49 @@ export default function MetalDetail() {
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-foreground">{metalLabel}</h1>
               <p className="text-muted-foreground">
-                {metalAssets.length} purchase{metalAssets.length !== 1 ? 's' : ''} · {totals.totalQtyOz.toFixed(3)} oz total
+                {metalTransactions.length} transaction{metalTransactions.length !== 1 ? 's' : ''} · {totals.totalQtyOz.toFixed(3)} oz total
               </p>
             </div>
           </div>
-          <Link to="/assets/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Purchase
-            </Button>
-          </Link>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Purchase
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add {metalLabel} Purchase</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Date</Label>
+                  <Input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Quantity (oz)</Label>
+                  <Input type="number" step="any" placeholder="e.g. 0.5" value={txQty} onChange={e => setTxQty(e.target.value)} />
+                </div>
+                <div>
+                  <Label>Price per oz (AED)</Label>
+                  <Input type="number" step="any" placeholder="e.g. 19500" value={txPrice} onChange={e => setTxPrice(e.target.value)} />
+                </div>
+                {txQty && txPrice && (
+                  <div className="p-3 rounded-lg bg-muted text-sm">
+                    Total: <span className="font-medium">{formatAed(Number(txQty) * Number(txPrice), { decimals: 2 })}</span>
+                  </div>
+                )}
+                <div>
+                  <Label>Notes (optional)</Label>
+                  <Input value={txNotes} onChange={e => setTxNotes(e.target.value)} placeholder="e.g. Monthly DCA" />
+                </div>
+                <Button onClick={handleAddPurchase} disabled={txSubmitting || !txQty || !txPrice} className="w-full">
+                  {txSubmitting ? 'Adding…' : 'Add Purchase'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Summary Cards */}
