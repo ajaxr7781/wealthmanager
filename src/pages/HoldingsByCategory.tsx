@@ -102,6 +102,12 @@ export default function HoldingsByCategory() {
   const category = categories?.find(c => c.code === categoryCode);
   const categoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
 
+  const fmtAed = (value: number) => formatAed(value, { decimals: 0 });
+
+  const convertToAed = (value: number, currency: string) => {
+    return currency === 'INR' ? value * inrToAed : value;
+  };
+
   // Sorted assets for non-PM view
   const sortedAssets = useMemo(() => {
     const list = [...categoryAssets];
@@ -127,12 +133,6 @@ export default function HoldingsByCategory() {
     });
     return list;
   }, [categoryAssets, sortKey, sortDir, inrToAed, prices]);
-
-  const fmtAed = (value: number) => formatAed(value, { decimals: 0 });
-
-  const convertToAed = (value: number, currency: string) => {
-    return currency === 'INR' ? value * inrToAed : value;
-  };
 
   // Category-level CAGR
   const categoryCagr = useMemo(() => {
