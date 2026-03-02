@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
@@ -12,12 +12,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle } from 'lucide-react';
+import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
-import { differenceInDays, parseISO } from 'date-fns';
+import { differenceInDays, parseISO, format } from 'date-fns';
 import {
   Landmark,
   TrendingUp,
@@ -43,6 +43,9 @@ const IconMap: Record<string, typeof Coins> = {
   Package,
 };
 
+type SortKey = 'name' | 'value' | 'pl' | 'date';
+type SortDir = 'asc' | 'desc';
+
 export default function HoldingsByCategory() {
   const { categoryCode } = useParams<{ categoryCode: string }>();
   const { data: assets, isLoading: assetsLoading } = useAssets();
@@ -53,6 +56,23 @@ export default function HoldingsByCategory() {
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const { formatAed } = useCurrency();
   const isLoading = assetsLoading || categoriesLoading;
+
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'name' ? 'asc' : 'desc');
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
 
   const getAssetCurrentValue = (a: any): number => {
     if (a.asset_type === 'precious_metals' && a.metal_type) {
@@ -81,6 +101,32 @@ export default function HoldingsByCategory() {
 
   const category = categories?.find(c => c.code === categoryCode);
   const categoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
+
+  // Sorted assets for non-PM view
+  const sortedAssets = useMemo(() => {
+    const list = [...categoryAssets];
+    list.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case 'name': cmp = a.asset_name.localeCompare(b.asset_name); break;
+        case 'value': {
+          const va = convertToAed(getAssetCurrentValue(a), a.currency);
+          const vb = convertToAed(getAssetCurrentValue(b), b.currency);
+          cmp = va - vb; break;
+        }
+        case 'pl': {
+          const plA = convertToAed(getAssetCurrentValue(a), a.currency) - convertToAed(Number(a.total_cost), a.currency);
+          const plB = convertToAed(getAssetCurrentValue(b), b.currency) - convertToAed(Number(b.total_cost), b.currency);
+          const pctA = Number(a.total_cost) > 0 ? plA / convertToAed(Number(a.total_cost), a.currency) : 0;
+          const pctB = Number(b.total_cost) > 0 ? plB / convertToAed(Number(b.total_cost), b.currency) : 0;
+          cmp = pctA - pctB; break;
+        }
+        case 'date': cmp = a.purchase_date.localeCompare(b.purchase_date); break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return list;
+  }, [categoryAssets, sortKey, sortDir, inrToAed, prices]);
 
   const fmtAed = (value: number) => formatAed(value, { decimals: 0 });
 
@@ -334,8 +380,25 @@ export default function HoldingsByCategory() {
                 })}
               </div>
             ) : (
-              <div className="space-y-3">
-                {categoryAssets.map((asset) => {
+              <div>
+                {/* Sort headers */}
+                <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
+                  <button onClick={() => toggleSort('name')} className="flex items-center hover:text-foreground transition-colors text-left">
+                    Asset <SortIcon col="name" />
+                  </button>
+                  <button onClick={() => toggleSort('date')} className="flex items-center hover:text-foreground transition-colors text-left">
+                    Purchase Date <SortIcon col="date" />
+                  </button>
+                  <button onClick={() => toggleSort('value')} className="flex items-center justify-end hover:text-foreground transition-colors">
+                    Value <SortIcon col="value" />
+                  </button>
+                  <button onClick={() => toggleSort('pl')} className="flex items-center justify-end hover:text-foreground transition-colors">
+                    Return <SortIcon col="pl" />
+                  </button>
+                  <span />
+                </div>
+                <div className="divide-y">
+                {sortedAssets.map((asset) => {
                   const currentValue = getAssetCurrentValue(asset);
                   const isINR = asset.currency === 'INR';
                   
@@ -352,51 +415,78 @@ export default function HoldingsByCategory() {
                     <Link
                       key={asset.id}
                       to={`/asset/${asset.id}`}
-                      className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors group"
+                      className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_28px] gap-1 sm:gap-2 items-center px-4 py-3 hover:bg-muted/40 transition-colors group"
                     >
-                      <div className="flex items-center gap-4">
+                      {/* Name + icon */}
+                      <div className="flex items-center gap-3 min-w-0">
                         <div className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center",
+                          "w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center",
                           getColorClass(category.color)
                         )}>
-                          <TypeIcon className="h-5 w-5" />
+                          <TypeIcon className="h-4 w-4" />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{asset.asset_name}</p>
+                            <p className="font-medium text-sm truncate">{asset.asset_name}</p>
                             {assetType && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-[10px] hidden lg:inline-flex">
                                 {assetType.name}
                               </Badge>
                             )}
                             {isINR && (
-                              <Badge variant="outline" className="text-xs">INR</Badge>
+                              <Badge variant="outline" className="text-[10px]">INR</Badge>
                             )}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            <span>{fmtAed(totalCostAed)} invested</span>
+                          <p className="text-xs text-muted-foreground">
+                            {fmtAed(totalCostAed)} invested
                             {asset.quantity && asset.quantity_unit && (
-                              <span className="ml-2">· {Number(asset.quantity).toLocaleString()} {asset.quantity_unit}</span>
+                              <span className="ml-1">· {Number(asset.quantity).toLocaleString()} {asset.quantity_unit}</span>
                             )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="font-medium">{fmtAed(currentValueAed)}</p>
-                          <p className={cn(
-                            "text-sm",
-                            isProfit ? "text-positive" : "text-negative"
-                          )}>
-                            {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          </p>
+                          {/* Mobile date */}
+                          <p className="text-xs text-muted-foreground sm:hidden">
+                            {format(parseISO(asset.purchase_date), 'dd MMM yyyy')}
                           </p>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                       </div>
+
+                      {/* Purchase Date (desktop) */}
+                      <div className="hidden sm:block">
+                        <p className="text-sm text-muted-foreground">
+                          {format(parseISO(asset.purchase_date), 'dd MMM yyyy')}
+                        </p>
+                      </div>
+
+                      {/* Value */}
+                      <div className="hidden sm:block text-right">
+                        <p className="text-sm font-medium">{fmtAed(currentValueAed)}</p>
+                        <p className="text-[11px] text-muted-foreground">{fmtAed(totalCostAed)} cost</p>
+                      </div>
+
+                      {/* Return */}
+                      <div className="hidden sm:block text-right">
+                        <p className={cn("text-sm font-medium", isProfit ? "text-positive" : "text-negative")}>
+                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                        </p>
+                        <p className={cn("text-[11px]", isProfit ? "text-positive/70" : "text-negative/70")}>
+                          {isProfit ? '+' : ''}{fmtAed(pl)}
+                        </p>
+                      </div>
+
+                      {/* Mobile value + return */}
+                      <div className="flex items-center justify-between sm:hidden">
+                        <span className="text-sm font-medium">{fmtAed(currentValueAed)}</span>
+                        <span className={cn("text-sm", isProfit ? "text-positive" : "text-negative")}>
+                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      {/* Arrow */}
+                      <ChevronRight className="hidden sm:block h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors justify-self-end" />
                     </Link>
                   );
                 })}
+                </div>
               </div>
             )}
           </CardContent>
