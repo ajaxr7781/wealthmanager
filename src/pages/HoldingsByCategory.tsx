@@ -446,6 +446,9 @@ export default function HoldingsByCategory() {
                           {/* Mobile date */}
                           <p className="text-xs text-muted-foreground sm:hidden">
                             {format(parseISO(asset.purchase_date), 'dd MMM yyyy')}
+                            {asset.maturity_date && (
+                              <span> · Mat: {format(parseISO(asset.maturity_date), 'dd MMM yyyy')}</span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -455,6 +458,11 @@ export default function HoldingsByCategory() {
                         <p className="text-sm text-muted-foreground">
                           {format(parseISO(asset.purchase_date), 'dd MMM yyyy')}
                         </p>
+                        {asset.maturity_date && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Mat: {format(parseISO(asset.maturity_date), 'dd MMM yyyy')}
+                          </p>
+                        )}
                       </div>
 
                       {/* Value */}
