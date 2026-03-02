@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
 import { useLatestPrices } from '@/hooks/usePrices';
+import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ export default function MetalDetail() {
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: settings } = useUserSettings();
   const { data: prices } = useLatestPrices();
+  const { data: allTransactions, isLoading: txLoading } = useAllAssetTransactions();
   const { formatAed } = useCurrency();
 
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
@@ -34,7 +36,17 @@ export default function MetalDetail() {
     [assets, metalType]
   );
 
-  
+  const metalAssetIds = useMemo(() => new Set(metalAssets.map(a => a.id)), [metalAssets]);
+
+  // Get all BUY transactions for this metal type
+  const metalTransactions = useMemo(
+    () => (allTransactions || [])
+      .filter(t => metalAssetIds.has(t.asset_id) && t.transaction_type === 'BUY')
+      .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date)),
+    [allTransactions, metalAssetIds]
+  );
+
+  const isLoading = assetsLoading || txLoading;
 
   const getAssetValue = (a: any): number => {
     const priceData = metalType === 'XAU' ? prices?.XAU : prices?.XAG;
@@ -84,7 +96,7 @@ export default function MetalDetail() {
 
   const fmtAed = (v: number) => formatAed(v, { decimals: 0 });
 
-  if (assetsLoading) {
+  if (isLoading) {
     return (
       <AppLayout>
         <div className="p-4 lg:p-8 space-y-6">
@@ -180,57 +192,119 @@ export default function MetalDetail() {
           </Card>
         </div>
 
-        {/* Purchases List */}
+        {/* Purchases / Transactions */}
         <Card>
           <CardHeader>
-            <CardTitle>Purchases</CardTitle>
+            <CardTitle>Purchases ({metalTransactions.length})</CardTitle>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto">
             <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Price/oz</TableHead>
                   <TableHead className="text-right">Invested</TableHead>
                   <TableHead className="text-right">Current Value</TableHead>
                   <TableHead className="text-right">P/L</TableHead>
-                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {metalAssets.map(asset => {
-                  const invested = convertToAed(Number(asset.total_cost), asset.currency);
-                  const value = convertToAed(getAssetValue(asset), asset.currency);
-                  const pl = value - invested;
+                {metalTransactions.map(tx => {
+                  const qty = Number(tx.quantity);
+                  const unit = (tx.quantity_unit || 'oz').toLowerCase();
+                  const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
+                  const invested = Number(tx.amount) + Number(tx.fees);
+                  
+                  // Current value based on live price
+                  const priceData = metalType === 'XAU' ? prices?.XAU : prices?.XAG;
+                  const currentValue = priceData ? qtyOz * priceData.price_aed_per_oz : invested;
+                  
+                  const pl = currentValue - invested;
                   const plPct = invested > 0 ? (pl / invested) * 100 : 0;
 
                   return (
-                    <TableRow key={asset.id}>
-                      <TableCell className="font-medium">{asset.asset_name}</TableCell>
-                      <TableCell>{format(parseISO(asset.purchase_date), 'dd MMM yyyy')}</TableCell>
+                    <TableRow key={tx.id}>
+                      <TableCell>{format(parseISO(tx.transaction_date), 'dd MMM yyyy')}</TableCell>
                       <TableCell className="text-right">
-                        {asset.quantity ? `${Number(asset.quantity).toLocaleString()} ${asset.quantity_unit || 'oz'}` : '—'}
+                        {qty.toLocaleString()} {tx.quantity_unit || 'oz'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {tx.price_per_unit ? fmtAed(Number(tx.price_per_unit)) : '—'}
                       </TableCell>
                       <TableCell className="text-right">{fmtAed(invested)}</TableCell>
-                      <TableCell className="text-right">{fmtAed(value)}</TableCell>
+                      <TableCell className="text-right">{fmtAed(currentValue)}</TableCell>
                       <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
                         {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
-                      </TableCell>
-                      <TableCell>
-                        <Link to={`/asset/${asset.id}`}>
-                          <Button variant="ghost" size="icon">
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
                       </TableCell>
                     </TableRow>
                   );
                 })}
+                {metalTransactions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                      No transactions found. Individual asset purchases are shown below.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
+
+        {/* Fallback: show assets without transactions */}
+        {metalTransactions.length === 0 && metalAssets.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Assets</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table className="min-w-[600px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Quantity</TableHead>
+                    <TableHead className="text-right">Invested</TableHead>
+                    <TableHead className="text-right">Current Value</TableHead>
+                    <TableHead className="text-right">P/L</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {metalAssets.map(asset => {
+                    const invested = convertToAed(Number(asset.total_cost), asset.currency);
+                    const value = convertToAed(getAssetValue(asset), asset.currency);
+                    const pl = value - invested;
+                    const plPct = invested > 0 ? (pl / invested) * 100 : 0;
+
+                    return (
+                      <TableRow key={asset.id}>
+                        <TableCell className="font-medium">{asset.asset_name}</TableCell>
+                        <TableCell>{format(parseISO(asset.purchase_date), 'dd MMM yyyy')}</TableCell>
+                        <TableCell className="text-right">
+                          {asset.quantity ? `${Number(asset.quantity).toLocaleString()} ${asset.quantity_unit || 'oz'}` : '—'}
+                        </TableCell>
+                        <TableCell className="text-right">{fmtAed(invested)}</TableCell>
+                        <TableCell className="text-right">{fmtAed(value)}</TableCell>
+                        <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
+                          {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                        </TableCell>
+                        <TableCell>
+                          <Link to={`/asset/${asset.id}`}>
+                            <Button variant="ghost" size="icon">
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );
