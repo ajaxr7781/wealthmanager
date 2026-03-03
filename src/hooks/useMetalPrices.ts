@@ -5,16 +5,16 @@ import type { MetalPrices } from '@/types/assets';
 import { DEFAULT_USD_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { useUserSettings } from './useAssets';
 
-interface GoldPriceApiResponse {
-  items: Array<{
-    xauPrice: number;
-    xagPrice: number;
-    curr: string;
-    xauClose?: number;
-    xagClose?: number;
-  }>;
-  ts: number;
-  tsj: number;
+interface GoldApiItem {
+  symbol: string;
+  name: string;
+  price: number;
+  updatedAt: string;
+}
+
+interface GoldApiResponse {
+  baseCurrency: string;
+  items: GoldApiItem[];
 }
 
 export function useMetalPrices() {
@@ -30,29 +30,23 @@ export function useMetalPrices() {
         
         if (error) throw error;
         
-        const response = data as GoldPriceApiResponse;
-        const usdItem = response.items?.find(item => item.curr === 'USD');
-        
-        if (!usdItem) {
-          throw new Error('USD prices not found in response');
-        }
-
-        const xauUsd = usdItem.xauPrice;
-        const xagUsd = usdItem.xagPrice;
+        const response = data as GoldApiResponse;
+        const xauItem = response.items?.find(item => item.symbol === 'XAU');
+        const xagItem = response.items?.find(item => item.symbol === 'XAG');
 
         return {
-          XAU: {
-            usd_per_oz: xauUsd,
-            aed_per_oz: xauUsd * usdToAed,
-            aed_per_gram: (xauUsd * usdToAed) / OUNCE_TO_GRAM,
-          },
-          XAG: {
-            usd_per_oz: xagUsd,
-            aed_per_oz: xagUsd * usdToAed,
-            aed_per_gram: (xagUsd * usdToAed) / OUNCE_TO_GRAM,
-          },
-          last_updated: new Date(response.ts * 1000).toISOString(),
-          source: 'goldprice.org',
+          XAU: xauItem ? {
+            usd_per_oz: xauItem.price,
+            aed_per_oz: xauItem.price * usdToAed,
+            aed_per_gram: (xauItem.price * usdToAed) / OUNCE_TO_GRAM,
+          } : null,
+          XAG: xagItem ? {
+            usd_per_oz: xagItem.price,
+            aed_per_oz: xagItem.price * usdToAed,
+            aed_per_gram: (xagItem.price * usdToAed) / OUNCE_TO_GRAM,
+          } : null,
+          last_updated: xauItem?.updatedAt || xagItem?.updatedAt || new Date().toISOString(),
+          source: 'gold-api.com',
         };
       } catch (error) {
         console.error('Failed to fetch live metal prices:', error);
