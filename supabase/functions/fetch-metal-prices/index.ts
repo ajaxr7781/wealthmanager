@@ -5,49 +5,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+async function fetchPrice(symbol: string) {
+  const res = await fetch(`https://api.gold-api.com/price/${symbol}`, {
+    headers: { 'Accept': 'application/json' },
+  });
+  if (!res.ok) throw new Error(`${symbol}: API status ${res.status}`);
+  const data = await res.json();
+  if (typeof data.price !== 'number') throw new Error(`${symbol}: invalid price`);
+  return { symbol: data.symbol || symbol, name: data.name || symbol, price: data.price, updatedAt: data.updatedAt || '' };
+}
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Fetch from goldprice.org API
-    const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD', {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (compatible; InvestmentTracker/1.0)',
-      },
-    });
+    const [xau, xag] = await Promise.all([fetchPrice('XAU'), fetchPrice('XAG')]);
 
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return new Response(JSON.stringify(data), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-      },
+    return new Response(JSON.stringify({ baseCurrency: 'USD', items: [xau, xag] }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
     console.error('Error fetching metal prices:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch metal prices';
-    
-    return new Response(
-      JSON.stringify({ 
-        error: errorMessage,
-        items: [],
-      }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const msg = error instanceof Error ? error.message : 'Failed to fetch metal prices';
+    return new Response(JSON.stringify({ error: msg, baseCurrency: 'USD', items: [] }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });

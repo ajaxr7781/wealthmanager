@@ -36,30 +36,31 @@ export function useUnifiedRefresh() {
       if (metalsPriceResult.status === 'fulfilled' && !metalsPriceResult.value.error) {
         try {
           const data = metalsPriceResult.value.data;
-          const usdItem = data.items?.find((item: { curr: string }) => item.curr === 'USD');
+          const xauItem = data.items?.find((item: { symbol: string }) => item.symbol === 'XAU');
+          const xagItem = data.items?.find((item: { symbol: string }) => item.symbol === 'XAG');
           
-          if (usdItem) {
+          if (xauItem || xagItem) {
             const usdToAed = settings?.usd_to_aed_rate || DEFAULT_USD_TO_AED;
-            const xauAedPerOz = usdItem.xauPrice * usdToAed;
-            const xagAedPerOz = usdItem.xagPrice * usdToAed;
-            
-            // Save to price_snapshots
             const now = new Date().toISOString();
-            await Promise.all([
-              supabase.from('price_snapshots').insert({
-                instrument_symbol: 'XAU',
-                price_aed_per_oz: xauAedPerOz,
-                source: 'goldprice.org',
-                as_of: now,
-              }),
-              supabase.from('price_snapshots').insert({
-                instrument_symbol: 'XAG',
-                price_aed_per_oz: xagAedPerOz,
-                source: 'goldprice.org',
-                as_of: now,
-              }),
-            ]);
+            const inserts = [];
             
+            if (xauItem) {
+              inserts.push(supabase.from('price_snapshots').insert({
+                instrument_symbol: 'XAU',
+                price_aed_per_oz: xauItem.price * usdToAed,
+                source: 'gold-api.com',
+                as_of: now,
+              }));
+            }
+            if (xagItem) {
+              inserts.push(supabase.from('price_snapshots').insert({
+                instrument_symbol: 'XAG',
+                price_aed_per_oz: xagItem.price * usdToAed,
+                source: 'gold-api.com',
+                as_of: now,
+              }));
+            }
+            await Promise.all(inserts);
             result.metals = true;
           }
         } catch (e) {
