@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
+import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
 import { useLatestPrices } from '@/hooks/usePrices';
 import { useCategoriesWithTypes } from '@/hooks/useAssetConfig';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -51,6 +52,7 @@ export default function HoldingsByCategory() {
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: categories, isLoading: categoriesLoading } = useCategoriesWithTypes();
   const { data: settings } = useUserSettings();
+  const { data: allTransactions } = useAllAssetTransactions();
   const { data: prices } = useLatestPrices();
 
   const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
@@ -158,12 +160,12 @@ export default function HoldingsByCategory() {
   // Group precious metals by metal_type
   const metalGroups = useMemo(() => {
     if (!isPreciousMetals) return [];
-    const groups = new Map<string, { label: string; assets: typeof categoryAssets; totalInvested: number; totalValue: number; totalQtyOz: number }>();
+    const groups = new Map<string, { label: string; assets: typeof categoryAssets; totalInvested: number; totalValue: number; totalQtyOz: number; buyCount: number }>();
     for (const a of categoryAssets) {
       const key = a.metal_type || 'unknown';
       const label = key === 'XAU' ? 'Gold' : key === 'XAG' ? 'Silver' : key;
       if (!groups.has(key)) {
-        groups.set(key, { label, assets: [], totalInvested: 0, totalValue: 0, totalQtyOz: 0 });
+        groups.set(key, { label, assets: [], totalInvested: 0, totalValue: 0, totalQtyOz: 0, buyCount: 0 });
       }
       const g = groups.get(key)!;
       g.assets.push(a);
@@ -175,11 +177,14 @@ export default function HoldingsByCategory() {
         const unit = (a.quantity_unit || 'oz').toLowerCase();
         g.totalQtyOz += unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
       }
+      // Count BUY transactions for this asset
+      const assetTxns = allTransactions?.filter(t => t.asset_id === a.id && t.transaction_type === 'BUY') || [];
+      g.buyCount += assetTxns.length;
     }
     return Array.from(groups.entries())
       .map(([key, g]) => ({ metalType: key, ...g }))
       .sort((a, b) => b.totalValue - a.totalValue);
-  }, [isPreciousMetals, categoryAssets, prices, inrToAed]);
+  }, [isPreciousMetals, categoryAssets, prices, inrToAed, allTransactions]);
 
   if (isLoading) {
     return (
@@ -358,7 +363,7 @@ export default function HoldingsByCategory() {
                           <div className="text-sm text-muted-foreground">
                             <span>{fmtAed(group.totalInvested)} invested</span>
                             <span className="ml-2">· {group.totalQtyOz.toFixed(3)} oz</span>
-                            <span className="ml-2">· {group.assets.length} purchase{group.assets.length !== 1 ? 's' : ''}</span>
+                            <span className="ml-2">· {group.buyCount} purchase{group.buyCount !== 1 ? 's' : ''}</span>
                           </div>
                         </div>
                       </div>
