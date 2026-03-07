@@ -1,16 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Download, Calendar, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { TrendingDown, Download, Calendar, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useCurrency } from '@/contexts/CurrencyContext';
 import type { Asset } from '@/types/assets';
 
 interface PerformanceLeaderboardProps {
   assets: Asset[];
-}
-
-function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
 function calculateCAGR(invested: number, current: number, purchaseDate: string): number | null {
@@ -23,8 +20,8 @@ function calculateCAGR(invested: number, current: number, purchaseDate: string):
 interface RankedAsset {
   id: string;
   name: string;
-  invested: number;
-  currentValue: number;
+  investedAed: number;
+  currentValueAed: number;
   absoluteGain: number;
   returnPct: number;
   cagr: number | null;
@@ -32,24 +29,24 @@ interface RankedAsset {
   rank: number;
 }
 
-function rankAssets(assets: Asset[]): RankedAsset[] {
+function rankAssets(assets: Asset[], convertToAed: (v: number, cur: string) => number): RankedAsset[] {
   return assets
     .map(a => {
-      const invested = Number(a.total_cost) || 0;
-      const currentValue = Number(a.current_value) || invested;
+      const invested = convertToAed(Number(a.total_cost) || 0, a.currency);
+      const currentValue = convertToAed(Number(a.current_value) || Number(a.total_cost) || 0, a.currency);
       const absoluteGain = currentValue - invested;
       const returnPct = invested > 0 ? (absoluteGain / invested) * 100 : 0;
       const cagr = calculateCAGR(invested, currentValue, a.purchase_date);
-      return { id: a.id, name: a.asset_name, invested, currentValue, absoluteGain, returnPct, cagr, purchaseDate: a.purchase_date, rank: 0 };
+      return { id: a.id, name: a.asset_name, investedAed: invested, currentValueAed: currentValue, absoluteGain, returnPct, cagr, purchaseDate: a.purchase_date, rank: 0 };
     })
     .sort((a, b) => b.returnPct - a.returnPct)
     .map((a, i) => ({ ...a, rank: i + 1 }));
 }
 
-function exportLeaderboardCSV(ranked: RankedAsset[]) {
-  const headers = ['Rank', 'Asset Name', 'Invested (AED)', 'Current Value (AED)', 'Gain (AED)', 'Return %', 'CAGR %', 'Purchase Date'];
+function exportLeaderboardCSV(ranked: RankedAsset[], symbol: string) {
+  const headers = ['Rank', 'Asset Name', `Invested (${symbol})`, `Current Value (${symbol})`, `Gain (${symbol})`, 'Return %', 'CAGR %', 'Purchase Date'];
   const rows = ranked.map(a => [
-    a.rank, a.name, a.invested.toFixed(2), a.currentValue.toFixed(2),
+    a.rank, a.name, a.investedAed.toFixed(2), a.currentValueAed.toFixed(2),
     a.absoluteGain.toFixed(2), a.returnPct.toFixed(2),
     a.cagr !== null ? a.cagr.toFixed(2) : 'N/A', a.purchaseDate
   ]);
@@ -64,15 +61,25 @@ function exportLeaderboardCSV(ranked: RankedAsset[]) {
 }
 
 export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) {
-  const ranked = rankAssets(assets);
+  const { formatAed, symbol, rates } = useCurrency();
+  
+  // Convert asset values to AED base first, then display via formatAed
+  const convertToAed = (value: number, currency: string): number => {
+    if (currency === 'INR') return value * (rates.inrToAed || 0.044);
+    return value; // AED or USD already handled
+  };
+
+  const ranked = rankAssets(assets, convertToAed);
   const top5 = ranked.filter(a => a.returnPct > 0).slice(0, 5);
   const bottom5 = ranked.filter(a => a.returnPct < 0).slice(-5).reverse();
+
+  const fmt = (v: number) => formatAed(v, { decimals: 0 });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div />
-        <Button variant="outline" size="sm" onClick={() => exportLeaderboardCSV(ranked)} disabled={ranked.length === 0}>
+        <Button variant="outline" size="sm" onClick={() => exportLeaderboardCSV(ranked, symbol)} disabled={ranked.length === 0}>
           <Download className="h-4 w-4 mr-1" /> Export
         </Button>
       </div>
@@ -106,7 +113,7 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                       <p className="text-sm font-medium text-positive flex items-center gap-0.5 justify-end">
                         <ArrowUpRight className="h-3 w-3" />+{a.returnPct.toFixed(1)}%
                       </p>
-                      <p className="text-xs text-muted-foreground">+{formatAED(a.absoluteGain)}</p>
+                      <p className="text-xs text-muted-foreground">+{fmt(a.absoluteGain)}</p>
                     </div>
                   </div>
                 ))}
@@ -145,7 +152,7 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                       <p className="text-sm font-medium text-negative flex items-center gap-0.5 justify-end">
                         <ArrowDownRight className="h-3 w-3" />{a.returnPct.toFixed(1)}%
                       </p>
-                      <p className="text-xs text-muted-foreground">{formatAED(a.absoluteGain)}</p>
+                      <p className="text-xs text-muted-foreground">{fmt(a.absoluteGain)}</p>
                     </div>
                   </div>
                 ))}
@@ -183,10 +190,10 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                     <tr key={a.id} className="border-b border-border hover:bg-accent/50">
                       <td className="py-2 px-3 font-bold text-muted-foreground">#{a.rank}</td>
                       <td className="py-2 px-3 font-medium">{a.name}</td>
-                      <td className="text-right py-2 px-3">{formatAED(a.invested)}</td>
-                      <td className="text-right py-2 px-3">{formatAED(a.currentValue)}</td>
+                      <td className="text-right py-2 px-3">{fmt(a.investedAed)}</td>
+                      <td className="text-right py-2 px-3">{fmt(a.currentValueAed)}</td>
                       <td className={cn("text-right py-2 px-3", isProfit ? "text-positive" : "text-negative")}>
-                        {isProfit ? '+' : ''}{formatAED(a.absoluteGain)}
+                        {isProfit ? '+' : ''}{fmt(a.absoluteGain)}
                       </td>
                       <td className={cn("text-right py-2 px-3 font-medium", isProfit ? "text-positive" : "text-negative")}>
                         {isProfit ? '+' : ''}{a.returnPct.toFixed(1)}%
