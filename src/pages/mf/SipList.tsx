@@ -78,7 +78,7 @@ export default function SipListPage() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 space-y-6">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
           <Skeleton className="h-10 w-48" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
