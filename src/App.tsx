@@ -38,6 +38,7 @@ import RebalancingPage from "./pages/Rebalancing";
 import AlertsPage from "./pages/Alerts";
 import PerformancePage from "./pages/Performance";
 import NetWorthHistory from "./pages/NetWorthHistory";
+import TaxReports from "./pages/TaxReports";
 const queryClient = new QueryClient();
 
 const App = () => (
