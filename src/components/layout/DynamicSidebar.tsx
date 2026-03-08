@@ -262,6 +262,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             <LineChart className="h-4 w-4 flex-shrink-0" />
             <span>Net Worth</span>
           </Link>
+          <Link to="/tax" onClick={onItemClick} className={mobileNavItemClass(isActive('/tax'))}>
+            <Receipt className="h-4 w-4 flex-shrink-0" />
+            <span>Tax Reports</span>
+          </Link>
           <Link to="/alerts" onClick={onItemClick} className={mobileNavItemClass(isActive('/alerts'))}>
             <Bell className="h-4 w-4 flex-shrink-0" />
             <span>Alerts</span>
@@ -407,6 +411,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
       {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0" />, 'Liabilities')}
       {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0" />, 'Performance')}
       {renderDesktopItem('/net-worth', <LineChart className="h-4 w-4 flex-shrink-0" />, 'Net Worth')}
+      {renderDesktopItem('/tax', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Tax Reports')}
       {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0" />, 'Alerts')}
 
       {/* Settings section */}

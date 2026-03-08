@@ -38,6 +38,7 @@ import RebalancingPage from "./pages/Rebalancing";
 import AlertsPage from "./pages/Alerts";
 import PerformancePage from "./pages/Performance";
 import NetWorthHistory from "./pages/NetWorthHistory";
+import TaxReports from "./pages/TaxReports";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -78,6 +79,7 @@ const App = () => (
                 <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
                 <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
                 <Route path="/net-worth" element={<ProtectedRoute><NetWorthHistory /></ProtectedRoute>} />
+                <Route path="/tax" element={<ProtectedRoute><TaxReports /></ProtectedRoute>} />
                 
                 {/* Settings Routes */}
                 <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />
