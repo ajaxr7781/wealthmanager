@@ -9,6 +9,12 @@ import {
   PortfolioSummary,
   RawTransaction,
 } from '@/lib/calculations';
+
+export interface CategoryBreakdown {
+  category_code: string;
+  label: string;
+  value_aed: number;
+}
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 
