@@ -22,6 +22,7 @@ import Prices from "./pages/Prices";
 import Reports from "./pages/Reports";
 import AssetTypesSettings from "./pages/settings/AssetTypes";
 import PreferencesSettings from "./pages/settings/Preferences";
+import ProfileSettings from "./pages/settings/Profile";
 import MfSchemesSettings from "./pages/settings/MfSchemes";
 import MfHoldingsPage from "./pages/mf/MfHoldings";
 import AddMfHolding from "./pages/mf/AddMfHolding";
