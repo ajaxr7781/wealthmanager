@@ -52,7 +52,7 @@ export default function EditMfHolding() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 space-y-6">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-96" />
         </div>
