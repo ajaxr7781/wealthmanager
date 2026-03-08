@@ -14,7 +14,7 @@ export function SnapshotHistoryTable({ snapshots, fmtCurrency }: Props) {
         <CardTitle>Snapshot History</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
