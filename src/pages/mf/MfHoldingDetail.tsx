@@ -247,6 +247,9 @@ export default function MfHoldingDetail() {
           </CardContent>
         </Card>
 
+        {/* NAV History Chart */}
+        <NavHistoryChart schemeId={asset.scheme_id} schemeName={asset.asset_name} />
+
         {/* Transactions */}
         <Card>
           <CardHeader>
