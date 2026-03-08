@@ -7,17 +7,23 @@ interface AllocationChartProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  precious_metals: 'hsl(45, 93%, 47%)',   // Gold
-  equity: 'hsl(217, 91%, 60%)',           // Blue
-  real_estate: 'hsl(142, 71%, 45%)',      // Green
-  fixed_income: 'hsl(262, 83%, 58%)',     // Purple
-  fixed_deposit: 'hsl(262, 83%, 58%)',    // Purple
-  cash: 'hsl(199, 89%, 48%)',             // Cyan
-  crypto: 'hsl(25, 95%, 53%)',            // Orange
-  shares: 'hsl(340, 82%, 52%)',           // Pink
-  mutual_fund: 'hsl(217, 91%, 60%)',      // Blue
-  sip: 'hsl(190, 80%, 50%)',             // Teal
-  other: 'hsl(220, 13%, 69%)',            // Gray
+  precious_metals: 'hsl(45, 93%, 47%)',
+  equity: 'hsl(217, 91%, 60%)',
+  real_estate: 'hsl(142, 71%, 45%)',
+  real_assets: 'hsl(152, 69%, 40%)',
+  banking: 'hsl(262, 83%, 58%)',
+  fixed_income: 'hsl(262, 83%, 58%)',
+  fixed_deposit: 'hsl(262, 83%, 58%)',
+  government_savings: 'hsl(280, 65%, 50%)',
+  digital: 'hsl(25, 95%, 53%)',
+  retirement: 'hsl(290, 60%, 55%)',
+  insurance: 'hsl(199, 89%, 48%)',
+  cash: 'hsl(199, 89%, 48%)',
+  crypto: 'hsl(25, 95%, 53%)',
+  shares: 'hsl(340, 82%, 52%)',
+  mutual_fund: 'hsl(217, 91%, 60%)',
+  sip: 'hsl(190, 80%, 50%)',
+  other: 'hsl(220, 13%, 69%)',
 };
 
 const FALLBACK_COLORS = [
