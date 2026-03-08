@@ -27,6 +27,7 @@ import {
   CreditCard,
   Bell,
   Activity,
+  User,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
