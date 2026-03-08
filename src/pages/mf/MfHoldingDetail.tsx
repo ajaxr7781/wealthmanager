@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { useAssetTransactions } from '@/hooks/useAssetTransactions';
+import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
+import { formatRate } from '@/lib/xirrCalc';
 import { cn } from '@/lib/utils';
 import { 
   ArrowLeft, 
