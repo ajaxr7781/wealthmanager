@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate: require either a valid service-role JWT or a shared secret token
     const authHeader = req.headers.get('Authorization') ?? ''
     const cronSecret = Deno.env.get('CRON_SECRET')
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -42,10 +41,10 @@ Deno.serve(async (req) => {
 
     for (const userId of uniqueUserIds) {
       try {
-        // Get assets
+        // Get assets with category info
         const { data: assets } = await supabase
           .from('assets')
-          .select('total_cost, current_value, currency')
+          .select('total_cost, current_value, currency, category_code, asset_type')
           .eq('user_id', userId)
 
         // Get user settings for FX rate
@@ -64,35 +63,50 @@ Deno.serve(async (req) => {
           .eq('user_id', userId)
           .eq('is_active', true)
 
-        // Get MF holdings
+        // Get MF holdings with scheme category
         const { data: mfHoldings } = await supabase
           .from('mf_holdings')
-          .select('invested_amount, current_value')
+          .select('invested_amount, current_value, scheme_id')
           .eq('user_id', userId)
           .eq('is_active', true)
 
-        // Calculate totals
+        // Calculate totals and per-category breakdown
         let totalInvested = 0
         let totalValue = 0
+        const categoryBreakdown: Record<string, { invested: number; value: number }> = {}
+
+        const addToCategory = (cat: string, invested: number, value: number) => {
+          if (!categoryBreakdown[cat]) categoryBreakdown[cat] = { invested: 0, value: 0 }
+          categoryBreakdown[cat].invested += invested
+          categoryBreakdown[cat].value += value
+        }
 
         for (const asset of assets || []) {
           const cost = Number(asset.total_cost) || 0
           const val = Number(asset.current_value) || cost
+          const category = asset.category_code || asset.asset_type || 'other'
+          
+          let convertedCost = cost
+          let convertedVal = val
           if (asset.currency === 'INR') {
-            totalInvested += cost * inrToAed
-            totalValue += val * inrToAed
-          } else {
-            totalInvested += cost
-            totalValue += val
+            convertedCost = cost * inrToAed
+            convertedVal = val * inrToAed
           }
+          
+          totalInvested += convertedCost
+          totalValue += convertedVal
+          addToCategory(category, convertedCost, convertedVal)
         }
 
-        // Add MF
+        // Add MF holdings under 'mutual_funds' category
         for (const h of mfHoldings || []) {
           const inv = Number(h.invested_amount) || 0
           const cur = Number(h.current_value) || inv
-          totalInvested += inv * inrToAed
-          totalValue += cur * inrToAed
+          const convertedInv = inv * inrToAed
+          const convertedCur = cur * inrToAed
+          totalInvested += convertedInv
+          totalValue += convertedCur
+          addToCategory('mutual_funds', convertedInv, convertedCur)
         }
 
         let totalLiabilities = 0
@@ -102,6 +116,15 @@ Deno.serve(async (req) => {
         }
 
         const netWorth = totalValue - totalLiabilities
+
+        // Build breakdown_json: { category: value } for quick charting
+        const breakdownJson: Record<string, number> = {}
+        for (const [cat, vals] of Object.entries(categoryBreakdown)) {
+          breakdownJson[cat] = Math.round(vals.value * 100) / 100
+        }
+        if (totalLiabilities > 0) {
+          breakdownJson['liabilities'] = Math.round(-totalLiabilities * 100) / 100
+        }
 
         // Upsert snapshot
         const { error: upsertError } = await supabase
@@ -113,6 +136,7 @@ Deno.serve(async (req) => {
             total_invested: totalInvested,
             total_liabilities: totalLiabilities,
             net_worth: netWorth,
+            breakdown_json: breakdownJson,
           }, { onConflict: 'user_id,snapshot_date' })
 
         if (upsertError) throw upsertError
