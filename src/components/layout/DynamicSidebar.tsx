@@ -294,6 +294,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                 <Settings className="h-4 w-4 flex-shrink-0" />
                 <span>Preferences</span>
               </Link>
+              <Link to="/settings/profile" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/profile'))}>
+                <User className="h-4 w-4 flex-shrink-0" />
+                <span>Profile</span>
+              </Link>
             </div>
           )}
         </div>
