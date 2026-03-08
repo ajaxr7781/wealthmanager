@@ -453,6 +453,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
               {renderDesktopItem('/settings/asset-types', <Briefcase className="h-4 w-4 flex-shrink-0" />, 'Asset Types')}
               {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0" />, 'MF Schemes')}
               {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0" />, 'Preferences')}
+              {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0" />, 'Profile')}
             </div>
           )}
         </>

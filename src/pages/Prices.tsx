@@ -333,6 +333,64 @@ export default function Prices() {
             </CardContent>
           </Card>
         </div>
+        {/* MF NAV Section */}
+        <Card>
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <LineChartIcon className="h-5 w-5 text-primary" />
+                Mutual Fund NAVs
+              </CardTitle>
+              <CardDescription>Latest NAV for your tracked schemes</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refreshNav.mutate(undefined)}
+              disabled={refreshNav.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshNav.isPending ? 'animate-spin' : ''}`} />
+              Refresh NAVs
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {mfLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : !mfSchemes || mfSchemes.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">
+                No mutual fund schemes configured. Add schemes in Settings → MF Schemes.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {mfSchemes.map((scheme) => (
+                  <div key={scheme.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{scheme.scheme_name}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {scheme.fund_house && <span>{scheme.fund_house}</span>}
+                        {scheme.category && <Badge variant="secondary" className="text-[10px]">{scheme.category}</Badge>}
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {scheme.latest_nav ? (
+                        <>
+                          <p className="font-semibold text-foreground">₹{Number(scheme.latest_nav).toFixed(4)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {scheme.latest_nav_date ? format(new Date(scheme.latest_nav_date), 'dd MMM yyyy') : ''}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No NAV</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
