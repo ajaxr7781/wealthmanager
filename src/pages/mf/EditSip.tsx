@@ -106,7 +106,7 @@ export default function EditSipPage() {
   if (!asset) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 text-center">
+        <div className="p-4 sm:p-6 lg:p-8 text-center">
           <p className="text-muted-foreground">SIP not found</p>
           <Button asChild className="mt-4">
             <Link to="/mf/sips">Back to SIPs</Link>
