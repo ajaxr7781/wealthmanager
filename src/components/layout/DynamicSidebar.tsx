@@ -258,6 +258,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             <Activity className="h-4 w-4 flex-shrink-0" />
             <span>Performance</span>
           </Link>
+          <Link to="/net-worth" onClick={onItemClick} className={mobileNavItemClass(isActive('/net-worth'))}>
+            <LineChart className="h-4 w-4 flex-shrink-0" />
+            <span>Net Worth</span>
+          </Link>
           <Link to="/alerts" onClick={onItemClick} className={mobileNavItemClass(isActive('/alerts'))}>
             <Bell className="h-4 w-4 flex-shrink-0" />
             <span>Alerts</span>
