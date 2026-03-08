@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
 import { useAssetTransactions } from '@/hooks/useAssetTransactions';
+import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
+import { formatRate } from '@/lib/xirrCalc';
 import { cn } from '@/lib/utils';
 import { 
   ArrowLeft, 
@@ -13,6 +15,7 @@ import {
   Trash2, 
   TrendingUp, 
   TrendingDown,
+  Calculator,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -33,6 +36,15 @@ export default function MfHoldingDetail() {
   const { data: asset, isLoading } = useAsset(id);
   const { data: transactions } = useAssetTransactions(id);
   const deleteAsset = useDeleteAsset();
+
+  const currentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
+  const computedXirr = useComputedXirr(transactions, currentValue);
+  const saveXirr = useSaveXirr();
+
+  // Auto-save XIRR when computed and different from stored value
+  const storedXirr = asset?.xirr_value != null ? Number(asset.xirr_value) : null;
+  const xirrChanged = computedXirr !== null && (storedXirr === null || Math.abs(computedXirr - storedXirr) > 0.0001);
+
 
   const handleDelete = async () => {
     if (!id) return;
@@ -128,7 +140,7 @@ export default function MfHoldingDetail() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Units Held</p>
@@ -164,6 +176,39 @@ export default function MfHoldingDetail() {
               <p className={cn("text-sm", gain >= 0 ? 'text-positive' : 'text-negative')}>
                 {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
               </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Calculator className="h-3.5 w-3.5" />
+                XIRR
+              </p>
+              {computedXirr !== null ? (
+                <>
+                  <p className={cn("text-2xl font-bold",
+                    computedXirr >= 0 ? 'text-positive' : 'text-negative'
+                  )}>
+                    {formatRate(computedXirr)}
+                  </p>
+                  {xirrChanged && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2 mt-1"
+                      onClick={() => id && saveXirr.mutate({ assetId: id, xirr: computedXirr })}
+                      disabled={saveXirr.isPending}
+                    >
+                      {saveXirr.isPending ? 'Saving…' : 'Save XIRR'}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <p className="text-2xl font-bold text-muted-foreground">—</p>
+              )}
+              {computedXirr === null && transactions && transactions.length > 0 && (
+                <p className="text-xs text-muted-foreground">Need buy/sell transactions</p>
+              )}
             </CardContent>
           </Card>
         </div>
