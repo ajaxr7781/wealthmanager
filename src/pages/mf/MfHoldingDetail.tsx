@@ -9,6 +9,7 @@ import { useAssetTransactions } from '@/hooks/useAssetTransactions';
 import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { formatRate } from '@/lib/xirrCalc';
 import { cn } from '@/lib/utils';
+import { NavHistoryChart } from '@/components/mf/NavHistoryChart';
 import { 
   ArrowLeft, 
   Edit, 
