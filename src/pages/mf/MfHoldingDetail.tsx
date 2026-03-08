@@ -140,7 +140,7 @@ export default function MfHoldingDetail() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground">Units Held</p>
@@ -176,6 +176,39 @@ export default function MfHoldingDetail() {
               <p className={cn("text-sm", gain >= 0 ? 'text-positive' : 'text-negative')}>
                 {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
               </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Calculator className="h-3.5 w-3.5" />
+                XIRR
+              </p>
+              {computedXirr !== null ? (
+                <>
+                  <p className={cn("text-2xl font-bold",
+                    computedXirr >= 0 ? 'text-positive' : 'text-negative'
+                  )}>
+                    {formatRate(computedXirr)}
+                  </p>
+                  {xirrChanged && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs h-6 px-2 mt-1"
+                      onClick={() => id && saveXirr.mutate({ assetId: id, xirr: computedXirr })}
+                      disabled={saveXirr.isPending}
+                    >
+                      {saveXirr.isPending ? 'Saving…' : 'Save XIRR'}
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <p className="text-2xl font-bold text-muted-foreground">—</p>
+              )}
+              {computedXirr === null && transactions && transactions.length > 0 && (
+                <p className="text-xs text-muted-foreground">Need buy/sell transactions</p>
+              )}
             </CardContent>
           </Card>
         </div>
