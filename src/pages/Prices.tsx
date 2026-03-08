@@ -2,14 +2,18 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useLatestPrices, useCreatePrice, usePriceHistory } from '@/hooks/usePrices';
 import { useMetalPrices, useRefreshMetalPrices, useSaveMetalPrices } from '@/hooks/useMetalPrices';
+import { useActiveMfSchemes } from '@/hooks/useMfSchemes';
+import { useRefreshMfNav } from '@/hooks/useMfNav';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Coins, Circle, RefreshCw, Download, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Coins, Circle, RefreshCw, Download, Clock, LineChart as LineChartIcon } from 'lucide-react';
 import { formatNumber, pricePerOzToPerGram } from '@/lib/calculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 export default function Prices() {
   const { data: prices } = useLatestPrices();
