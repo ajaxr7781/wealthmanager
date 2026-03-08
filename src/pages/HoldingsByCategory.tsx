@@ -204,7 +204,7 @@ export default function HoldingsByCategory() {
   if (!category) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <p className="text-muted-foreground">Category not found</p>
           <Button variant="ghost" className="mt-4" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />

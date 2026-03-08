@@ -63,7 +63,7 @@ export default function EditMfHolding() {
   if (!asset) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground mb-4">Holding not found</p>
