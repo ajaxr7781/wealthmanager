@@ -77,6 +77,7 @@ const App = () => (
                 <Route path="/rebalancing" element={<ProtectedRoute><RebalancingPage /></ProtectedRoute>} />
                 <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
                 <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
+                <Route path="/net-worth" element={<ProtectedRoute><NetWorthHistory /></ProtectedRoute>} />
                 
                 {/* Settings Routes */}
                 <Route path="/settings/asset-types" element={<ProtectedRoute><AssetTypesSettings /></ProtectedRoute>} />
