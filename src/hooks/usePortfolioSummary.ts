@@ -106,9 +106,15 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
 
     const CATEGORY_LABELS: Record<string, string> = {
       precious_metals: 'Precious Metals',
-      equity: 'Equity / MF',
+      equity: 'Equity & Market-linked',
       real_estate: 'Real Estate',
+      real_assets: 'Real Assets',
+      banking: 'Banking & Fixed Income',
       fixed_income: 'Fixed Income',
+      government_savings: 'Government Savings',
+      digital: 'Digital Assets',
+      retirement: 'Retirement & Long-term',
+      insurance: 'Insurance',
       cash: 'Cash',
       crypto: 'Crypto',
       other: 'Other',
