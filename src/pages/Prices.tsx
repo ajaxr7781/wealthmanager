@@ -109,7 +109,7 @@ export default function Prices() {
                 Live Market Prices
               </CardTitle>
               <CardDescription>
-                Real-time prices from goldprice.org (converted to AED)
+                Real-time prices from gold-api.com (converted to AED)
               </CardDescription>
             </div>
             <div className="flex gap-2">
