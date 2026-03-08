@@ -407,6 +407,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
       {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0" />, 'Liabilities')}
       {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0" />, 'Performance')}
       {renderDesktopItem('/net-worth', <LineChart className="h-4 w-4 flex-shrink-0" />, 'Net Worth')}
+      {renderDesktopItem('/tax', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Tax Reports')}
       {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0" />, 'Alerts')}
 
       {/* Settings section */}
