@@ -233,7 +233,7 @@ export default function HoldingsByCategory() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">

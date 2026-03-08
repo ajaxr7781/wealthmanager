@@ -82,7 +82,7 @@ export default function EditMfHolding() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>

@@ -63,7 +63,7 @@ export default function AssetTypesSettings() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">Asset Configuration</h1>
           <p className="text-muted-foreground">
