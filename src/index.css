@@ -139,6 +139,12 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Consistent card styling */
+  .card, [data-slot="card"] {
+    @apply shadow-sm-pro;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
 }
 
 @layer utilities {
