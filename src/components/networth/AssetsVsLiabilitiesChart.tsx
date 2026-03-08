@@ -21,7 +21,7 @@ export function AssetsVsLiabilitiesChart({ snapshots }: Props) {
         <CardTitle>Assets vs Invested vs Liabilities</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-72 w-full">
+        <ChartContainer config={chartConfig} className="h-56 sm:h-72 w-full">
           <LineChart data={snapshots} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
             <XAxis dataKey="snapshot_date" tickFormatter={(v) => format(parseISO(v), 'dd MMM')} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} minTickGap={40} />

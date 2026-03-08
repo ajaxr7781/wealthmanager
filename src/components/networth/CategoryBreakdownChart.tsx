@@ -89,7 +89,7 @@ export function CategoryBreakdownChart({ snapshots, fmtCurrency }: Props) {
         <CardTitle>Category Breakdown Over Time</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-80 w-full">
+        <ChartContainer config={chartConfig} className="h-64 sm:h-80 w-full">
           <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
             <defs>
               {categories.map(cat => (

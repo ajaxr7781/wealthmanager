@@ -16,7 +16,7 @@ interface Props {
 
 export function NetWorthSummaryCards({ stats, period, fmtCurrency }: Props) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
