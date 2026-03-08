@@ -21,6 +21,8 @@ export default function Prices() {
   const refreshLivePrices = useRefreshMetalPrices();
   const savePrices = useSaveMetalPrices();
   const createPrice = useCreatePrice();
+  const { data: mfSchemes, isLoading: mfLoading } = useActiveMfSchemes();
+  const refreshNav = useRefreshMfNav();
   const [xauPrice, setXauPrice] = useState('');
   const [xagPrice, setXagPrice] = useState('');
   const { data: xauHistory } = usePriceHistory('XAU');
