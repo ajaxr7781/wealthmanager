@@ -27,6 +27,7 @@ import {
   CreditCard,
   Bell,
   Activity,
+  User,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
@@ -293,6 +294,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                 <Settings className="h-4 w-4 flex-shrink-0" />
                 <span>Preferences</span>
               </Link>
+              <Link to="/settings/profile" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/profile'))}>
+                <User className="h-4 w-4 flex-shrink-0" />
+                <span>Profile</span>
+              </Link>
             </div>
           )}
         </div>
@@ -448,6 +453,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
               {renderDesktopItem('/settings/asset-types', <Briefcase className="h-4 w-4 flex-shrink-0" />, 'Asset Types')}
               {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0" />, 'MF Schemes')}
               {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0" />, 'Preferences')}
+              {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0" />, 'Profile')}
             </div>
           )}
         </>

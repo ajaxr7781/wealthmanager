@@ -2,14 +2,18 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useLatestPrices, useCreatePrice, usePriceHistory } from '@/hooks/usePrices';
 import { useMetalPrices, useRefreshMetalPrices, useSaveMetalPrices } from '@/hooks/useMetalPrices';
+import { useActiveMfSchemes } from '@/hooks/useMfSchemes';
+import { useRefreshMfNav } from '@/hooks/useMfNav';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Coins, Circle, RefreshCw, Download, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Coins, Circle, RefreshCw, Download, Clock, LineChart as LineChartIcon } from 'lucide-react';
 import { formatNumber, pricePerOzToPerGram } from '@/lib/calculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 export default function Prices() {
   const { data: prices } = useLatestPrices();
@@ -17,6 +21,8 @@ export default function Prices() {
   const refreshLivePrices = useRefreshMetalPrices();
   const savePrices = useSaveMetalPrices();
   const createPrice = useCreatePrice();
+  const { data: mfSchemes, isLoading: mfLoading } = useActiveMfSchemes();
+  const refreshNav = useRefreshMfNav();
   const [xauPrice, setXauPrice] = useState('');
   const [xagPrice, setXagPrice] = useState('');
   const { data: xauHistory } = usePriceHistory('XAU');
@@ -103,7 +109,7 @@ export default function Prices() {
                 Live Market Prices
               </CardTitle>
               <CardDescription>
-                Real-time prices from goldprice.org (converted to AED)
+                Real-time prices from gold-api.com (converted to AED)
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -327,6 +333,64 @@ export default function Prices() {
             </CardContent>
           </Card>
         </div>
+        {/* MF NAV Section */}
+        <Card>
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <LineChartIcon className="h-5 w-5 text-primary" />
+                Mutual Fund NAVs
+              </CardTitle>
+              <CardDescription>Latest NAV for your tracked schemes</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refreshNav.mutate(undefined)}
+              disabled={refreshNav.isPending}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshNav.isPending ? 'animate-spin' : ''}`} />
+              Refresh NAVs
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {mfLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : !mfSchemes || mfSchemes.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">
+                No mutual fund schemes configured. Add schemes in Settings → MF Schemes.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {mfSchemes.map((scheme) => (
+                  <div key={scheme.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{scheme.scheme_name}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {scheme.fund_house && <span>{scheme.fund_house}</span>}
+                        {scheme.category && <Badge variant="secondary" className="text-[10px]">{scheme.category}</Badge>}
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {scheme.latest_nav ? (
+                        <>
+                          <p className="font-semibold text-foreground">₹{Number(scheme.latest_nav).toFixed(4)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {scheme.latest_nav_date ? format(new Date(scheme.latest_nav_date), 'dd MMM yyyy') : ''}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No NAV</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
