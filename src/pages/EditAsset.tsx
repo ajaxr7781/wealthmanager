@@ -91,7 +91,7 @@ export default function EditAsset() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-4">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-4">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64" />
         </div>
@@ -102,7 +102,7 @@ export default function EditAsset() {
   if (!asset) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 text-center">
+        <div className="p-4 sm:p-6 lg:p-8 text-center">
           <p className="text-muted-foreground">Asset not found</p>
           <Button variant="link" onClick={() => navigate(-1)}>
             Back
@@ -116,7 +116,7 @@ export default function EditAsset() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 max-w-3xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Button 

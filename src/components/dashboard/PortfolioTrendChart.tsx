@@ -47,7 +47,7 @@ export function PortfolioTrendChart() {
             No snapshot data yet. Snapshots are captured daily.
           </div>
         ) : (
-          <div className="h-48">
+          <div className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>

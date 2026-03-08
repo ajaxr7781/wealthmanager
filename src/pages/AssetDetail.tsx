@@ -92,7 +92,7 @@ export default function AssetDetail() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 max-w-4xl mx-auto">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
           <Skeleton className="h-8 w-48 mb-6" />
           <Skeleton className="h-64" />
         </div>
@@ -103,7 +103,7 @@ export default function AssetDetail() {
   if (!asset) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 text-center">
+        <div className="p-4 sm:p-6 lg:p-8 text-center">
           <p className="text-muted-foreground">Asset not found</p>
           <Button variant="link" onClick={() => navigate(-1)}>
             Back
@@ -152,7 +152,7 @@ export default function AssetDetail() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <Button 

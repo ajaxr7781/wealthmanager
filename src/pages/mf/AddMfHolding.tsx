@@ -55,7 +55,7 @@ export default function AddMfHolding() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 max-w-2xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
         <Button variant="ghost" size="sm" asChild className="mb-4">
           <Link to="/mf/holdings">
             <ArrowLeft className="h-4 w-4 mr-2" />

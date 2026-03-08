@@ -194,7 +194,7 @@ export default function AddAsset() {
   if (categoriesLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-4">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto space-y-4">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64" />
         </div>
@@ -204,7 +204,7 @@ export default function AddAsset() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 max-w-3xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Button 

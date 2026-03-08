@@ -189,7 +189,7 @@ export default function HoldingsByCategory() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 space-y-6">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
           <Skeleton className="h-10 w-48" />
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
@@ -204,7 +204,7 @@ export default function HoldingsByCategory() {
   if (!category) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <p className="text-muted-foreground">Category not found</p>
           <Button variant="ghost" className="mt-4" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -233,7 +233,7 @@ export default function HoldingsByCategory() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">

@@ -19,7 +19,7 @@ export function NetWorthTrendChart({ snapshots }: Props) {
         <CardTitle>Net Worth Trend</CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-72 w-full">
+        <ChartContainer config={chartConfig} className="h-56 sm:h-72 w-full">
           <AreaChart data={snapshots} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
             <defs>
               <linearGradient id="nwGrad" x1="0" y1="0" x2="0" y2="1">

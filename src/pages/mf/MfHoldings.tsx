@@ -37,7 +37,7 @@ export default function MfHoldingsPage() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 space-y-6">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-6">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
@@ -49,7 +49,7 @@ export default function MfHoldingsPage() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
