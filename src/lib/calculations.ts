@@ -254,6 +254,7 @@ export interface PortfolioSummary {
   total_pl_aed: number | null;
   total_return_pct: number | null;
   instruments: InstrumentSummary[];
+  categoryBreakdown?: { category_code: string; label: string; value_aed: number }[];
 }
 
 /**

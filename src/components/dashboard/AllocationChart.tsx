@@ -6,31 +6,50 @@ interface AllocationChartProps {
   summary: PortfolioSummary;
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  precious_metals: 'hsl(45, 93%, 47%)',   // Gold
+  equity: 'hsl(217, 91%, 60%)',           // Blue
+  real_estate: 'hsl(142, 71%, 45%)',      // Green
+  fixed_income: 'hsl(262, 83%, 58%)',     // Purple
+  fixed_deposit: 'hsl(262, 83%, 58%)',    // Purple
+  cash: 'hsl(199, 89%, 48%)',             // Cyan
+  crypto: 'hsl(25, 95%, 53%)',            // Orange
+  shares: 'hsl(340, 82%, 52%)',           // Pink
+  mutual_fund: 'hsl(217, 91%, 60%)',      // Blue
+  sip: 'hsl(190, 80%, 50%)',             // Teal
+  other: 'hsl(220, 13%, 69%)',            // Gray
+};
+
+const FALLBACK_COLORS = [
+  'hsl(217, 91%, 60%)',
+  'hsl(142, 71%, 45%)',
+  'hsl(45, 93%, 47%)',
+  'hsl(262, 83%, 58%)',
+  'hsl(25, 95%, 53%)',
+  'hsl(340, 82%, 52%)',
+  'hsl(199, 89%, 48%)',
+  'hsl(220, 13%, 69%)',
+];
+
 export function AllocationChart({ summary }: AllocationChartProps) {
-  const goldInstrument = summary.instruments.find(i => i.symbol === 'XAU');
-  const silverInstrument = summary.instruments.find(i => i.symbol === 'XAG');
+  const breakdown = summary.categoryBreakdown;
 
-  const goldValue = goldInstrument?.current_value_aed ?? goldInstrument?.cost_basis_aed ?? 0;
-  const silverValue = silverInstrument?.current_value_aed ?? silverInstrument?.cost_basis_aed ?? 0;
-  const totalValue = goldValue + silverValue;
+  // Fallback to old gold/silver view if no breakdown
+  const data = breakdown && breakdown.length > 0
+    ? breakdown.map((cat, i) => ({
+        name: cat.label,
+        value: cat.value_aed,
+        color: CATEGORY_COLORS[cat.category_code] || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+      }))
+    : buildLegacyData(summary);
 
-  // Using primary blue for Gold and muted for Silver in the new SaaS theme
-  const data = [
-    { 
-      name: 'Gold (XAU)', 
-      value: goldValue, 
-      color: 'hsl(217, 91%, 60%)', // Slate blue (primary)
-      percent: totalValue > 0 ? (goldValue / totalValue * 100) : 0,
-    },
-    { 
-      name: 'Silver (XAG)', 
-      value: silverValue, 
-      color: 'hsl(220, 13%, 69%)', // Muted gray
-      percent: totalValue > 0 ? (silverValue / totalValue * 100) : 0,
-    },
-  ].filter(d => d.value > 0);
+  const totalValue = data.reduce((sum, d) => sum + d.value, 0);
+  const dataWithPercent = data.map(d => ({
+    ...d,
+    percent: totalValue > 0 ? (d.value / totalValue) * 100 : 0,
+  }));
 
-  if (data.length === 0) {
+  if (dataWithPercent.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -53,7 +72,7 @@ export function AllocationChart({ summary }: AllocationChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={dataWithPercent}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -61,7 +80,7 @@ export function AllocationChart({ summary }: AllocationChartProps) {
                 paddingAngle={2}
                 dataKey="value"
               >
-                {data.map((entry, index) => (
+                {dataWithPercent.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -73,9 +92,7 @@ export function AllocationChart({ summary }: AllocationChartProps) {
                   borderRadius: '8px',
                   color: 'hsl(var(--foreground))',
                 }}
-                labelStyle={{
-                  color: 'hsl(var(--foreground))',
-                }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
               />
               <Legend
                 formatter={(value, entry: any) => (
@@ -88,16 +105,15 @@ export function AllocationChart({ summary }: AllocationChartProps) {
           </ResponsiveContainer>
         </div>
 
-        {/* Legend details */}
         <div className="mt-4 grid grid-cols-2 gap-4">
-          {data.map((item) => (
+          {dataWithPercent.map((item) => (
             <div key={item.name} className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
+              <div
+                className="w-3 h-3 rounded-full shrink-0"
                 style={{ backgroundColor: item.color }}
               />
-              <div>
-                <p className="text-sm font-medium text-foreground">{item.name}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatCurrency(item.value)}
                 </p>
@@ -108,4 +124,16 @@ export function AllocationChart({ summary }: AllocationChartProps) {
       </CardContent>
     </Card>
   );
+}
+
+function buildLegacyData(summary: PortfolioSummary) {
+  const goldInstrument = summary.instruments.find(i => i.symbol === 'XAU');
+  const silverInstrument = summary.instruments.find(i => i.symbol === 'XAG');
+  const goldValue = goldInstrument?.current_value_aed ?? goldInstrument?.cost_basis_aed ?? 0;
+  const silverValue = silverInstrument?.current_value_aed ?? silverInstrument?.cost_basis_aed ?? 0;
+
+  return [
+    { name: 'Gold (XAU)', value: goldValue, color: 'hsl(45, 93%, 47%)' },
+    { name: 'Silver (XAG)', value: silverValue, color: 'hsl(220, 13%, 69%)' },
+  ].filter(d => d.value > 0);
 }
