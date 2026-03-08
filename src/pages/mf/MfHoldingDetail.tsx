@@ -9,6 +9,7 @@ import { useAssetTransactions } from '@/hooks/useAssetTransactions';
 import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { formatRate } from '@/lib/xirrCalc';
 import { cn } from '@/lib/utils';
+import { NavHistoryChart } from '@/components/mf/NavHistoryChart';
 import { 
   ArrowLeft, 
   Edit, 
@@ -245,6 +246,9 @@ export default function MfHoldingDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* NAV History Chart */}
+        <NavHistoryChart schemeId={asset.scheme_id} schemeName={asset.asset_name} />
 
         {/* Transactions */}
         <Card>
