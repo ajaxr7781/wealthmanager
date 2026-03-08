@@ -95,7 +95,7 @@ export default function EditSipPage() {
   if (assetLoading) {
     return (
       <AppLayout>
-        <div className="p-4 lg:p-8 max-w-2xl mx-auto space-y-4">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto space-y-4">
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-[500px]" />
         </div>
