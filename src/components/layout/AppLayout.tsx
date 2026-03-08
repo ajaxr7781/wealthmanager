@@ -43,7 +43,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           sidebarCollapsed ? "lg:w-[60px]" : "lg:w-[252px]"
         )}
       >
-        <div className="flex flex-col h-full bg-gradient-to-b from-[hsl(220,58%,28%)] via-[hsl(218,55%,22%)] to-[hsl(220,52%,18%)]">
+        <div className="flex flex-col h-full bg-gradient-to-b from-sidebar/90 via-sidebar to-sidebar">
           {/* Logo */}
           <div className={cn(
             "flex-shrink-0 flex items-center gap-3 border-b border-white/10",
