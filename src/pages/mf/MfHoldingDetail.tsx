@@ -37,6 +37,15 @@ export default function MfHoldingDetail() {
   const { data: transactions } = useAssetTransactions(id);
   const deleteAsset = useDeleteAsset();
 
+  const currentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
+  const computedXirr = useComputedXirr(transactions, currentValue);
+  const saveXirr = useSaveXirr();
+
+  // Auto-save XIRR when computed and different from stored value
+  const storedXirr = asset?.xirr_value != null ? Number(asset.xirr_value) : null;
+  const xirrChanged = computedXirr !== null && (storedXirr === null || Math.abs(computedXirr - storedXirr) > 0.0001);
+
+
   const handleDelete = async () => {
     if (!id) return;
     await deleteAsset.mutateAsync(id);
