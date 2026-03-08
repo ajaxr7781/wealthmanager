@@ -88,9 +88,31 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
     // Start with PM summary
     const pmSummary = calculatePortfolioSummary([goldSummary, silverSummary]);
 
-    // Now add other asset types' totals
+    // Now add other asset types' totals and build category breakdown
     let otherInvested = 0;
     let otherCurrentValue = 0;
+
+    const categoryMap: Record<string, { label: string; value_aed: number }> = {};
+
+    // Add PM values to category map
+    const goldVal = goldSummary.current_value_aed ?? goldSummary.cost_basis_aed;
+    const silverVal = silverSummary.current_value_aed ?? silverSummary.cost_basis_aed;
+    if (goldVal > 0 || silverVal > 0) {
+      categoryMap['precious_metals'] = {
+        label: 'Precious Metals',
+        value_aed: goldVal + silverVal,
+      };
+    }
+
+    const CATEGORY_LABELS: Record<string, string> = {
+      precious_metals: 'Precious Metals',
+      equity: 'Equity / MF',
+      real_estate: 'Real Estate',
+      fixed_income: 'Fixed Income',
+      cash: 'Cash',
+      crypto: 'Crypto',
+      other: 'Other',
+    };
 
     for (const asset of assets) {
       if (asset.asset_type === 'precious_metals') continue; // Already handled
@@ -99,7 +121,6 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
       let currentVal: number;
 
       if (asset.asset_type === 'fixed_deposit' || asset.asset_type_code === 'fixed_deposit') {
-        // Use FD calculation for fixed deposits
         const fdResult = getEffectiveFDValue({
           principal: asset.principal ? Number(asset.principal) : null,
           interest_rate: asset.interest_rate ? Number(asset.interest_rate) : null,
@@ -117,8 +138,21 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
 
       // Convert to AED
       const factor = asset.currency === 'INR' ? inrToAed : 1;
-      otherInvested += invested * factor;
-      otherCurrentValue += currentVal * factor;
+      const investedAed = invested * factor;
+      const currentValAed = currentVal * factor;
+
+      otherInvested += investedAed;
+      otherCurrentValue += currentValAed;
+
+      // Category breakdown
+      const catCode = asset.category_code || asset.asset_type || 'other';
+      if (!categoryMap[catCode]) {
+        categoryMap[catCode] = {
+          label: CATEGORY_LABELS[catCode] || catCode.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          value_aed: 0,
+        };
+      }
+      categoryMap[catCode].value_aed += currentValAed;
     }
 
     // Merge PM and other asset summaries
@@ -131,6 +165,12 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
     const totalPL = totalRealizedPL + totalUnrealizedPL;
     const totalReturnPct = netCashInvested > 0 ? (totalPL / netCashInvested) * 100 : null;
 
+    // Build category breakdown array
+    const categoryBreakdown: CategoryBreakdown[] = Object.entries(categoryMap)
+      .filter(([, v]) => v.value_aed > 0)
+      .map(([code, v]) => ({ category_code: code, label: v.label, value_aed: v.value_aed }))
+      .sort((a, b) => b.value_aed - a.value_aed);
+
     return {
       total_buys_aed: totalBuys,
       total_sells_aed: totalSells,
@@ -141,6 +181,7 @@ export function usePortfolioSummary(_portfolioId?: string | undefined) {
       total_pl_aed: totalPL,
       total_return_pct: totalReturnPct,
       instruments: [goldSummary, silverSummary],
+      categoryBreakdown,
     };
   }, [assets, prices, allTxs, inrToAed]);
 
