@@ -37,6 +37,7 @@ import GoalsPage from "./pages/Goals";
 import RebalancingPage from "./pages/Rebalancing";
 import AlertsPage from "./pages/Alerts";
 import PerformancePage from "./pages/Performance";
+import NetWorthHistory from "./pages/NetWorthHistory";
 const queryClient = new QueryClient();
 
 const App = () => (
