@@ -351,6 +351,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           </NavItem>
           {sortedAssetItems.map(item => {
             const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
+            const iconColor = IconColorMap[item.icon || 'Package'] || '';
             const isItemActive = item.type === 'mf'
               ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
               : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
@@ -358,7 +359,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
               <NavItem collapsed label={item.name} key={item.code}>
                 <Link to={item.path} onClick={onItemClick} className={navItemClass(isItemActive)}>
                   <ActiveIndicator active={isItemActive} />
-                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <Icon className={cn("h-4 w-4 flex-shrink-0", iconColor)} />
                 </Link>
               </NavItem>
             );
