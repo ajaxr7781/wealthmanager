@@ -400,19 +400,19 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
 
       {/* Markets section - Market data first, then Trades */}
       <SectionLabel collapsed={collapsed}>Markets</SectionLabel>
-      {hasPriceFeedTypes && renderDesktopItem('/prices', <TrendingUp className="h-4 w-4 flex-shrink-0" />, 'Market')}
-      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Transactions')}
+      {hasPriceFeedTypes && renderDesktopItem('/prices', <TrendingUp className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-market))]" />, 'Market')}
+      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-transactions))]" />, 'Transactions')}
 
       {/* Insights section */}
       <SectionLabel collapsed={collapsed}>Insights</SectionLabel>
-      {renderDesktopItem('/reports', <BarChart3 className="h-4 w-4 flex-shrink-0" />, 'Reports')}
-      {renderDesktopItem('/goals', <Target className="h-4 w-4 flex-shrink-0" />, 'Goals')}
-      {renderDesktopItem('/rebalancing', <Scale className="h-4 w-4 flex-shrink-0" />, 'Rebalancing')}
-      {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0" />, 'Liabilities')}
-      {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0" />, 'Performance')}
-      {renderDesktopItem('/net-worth', <LineChart className="h-4 w-4 flex-shrink-0" />, 'Net Worth')}
-      {renderDesktopItem('/tax', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Tax Reports')}
-      {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0" />, 'Alerts')}
+      {renderDesktopItem('/reports', <BarChart3 className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-reports))]" />, 'Reports')}
+      {renderDesktopItem('/goals', <Target className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-goals))]" />, 'Goals')}
+      {renderDesktopItem('/rebalancing', <Scale className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-rebalancing))]" />, 'Rebalancing')}
+      {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-liabilities))]" />, 'Liabilities')}
+      {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-performance))]" />, 'Performance')}
+      {renderDesktopItem('/net-worth', <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-networth))]" />, 'Net Worth')}
+      {renderDesktopItem('/tax', <Receipt className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-tax))]" />, 'Tax Reports')}
+      {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-alerts))]" />, 'Alerts')}
 
       {/* Settings section */}
       <SectionLabel collapsed={collapsed}>Manage</SectionLabel>
