@@ -421,19 +421,19 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           <NavItem collapsed label="Asset Types">
             <Link to="/settings/asset-types" onClick={onItemClick} className={navItemClass(isActive('/settings/asset-types'))}>
               <ActiveIndicator active={isActive('/settings/asset-types')} />
-              <Briefcase className="h-4 w-4 flex-shrink-0" />
-            </Link>
-          </NavItem>
-          <NavItem collapsed label="MF Schemes">
-            <Link to="/settings/mf-schemes" onClick={onItemClick} className={navItemClass(isActive('/settings/mf-schemes'))}>
-              <ActiveIndicator active={isActive('/settings/mf-schemes')} />
-              <LineChart className="h-4 w-4 flex-shrink-0" />
-            </Link>
-          </NavItem>
-          <NavItem collapsed label="Preferences">
-            <Link to="/settings/preferences" onClick={onItemClick} className={navItemClass(isActive('/settings/preferences'))}>
-              <ActiveIndicator active={isActive('/settings/preferences')} />
-              <Settings className="h-4 w-4 flex-shrink-0" />
+               <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
+             </Link>
+           </NavItem>
+           <NavItem collapsed label="MF Schemes">
+             <Link to="/settings/mf-schemes" onClick={onItemClick} className={navItemClass(isActive('/settings/mf-schemes'))}>
+               <ActiveIndicator active={isActive('/settings/mf-schemes')} />
+               <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-mf))]" />
+             </Link>
+           </NavItem>
+           <NavItem collapsed label="Preferences">
+             <Link to="/settings/preferences" onClick={onItemClick} className={navItemClass(isActive('/settings/preferences'))}>
+               <ActiveIndicator active={isActive('/settings/preferences')} />
+               <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
             </Link>
           </NavItem>
         </>
