@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.import-mf-scheme-master]
 verify_jwt = false
+
+[functions.evaluate-metal-alerts]
+verify_jwt = false
+
+[functions.send-metal-alert-email]
+verify_jwt = false
