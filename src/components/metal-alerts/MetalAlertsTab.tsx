@@ -154,7 +154,7 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
             <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
             <div className="text-sm text-muted-foreground">
               <p className="font-medium text-foreground mb-1">How Metal Alerts Work</p>
-              <p>Create rules that monitor {metalLabel} prices and your portfolio. When conditions are met, the system triggers an alert and optionally sends you an email via Resend. Rules respect cooldown periods to prevent spam. Use the "Evaluate Now" button to manually check, or let the scheduled job run automatically.</p>
+              <p>Create rules that monitor {metalLabel} prices and your portfolio. Emails are sent <strong>only</strong> when a rule condition is satisfied, the rule is active, email is enabled for that rule, and cooldown allows it. No digest or periodic emails are sent. Rules respect per-rule cooldown hours to prevent repeat alerts.</p>
             </div>
           </div>
         </CardContent>
