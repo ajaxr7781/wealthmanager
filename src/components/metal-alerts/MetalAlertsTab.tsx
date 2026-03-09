@@ -432,38 +432,22 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
         </TabsContent>
 
         {/* ─── Email Settings Tab ─── */}
-        <TabsContent value="settings" className="mt-4">
+        <TabsContent value="settings" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Email Notification Preferences</CardTitle>
-              <CardDescription>Control how and when you receive metal alert emails</CardDescription>
+              <CardDescription>Emails are sent only when a rule condition is satisfied, the rule is active, email is enabled, and cooldown allows it. No digests or periodic emails.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Email Alerts</Label>
-                  <p className="text-xs text-muted-foreground">Receive email notifications when alerts trigger</p>
+                  <p className="text-xs text-muted-foreground">Master toggle — disable to stop all metal alert emails</p>
                 </div>
                 <Switch
                   checked={notifPrefs?.email_enabled !== false}
                   onCheckedChange={(email_enabled) => updateNotifPrefs.mutate({ email_enabled })}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>Delivery Mode</Label>
-                <Select
-                  value={notifPrefs?.digest_mode || 'instant'}
-                  onValueChange={(digest_mode) => updateNotifPrefs.mutate({ digest_mode })}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="instant">Instant</SelectItem>
-                    <SelectItem value="daily">Daily Digest</SelectItem>
-                    <SelectItem value="weekly">Weekly Digest</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Recipient Email (optional override)</Label>
@@ -477,34 +461,30 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
                   }}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Quiet Hours Start (UTC)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={23}
-                    placeholder="e.g. 22"
-                    defaultValue={notifPrefs?.quiet_hours_start ?? ''}
-                    onBlur={(e) => {
-                      const val = e.target.value ? parseInt(e.target.value) : null;
-                      updateNotifPrefs.mutate({ quiet_hours_start: val });
-                    }}
-                  />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                Market Session Awareness
+              </CardTitle>
+              <CardDescription>The system evaluates rules on schedule with awareness of Dubai market windows. Emails are sent only on actual rule triggers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 text-sm">
+                <div className="flex items-center gap-3">
+                  <Badge variant="default" className="text-[10px] w-28 justify-center">Priority</Badge>
+                  <span className="text-muted-foreground">16:00 – 00:00 Asia/Dubai — peak international overlap</span>
                 </div>
-                <div className="space-y-2">
-                  <Label>Quiet Hours End (UTC)</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={23}
-                    placeholder="e.g. 7"
-                    defaultValue={notifPrefs?.quiet_hours_end ?? ''}
-                    onBlur={(e) => {
-                      const val = e.target.value ? parseInt(e.target.value) : null;
-                      updateNotifPrefs.mutate({ quiet_hours_end: val });
-                    }}
-                  />
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="text-[10px] w-28 justify-center">Standard</Badge>
+                  <span className="text-muted-foreground">06:00 – 16:00 Asia/Dubai — standard business hours</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="text-[10px] w-28 justify-center">Low Activity</Badge>
+                  <span className="text-muted-foreground">00:00 – 06:00 Asia/Dubai — minimal market movement</span>
                 </div>
               </div>
             </CardContent>
