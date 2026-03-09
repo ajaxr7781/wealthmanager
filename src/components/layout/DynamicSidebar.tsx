@@ -328,7 +328,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           <NavItem collapsed label="All Holdings">
             <Link to="/holdings" onClick={onItemClick} className={navItemClass(isActive('/holdings'))}>
               <ActiveIndicator active={isActive('/holdings')} />
-              <Package className="h-4 w-4 flex-shrink-0" />
+               <Package className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-holdings))]" />
             </Link>
           </NavItem>
           {sortedAssetItems.map(item => {
