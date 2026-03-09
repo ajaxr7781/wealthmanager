@@ -70,6 +70,24 @@
     --sidebar-border: 220 30% 28%;
     --sidebar-ring: 217 91% 60%;
     --sidebar-muted: 220 15% 60%;
+
+    /* Sidebar Icon Colors */
+    --icon-dashboard: 217 91% 65%;
+    --icon-holdings: 199 89% 48%;
+    --icon-assets: 45 93% 58%;
+    --icon-market: 142 71% 45%;
+    --icon-transactions: 262 83% 65%;
+    --icon-reports: 199 89% 48%;
+    --icon-goals: 25 95% 53%;
+    --icon-rebalancing: 339 90% 60%;
+    --icon-liabilities: 0 84% 60%;
+    --icon-performance: 142 71% 45%;
+    --icon-networth: 217 91% 65%;
+    --icon-tax: 262 83% 65%;
+    --icon-alerts: 45 93% 58%;
+    --icon-settings: 220 15% 65%;
+    --icon-mf: 172 66% 50%;
+    --icon-sip: 25 95% 53%;
   }
 
   .dark {

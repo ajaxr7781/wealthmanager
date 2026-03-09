@@ -41,6 +41,24 @@ const IconMap: Record<string, typeof Coins> = {
   Briefcase, BarChart3, PieChart, FileText, MapPin, Package,
 };
 
+// Color map for dynamic asset category icons
+const IconColorMap: Record<string, string> = {
+  Coins: 'text-[hsl(43,74%,49%)]',
+  Landmark: 'text-[hsl(217,91%,65%)]',
+  TrendingUp: 'text-[hsl(142,71%,45%)]',
+  Building2: 'text-[hsl(25,95%,53%)]',
+  Bitcoin: 'text-[hsl(45,93%,58%)]',
+  Wallet: 'text-[hsl(262,83%,65%)]',
+  Briefcase: 'text-[hsl(var(--icon-assets))]',
+  BarChart3: 'text-[hsl(var(--icon-reports))]',
+  PieChart: 'text-[hsl(339,90%,60%)]',
+  FileText: 'text-[hsl(220,15%,65%)]',
+  MapPin: 'text-[hsl(0,84%,60%)]',
+  Package: 'text-[hsl(var(--icon-holdings))]',
+  LineChart: 'text-[hsl(var(--icon-mf))]',
+  Calendar: 'text-[hsl(var(--icon-sip))]',
+};
+
 interface DynamicSidebarNavProps {
   onItemClick?: () => void;
   isMobile?: boolean;
@@ -317,7 +335,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
   return (
     <nav className="flex-1 space-y-0.5">
       {/* Dashboard - top level, no section label */}
-      {renderDesktopItem('/portfolio', <LayoutDashboard className="h-4 w-4 flex-shrink-0" />, 'Dashboard', isActive('/portfolio') || isActive('/'))}
+      {renderDesktopItem('/portfolio', <LayoutDashboard className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-dashboard))]" />, 'Dashboard', isActive('/portfolio') || isActive('/'))}
 
       {/* Portfolio section */}
       <SectionLabel collapsed={collapsed}>Portfolio</SectionLabel>
@@ -328,11 +346,12 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           <NavItem collapsed label="All Holdings">
             <Link to="/holdings" onClick={onItemClick} className={navItemClass(isActive('/holdings'))}>
               <ActiveIndicator active={isActive('/holdings')} />
-              <Package className="h-4 w-4 flex-shrink-0" />
+               <Package className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-holdings))]" />
             </Link>
           </NavItem>
           {sortedAssetItems.map(item => {
             const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
+            const iconColor = IconColorMap[item.icon || 'Package'] || '';
             const isItemActive = item.type === 'mf'
               ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
               : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
@@ -340,7 +359,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
               <NavItem collapsed label={item.name} key={item.code}>
                 <Link to={item.path} onClick={onItemClick} className={navItemClass(isItemActive)}>
                   <ActiveIndicator active={isItemActive} />
-                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <Icon className={cn("h-4 w-4 flex-shrink-0", iconColor)} />
                 </Link>
               </NavItem>
             );
@@ -359,7 +378,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             )}
           >
             <div className="flex items-center gap-3">
-              <Briefcase className="h-4 w-4 flex-shrink-0" />
+               <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-assets))]" />
               <span>Assets</span>
             </div>
             <ChevronDown className={cn(
@@ -373,13 +392,14 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
               <NavItem collapsed={false} label="All Holdings">
                 <Link to="/holdings" onClick={onItemClick} className={navItemClass(isActive('/holdings'))}>
                   <ActiveIndicator active={isActive('/holdings')} />
-                  <Package className="h-4 w-4 flex-shrink-0" />
+                   <Package className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-holdings))]" />
                   <span>All Holdings</span>
                 </Link>
               </NavItem>
 
               {sortedAssetItems.map(item => {
                 const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
+                const iconColor = IconColorMap[item.icon || 'Package'] || '';
                 const isItemActive = item.type === 'mf'
                   ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
                   : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
@@ -387,7 +407,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                   <NavItem collapsed={false} label={item.name} key={item.code}>
                     <Link to={item.path} onClick={onItemClick} className={navItemClass(isItemActive)}>
                       <ActiveIndicator active={isItemActive} />
-                      <Icon className="h-4 w-4 flex-shrink-0" />
+                      <Icon className={cn("h-4 w-4 flex-shrink-0", iconColor)} />
                       <span>{item.name}</span>
                     </Link>
                   </NavItem>
@@ -400,19 +420,19 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
 
       {/* Markets section - Market data first, then Trades */}
       <SectionLabel collapsed={collapsed}>Markets</SectionLabel>
-      {hasPriceFeedTypes && renderDesktopItem('/prices', <TrendingUp className="h-4 w-4 flex-shrink-0" />, 'Market')}
-      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Transactions')}
+      {hasPriceFeedTypes && renderDesktopItem('/prices', <TrendingUp className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-market))]" />, 'Market')}
+      {hasTransactionTypes && renderDesktopItem('/transactions', <Receipt className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-transactions))]" />, 'Transactions')}
 
       {/* Insights section */}
       <SectionLabel collapsed={collapsed}>Insights</SectionLabel>
-      {renderDesktopItem('/reports', <BarChart3 className="h-4 w-4 flex-shrink-0" />, 'Reports')}
-      {renderDesktopItem('/goals', <Target className="h-4 w-4 flex-shrink-0" />, 'Goals')}
-      {renderDesktopItem('/rebalancing', <Scale className="h-4 w-4 flex-shrink-0" />, 'Rebalancing')}
-      {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0" />, 'Liabilities')}
-      {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0" />, 'Performance')}
-      {renderDesktopItem('/net-worth', <LineChart className="h-4 w-4 flex-shrink-0" />, 'Net Worth')}
-      {renderDesktopItem('/tax', <Receipt className="h-4 w-4 flex-shrink-0" />, 'Tax Reports')}
-      {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0" />, 'Alerts')}
+      {renderDesktopItem('/reports', <BarChart3 className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-reports))]" />, 'Reports')}
+      {renderDesktopItem('/goals', <Target className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-goals))]" />, 'Goals')}
+      {renderDesktopItem('/rebalancing', <Scale className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-rebalancing))]" />, 'Rebalancing')}
+      {renderDesktopItem('/liabilities', <CreditCard className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-liabilities))]" />, 'Liabilities')}
+      {renderDesktopItem('/performance', <Activity className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-performance))]" />, 'Performance')}
+      {renderDesktopItem('/net-worth', <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-networth))]" />, 'Net Worth')}
+      {renderDesktopItem('/tax', <Receipt className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-tax))]" />, 'Tax Reports')}
+      {renderDesktopItem('/alerts', <Bell className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-alerts))]" />, 'Alerts')}
 
       {/* Settings section */}
       <SectionLabel collapsed={collapsed}>Manage</SectionLabel>
@@ -421,19 +441,19 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           <NavItem collapsed label="Asset Types">
             <Link to="/settings/asset-types" onClick={onItemClick} className={navItemClass(isActive('/settings/asset-types'))}>
               <ActiveIndicator active={isActive('/settings/asset-types')} />
-              <Briefcase className="h-4 w-4 flex-shrink-0" />
-            </Link>
-          </NavItem>
-          <NavItem collapsed label="MF Schemes">
-            <Link to="/settings/mf-schemes" onClick={onItemClick} className={navItemClass(isActive('/settings/mf-schemes'))}>
-              <ActiveIndicator active={isActive('/settings/mf-schemes')} />
-              <LineChart className="h-4 w-4 flex-shrink-0" />
-            </Link>
-          </NavItem>
-          <NavItem collapsed label="Preferences">
-            <Link to="/settings/preferences" onClick={onItemClick} className={navItemClass(isActive('/settings/preferences'))}>
-              <ActiveIndicator active={isActive('/settings/preferences')} />
-              <Settings className="h-4 w-4 flex-shrink-0" />
+               <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
+             </Link>
+           </NavItem>
+           <NavItem collapsed label="MF Schemes">
+             <Link to="/settings/mf-schemes" onClick={onItemClick} className={navItemClass(isActive('/settings/mf-schemes'))}>
+               <ActiveIndicator active={isActive('/settings/mf-schemes')} />
+               <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-mf))]" />
+             </Link>
+           </NavItem>
+           <NavItem collapsed label="Preferences">
+             <Link to="/settings/preferences" onClick={onItemClick} className={navItemClass(isActive('/settings/preferences'))}>
+               <ActiveIndicator active={isActive('/settings/preferences')} />
+               <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
             </Link>
           </NavItem>
         </>
@@ -449,7 +469,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             )}
           >
             <div className="flex items-center gap-3">
-              <Settings className="h-4 w-4 flex-shrink-0" />
+               <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
               <span>Settings</span>
             </div>
             <ChevronDown className={cn(
@@ -460,10 +480,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
 
           {expandedCategories.has('settings') && (
             <div className="ml-[22px] border-l border-white/15 pl-2.5 space-y-0.5 py-0.5">
-              {renderDesktopItem('/settings/asset-types', <Briefcase className="h-4 w-4 flex-shrink-0" />, 'Asset Types')}
-              {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0" />, 'MF Schemes')}
-              {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0" />, 'Preferences')}
-              {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0" />, 'Profile')}
+               {renderDesktopItem('/settings/asset-types', <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Asset Types')}
+               {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-mf))]" />, 'MF Schemes')}
+               {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Preferences')}
+               {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Profile')}
             </div>
           )}
         </>
