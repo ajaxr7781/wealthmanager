@@ -648,6 +648,134 @@ export type Database = {
           },
         ]
       }
+      metal_alert_events: {
+        Row: {
+          created_at: string
+          email_body: string | null
+          email_sent: boolean
+          email_subject: string | null
+          id: string
+          market_price_aed: number | null
+          metal_type: string
+          portfolio_value_aed: number | null
+          rule_id: string | null
+          sent_at: string | null
+          status: string
+          total_invested_aed: number | null
+          trigger_reason: string
+          unrealized_pl_aed: number | null
+          unrealized_pl_pct: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_body?: string | null
+          email_sent?: boolean
+          email_subject?: string | null
+          id?: string
+          market_price_aed?: number | null
+          metal_type: string
+          portfolio_value_aed?: number | null
+          rule_id?: string | null
+          sent_at?: string | null
+          status?: string
+          total_invested_aed?: number | null
+          trigger_reason: string
+          unrealized_pl_aed?: number | null
+          unrealized_pl_pct?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_body?: string | null
+          email_sent?: boolean
+          email_subject?: string | null
+          id?: string
+          market_price_aed?: number | null
+          metal_type?: string
+          portfolio_value_aed?: number | null
+          rule_id?: string | null
+          sent_at?: string | null
+          status?: string
+          total_invested_aed?: number | null
+          trigger_reason?: string
+          unrealized_pl_aed?: number | null
+          unrealized_pl_pct?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metal_alert_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "metal_alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metal_alert_rules: {
+        Row: {
+          cooldown_hours: number
+          created_at: string
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          metal_type: string
+          notes: string | null
+          operator: string
+          reference_window_days: number | null
+          rule_name: string
+          rule_type: string
+          send_email: boolean
+          suggested_action: string
+          suggested_amount_type: string
+          suggested_amount_value: number
+          threshold_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cooldown_hours?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          metal_type: string
+          notes?: string | null
+          operator?: string
+          reference_window_days?: number | null
+          rule_name: string
+          rule_type: string
+          send_email?: boolean
+          suggested_action?: string
+          suggested_amount_type?: string
+          suggested_amount_value?: number
+          threshold_value: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cooldown_hours?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          metal_type?: string
+          notes?: string | null
+          operator?: string
+          reference_window_days?: number | null
+          rule_name?: string
+          rule_type?: string
+          send_email?: boolean
+          suggested_action?: string
+          suggested_amount_type?: string
+          suggested_amount_value?: number
+          threshold_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mf_holdings: {
         Row: {
           absolute_return_pct: number | null
@@ -950,6 +1078,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          digest_mode: string
+          email_enabled: boolean
+          id: string
+          quiet_hours_end: number | null
+          quiet_hours_start: number | null
+          recipient_email: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          digest_mode?: string
+          email_enabled?: boolean
+          id?: string
+          quiet_hours_end?: number | null
+          quiet_hours_start?: number | null
+          recipient_email?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          digest_mode?: string
+          email_enabled?: boolean
+          id?: string
+          quiet_hours_end?: number | null
+          quiet_hours_start?: number | null
+          recipient_email?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       performance_cache: {
         Row: {
