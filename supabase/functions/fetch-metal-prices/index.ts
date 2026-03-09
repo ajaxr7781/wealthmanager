@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,6 +23,55 @@ serve(async (req) => {
 
   try {
     const [xau, xag] = await Promise.all([fetchPrice('XAU'), fetchPrice('XAG')]);
+
+    // Auto-save to price_snapshots if service role is available (cron/server context)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (supabaseUrl && serviceKey) {
+      try {
+        // Get USD→AED rate from user_settings or use default
+        const usdToAed = 3.6725; // Default rate
+        const supabase = createClient(supabaseUrl, serviceKey);
+        
+        // Try to get a more current rate
+        let fxRate = usdToAed;
+        try {
+          const { data: settings } = await supabase
+            .from('user_settings')
+            .select('usd_to_aed_rate')
+            .limit(1)
+            .single();
+          if (settings?.usd_to_aed_rate) {
+            fxRate = Number(settings.usd_to_aed_rate);
+          }
+        } catch (_) {
+          // Use default
+        }
+
+        const now = new Date().toISOString();
+        const snapshots = [
+          {
+            instrument_symbol: 'XAU',
+            price_aed_per_oz: xau.price * fxRate,
+            source: 'gold-api-cron',
+            as_of: now,
+          },
+          {
+            instrument_symbol: 'XAG',
+            price_aed_per_oz: xag.price * fxRate,
+            source: 'gold-api-cron',
+            as_of: now,
+          },
+        ];
+
+        await supabase.from('price_snapshots').insert(snapshots);
+        console.log(`Saved price snapshots: XAU=${(xau.price * fxRate).toFixed(2)} XAG=${(xag.price * fxRate).toFixed(2)} AED/oz`);
+      } catch (saveErr) {
+        console.error('Failed to save price snapshots:', saveErr);
+        // Don't fail the whole request if save fails
+      }
+    }
 
     return new Response(JSON.stringify({ baseCurrency: 'USD', items: [xau, xag] }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
