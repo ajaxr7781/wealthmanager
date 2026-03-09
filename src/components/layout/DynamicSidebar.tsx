@@ -317,7 +317,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
   return (
     <nav className="flex-1 space-y-0.5">
       {/* Dashboard - top level, no section label */}
-      {renderDesktopItem('/portfolio', <LayoutDashboard className="h-4 w-4 flex-shrink-0" />, 'Dashboard', isActive('/portfolio') || isActive('/'))}
+      {renderDesktopItem('/portfolio', <LayoutDashboard className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-dashboard))]" />, 'Dashboard', isActive('/portfolio') || isActive('/'))}
 
       {/* Portfolio section */}
       <SectionLabel collapsed={collapsed}>Portfolio</SectionLabel>
