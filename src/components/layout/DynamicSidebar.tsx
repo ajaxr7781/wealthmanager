@@ -41,6 +41,24 @@ const IconMap: Record<string, typeof Coins> = {
   Briefcase, BarChart3, PieChart, FileText, MapPin, Package,
 };
 
+// Color map for dynamic asset category icons
+const IconColorMap: Record<string, string> = {
+  Coins: 'text-[hsl(43,74%,49%)]',
+  Landmark: 'text-[hsl(217,91%,65%)]',
+  TrendingUp: 'text-[hsl(142,71%,45%)]',
+  Building2: 'text-[hsl(25,95%,53%)]',
+  Bitcoin: 'text-[hsl(45,93%,58%)]',
+  Wallet: 'text-[hsl(262,83%,65%)]',
+  Briefcase: 'text-[hsl(var(--icon-assets))]',
+  BarChart3: 'text-[hsl(var(--icon-reports))]',
+  PieChart: 'text-[hsl(339,90%,60%)]',
+  FileText: 'text-[hsl(220,15%,65%)]',
+  MapPin: 'text-[hsl(0,84%,60%)]',
+  Package: 'text-[hsl(var(--icon-holdings))]',
+  LineChart: 'text-[hsl(var(--icon-mf))]',
+  Calendar: 'text-[hsl(var(--icon-sip))]',
+};
+
 interface DynamicSidebarNavProps {
   onItemClick?: () => void;
   isMobile?: boolean;
