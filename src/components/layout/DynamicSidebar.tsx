@@ -460,10 +460,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
 
           {expandedCategories.has('settings') && (
             <div className="ml-[22px] border-l border-white/15 pl-2.5 space-y-0.5 py-0.5">
-              {renderDesktopItem('/settings/asset-types', <Briefcase className="h-4 w-4 flex-shrink-0" />, 'Asset Types')}
-              {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0" />, 'MF Schemes')}
-              {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0" />, 'Preferences')}
-              {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0" />, 'Profile')}
+               {renderDesktopItem('/settings/asset-types', <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Asset Types')}
+               {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-mf))]" />, 'MF Schemes')}
+               {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Preferences')}
+               {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Profile')}
             </div>
           )}
         </>
