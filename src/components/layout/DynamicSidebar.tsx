@@ -359,7 +359,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             )}
           >
             <div className="flex items-center gap-3">
-              <Briefcase className="h-4 w-4 flex-shrink-0" />
+               <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-assets))]" />
               <span>Assets</span>
             </div>
             <ChevronDown className={cn(
