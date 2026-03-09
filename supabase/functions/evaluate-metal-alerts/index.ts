@@ -51,6 +51,23 @@ function isInCooldown(lastTriggered: string | null, cooldownHours: number): bool
   return (now - last) < cooldownHours * 60 * 60 * 1000;
 }
 
+/** Returns market session info for Dubai timezone (Asia/Dubai UTC+4) */
+function getMarketSession(): { session: string; label: string } {
+  const dubaiHour = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dubai', hour: 'numeric', hour12: false });
+  const hour = parseInt(dubaiHour, 10);
+  
+  if (hour >= 16 || hour === 0) {
+    // 16:00–00:00 Dubai — peak international markets overlap
+    return { session: 'market_priority', label: 'Market Priority (16:00–00:00 Dubai)' };
+  } else if (hour >= 6) {
+    // 06:00–16:00 Dubai — standard business hours
+    return { session: 'standard', label: 'Standard Hours (06:00–16:00 Dubai)' };
+  } else {
+    // 00:00–06:00 Dubai — low activity
+    return { session: 'low_activity', label: 'Low Activity (00:00–06:00 Dubai)' };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -61,9 +78,11 @@ serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Optional: evaluate for a specific user, or all users with active rules
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
     const targetUserId = body.user_id;
+    const marketSession = getMarketSession();
+
+    console.log(`Evaluating metal alerts — session: ${marketSession.label}`);
 
     // 1. Get all active metal alert rules
     let rulesQuery = supabase
@@ -78,7 +97,7 @@ serve(async (req) => {
     const { data: rules, error: rulesError } = await rulesQuery;
     if (rulesError) throw rulesError;
     if (!rules || rules.length === 0) {
-      return new Response(JSON.stringify({ evaluated: 0, triggered: 0 }), {
+      return new Response(JSON.stringify({ evaluated: 0, triggered: 0, session: marketSession.session }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -146,7 +165,7 @@ serve(async (req) => {
         };
       }
 
-      // Also get total portfolio value for allocation rules
+      // Total portfolio value for allocation rules
       const { data: allAssets } = await supabase
         .from('assets')
         .select('total_cost, current_value, asset_type, metal_type, quantity, quantity_unit, currency')
@@ -176,7 +195,7 @@ serve(async (req) => {
       const currentPrice = prices[rule.metal_type];
       if (!currentPrice) continue;
 
-      // Check cooldown
+      // Cooldown check
       if (isInCooldown(rule.last_triggered_at, rule.cooldown_hours)) continue;
 
       const portfolio = userPortfolios[rule.user_id]?.[rule.metal_type];
@@ -291,9 +310,8 @@ serve(async (req) => {
           .update({ last_triggered_at: new Date().toISOString() })
           .eq('id', rule.id);
 
-        // Send email if enabled
+        // Send email ONLY if rule has send_email enabled AND global email is enabled
         if (rule.send_email) {
-          // Check notification preferences
           const { data: prefs } = await supabase
             .from('notification_preferences')
             .select('*')
@@ -303,81 +321,73 @@ serve(async (req) => {
           const emailEnabled = prefs?.email_enabled !== false;
 
           if (emailEnabled) {
-            // Check quiet hours
-            let inQuietHours = false;
-            if (prefs?.quiet_hours_start != null && prefs?.quiet_hours_end != null) {
-              const currentHour = new Date().getUTCHours();
-              const start = prefs.quiet_hours_start;
-              const end = prefs.quiet_hours_end;
-              if (start <= end) {
-                inQuietHours = currentHour >= start && currentHour < end;
-              } else {
-                inQuietHours = currentHour >= start || currentHour < end;
-              }
+            // Get recipient email
+            let recipientEmail = prefs?.recipient_email;
+            if (!recipientEmail) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('email')
+                .eq('user_id', rule.user_id)
+                .single();
+              recipientEmail = profile?.email;
             }
 
-            if (!inQuietHours) {
-              // Get recipient email
-              let recipientEmail = prefs?.recipient_email;
-              if (!recipientEmail) {
-                const { data: profile } = await supabase
-                  .from('profiles')
-                  .select('email')
-                  .eq('user_id', rule.user_id)
-                  .single();
-                recipientEmail = profile?.email;
-              }
+            if (recipientEmail) {
+              try {
+                const sendRes = await fetch(`${supabaseUrl}/functions/v1/send-metal-alert-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${serviceKey}`,
+                  },
+                  body: JSON.stringify({
+                    to: recipientEmail,
+                    subject: emailSubject,
+                    html: emailBody,
+                    event_id: event.id,
+                  }),
+                });
 
-              if (recipientEmail) {
-                try {
-                  // Call send-metal-alert-email function
-                  const sendRes = await fetch(`${supabaseUrl}/functions/v1/send-metal-alert-email`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${serviceKey}`,
-                    },
-                    body: JSON.stringify({
-                      to: recipientEmail,
-                      subject: emailSubject,
-                      html: emailBody,
-                      event_id: event.id,
-                    }),
-                  });
-
-                  if (sendRes.ok) {
-                    await supabase
-                      .from('metal_alert_events')
-                      .update({ email_sent: true, sent_at: new Date().toISOString(), status: 'email_sent' })
-                      .eq('id', event.id);
-                  } else {
-                    await supabase
-                      .from('metal_alert_events')
-                      .update({ status: 'email_failed' })
-                      .eq('id', event.id);
-                  }
-                } catch (emailErr) {
-                  console.error('Email send failed:', emailErr);
+                if (sendRes.ok) {
+                  await supabase
+                    .from('metal_alert_events')
+                    .update({ email_sent: true, sent_at: new Date().toISOString(), status: 'email_sent' })
+                    .eq('id', event.id);
+                } else {
+                  const errBody = await sendRes.text();
+                  console.error('Email send failed:', errBody);
                   await supabase
                     .from('metal_alert_events')
                     .update({ status: 'email_failed' })
                     .eq('id', event.id);
                 }
+              } catch (emailErr) {
+                console.error('Email send error:', emailErr);
+                await supabase
+                  .from('metal_alert_events')
+                  .update({ status: 'email_failed' })
+                  .eq('id', event.id);
               }
-            } else {
-              await supabase
-                .from('metal_alert_events')
-                .update({ status: 'suppressed' })
-                .eq('id', event.id);
             }
           }
         }
 
-        triggered.push({ rule_id: rule.id, rule_name: rule.rule_name, metal: rule.metal_type, reason: triggerReason });
+        triggered.push({
+          rule_id: rule.id,
+          rule_name: rule.rule_name,
+          metal: rule.metal_type,
+          reason: triggerReason,
+          session: marketSession.session,
+        });
       }
     }
 
-    return new Response(JSON.stringify({ evaluated, triggered: triggered.length, details: triggered }), {
+    return new Response(JSON.stringify({
+      evaluated,
+      triggered: triggered.length,
+      details: triggered,
+      session: marketSession.session,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
