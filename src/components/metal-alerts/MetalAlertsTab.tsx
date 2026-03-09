@@ -408,7 +408,7 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
                           variant={event.status === 'email_sent' ? 'default' : event.status === 'email_failed' ? 'destructive' : 'secondary'}
                           className="text-[10px]"
                         >
-                          {event.status === 'email_sent' ? '✉ Sent' : event.status === 'email_failed' ? '✗ Failed' : event.status === 'suppressed' ? 'Quiet hrs' : 'No email'}
+                          {event.status === 'email_sent' ? '✉ Sent' : event.status === 'email_failed' ? '✗ Failed' : event.status === 'triggered' ? 'Triggered' : 'No email'}
                         </Badge>
                       </TableCell>
                       <TableCell>
