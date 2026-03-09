@@ -14,9 +14,11 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Plus, Coins, HelpCircle, ChevronRight } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Plus, Coins, HelpCircle, ChevronRight, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, format } from 'date-fns';
+import { MetalAlertsTab } from '@/components/metal-alerts/MetalAlertsTab';
 
 const METAL_LABELS: Record<string, string> = {
   XAU: 'Gold',
@@ -41,7 +43,6 @@ export default function MetalDetail() {
 
   const metalAssetIds = useMemo(() => new Set(metalAssets.map(a => a.id)), [metalAssets]);
 
-  // Get all BUY transactions for this metal type
   const metalTransactions = useMemo(
     () => (allTransactions || [])
       .filter(t => metalAssetIds.has(t.asset_id) && t.transaction_type === 'BUY')
@@ -60,7 +61,6 @@ export default function MetalDetail() {
   const [txNotes, setTxNotes] = useState('');
   const [txSubmitting, setTxSubmitting] = useState(false);
 
-  // Find the primary asset for this metal type (first one, used for adding transactions)
   const primaryAsset = metalAssets[0];
 
   const handleAddPurchase = async () => {
@@ -83,7 +83,6 @@ export default function MetalDetail() {
         notes: txNotes || undefined,
       });
 
-      // Update the asset's total_cost and quantity
       const newQty = Number(primaryAsset.quantity || 0) + qty;
       const newCost = Number(primaryAsset.total_cost) + amount;
       await updateAsset.mutateAsync({
@@ -133,7 +132,6 @@ export default function MetalDetail() {
     const pl = totalValue - totalInvested;
     const plPct = totalInvested > 0 ? (pl / totalInvested) * 100 : 0;
 
-    // CAGR
     let cagr: number | null = null;
     if (metalAssets.length > 0 && totalInvested > 0 && totalValue > 0) {
       const dates = metalAssets.map(a => parseISO(a.purchase_date));
@@ -278,119 +276,139 @@ export default function MetalDetail() {
           </Card>
         </div>
 
-        {/* Purchases / Transactions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Purchases ({metalTransactions.length})</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table className="min-w-[600px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Quantity</TableHead>
-                  <TableHead className="text-right">Price/oz</TableHead>
-                  <TableHead className="text-right">Invested</TableHead>
-                  <TableHead className="text-right">Current Value</TableHead>
-                  <TableHead className="text-right">P/L</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {metalTransactions.map(tx => {
-                  const qty = Number(tx.quantity);
-                  const unit = (tx.quantity_unit || 'oz').toLowerCase();
-                  const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
-                  const invested = Number(tx.amount) + Number(tx.fees);
-                  
-                  // Current value based on live price
-                  const priceData = metalType === 'XAU' ? prices?.XAU : prices?.XAG;
-                  const currentValue = priceData ? qtyOz * priceData.price_aed_per_oz : invested;
-                  
-                  const pl = currentValue - invested;
-                  const plPct = invested > 0 ? (pl / invested) * 100 : 0;
+        {/* Tabs: Portfolio + Alerts */}
+        <Tabs defaultValue="portfolio">
+          <TabsList>
+            <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+            <TabsTrigger value="alerts" className="flex items-center gap-1.5">
+              <Bell className="h-3.5 w-3.5" />
+              Alerts
+            </TabsTrigger>
+          </TabsList>
 
-                  return (
-                    <TableRow key={tx.id}>
-                      <TableCell>{format(parseISO(tx.transaction_date), 'dd MMM yyyy')}</TableCell>
-                      <TableCell className="text-right">
-                        {qty.toLocaleString()} {tx.quantity_unit || 'oz'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {tx.price_per_unit ? fmtAed(Number(tx.price_per_unit)) : '—'}
-                      </TableCell>
-                      <TableCell className="text-right">{fmtAed(invested)}</TableCell>
-                      <TableCell className="text-right">{fmtAed(currentValue)}</TableCell>
-                      <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
-                        {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
-                      </TableCell>
+          <TabsContent value="portfolio" className="space-y-6 mt-4">
+            {/* Purchases / Transactions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Purchases ({metalTransactions.length})</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 overflow-x-auto">
+                <Table className="min-w-[600px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Quantity</TableHead>
+                      <TableHead className="text-right">Price/oz</TableHead>
+                      <TableHead className="text-right">Invested</TableHead>
+                      <TableHead className="text-right">Current Value</TableHead>
+                      <TableHead className="text-right">P/L</TableHead>
                     </TableRow>
-                  );
-                })}
-                {metalTransactions.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                      No transactions found. Individual asset purchases are shown below.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {metalTransactions.map(tx => {
+                      const qty = Number(tx.quantity);
+                      const unit = (tx.quantity_unit || 'oz').toLowerCase();
+                      const qtyOz = unit === 'grams' || unit === 'gram' || unit === 'g' ? qty / OUNCE_TO_GRAM : qty;
+                      const invested = Number(tx.amount) + Number(tx.fees);
+                      
+                      const priceData = metalType === 'XAU' ? prices?.XAU : prices?.XAG;
+                      const currentValue = priceData ? qtyOz * priceData.price_aed_per_oz : invested;
+                      
+                      const pl = currentValue - invested;
+                      const plPct = invested > 0 ? (pl / invested) * 100 : 0;
 
-        {/* Fallback: show assets without transactions */}
-        {metalTransactions.length === 0 && metalAssets.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Assets</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-[600px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Quantity</TableHead>
-                    <TableHead className="text-right">Invested</TableHead>
-                    <TableHead className="text-right">Current Value</TableHead>
-                    <TableHead className="text-right">P/L</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {metalAssets.map(asset => {
-                    const invested = convertToAed(Number(asset.total_cost), asset.currency);
-                    const value = convertToAed(getAssetValue(asset), asset.currency);
-                    const pl = value - invested;
-                    const plPct = invested > 0 ? (pl / invested) * 100 : 0;
-
-                    return (
-                      <TableRow key={asset.id}>
-                        <TableCell className="font-medium">{asset.asset_name}</TableCell>
-                        <TableCell>{format(parseISO(asset.purchase_date), 'dd MMM yyyy')}</TableCell>
-                        <TableCell className="text-right">
-                          {asset.quantity ? `${Number(asset.quantity).toLocaleString()} ${asset.quantity_unit || 'oz'}` : '—'}
-                        </TableCell>
-                        <TableCell className="text-right">{fmtAed(invested)}</TableCell>
-                        <TableCell className="text-right">{fmtAed(value)}</TableCell>
-                        <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
-                          {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
-                        </TableCell>
-                        <TableCell>
-                          <Link to={`/asset/${asset.id}`}>
-                            <Button variant="ghost" size="icon">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
+                      return (
+                        <TableRow key={tx.id}>
+                          <TableCell>{format(parseISO(tx.transaction_date), 'dd MMM yyyy')}</TableCell>
+                          <TableCell className="text-right">
+                            {qty.toLocaleString()} {tx.quantity_unit || 'oz'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {tx.price_per_unit ? fmtAed(Number(tx.price_per_unit)) : '—'}
+                          </TableCell>
+                          <TableCell className="text-right">{fmtAed(invested)}</TableCell>
+                          <TableCell className="text-right">{fmtAed(currentValue)}</TableCell>
+                          <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
+                            {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {metalTransactions.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          No transactions found. Individual asset purchases are shown below.
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Fallback: show assets without transactions */}
+            {metalTransactions.length === 0 && metalAssets.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Assets</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table className="min-w-[600px]">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Invested</TableHead>
+                        <TableHead className="text-right">Current Value</TableHead>
+                        <TableHead className="text-right">P/L</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {metalAssets.map(asset => {
+                        const invested = convertToAed(Number(asset.total_cost), asset.currency);
+                        const value = convertToAed(getAssetValue(asset), asset.currency);
+                        const pl = value - invested;
+                        const plPct = invested > 0 ? (pl / invested) * 100 : 0;
+
+                        return (
+                          <TableRow key={asset.id}>
+                            <TableCell className="font-medium">{asset.asset_name}</TableCell>
+                            <TableCell>{format(parseISO(asset.purchase_date), 'dd MMM yyyy')}</TableCell>
+                            <TableCell className="text-right">
+                              {asset.quantity ? `${Number(asset.quantity).toLocaleString()} ${asset.quantity_unit || 'oz'}` : '—'}
+                            </TableCell>
+                            <TableCell className="text-right">{fmtAed(invested)}</TableCell>
+                            <TableCell className="text-right">{fmtAed(value)}</TableCell>
+                            <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
+                              {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                            </TableCell>
+                            <TableCell>
+                              <Link to={`/asset/${asset.id}`}>
+                                <Button variant="ghost" size="icon">
+                                  <ChevronRight className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="alerts" className="mt-4">
+            <MetalAlertsTab
+              metalType={metalType || 'XAU'}
+              metalLabel={metalLabel}
+              totals={totals}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
