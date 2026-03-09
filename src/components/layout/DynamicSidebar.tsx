@@ -195,7 +195,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
     return (
       <nav className="flex-1 space-y-1">
         <Link to="/portfolio" onClick={onItemClick} className={mobileNavItemClass(isActive('/portfolio') || isActive('/'))}>
-          <LayoutDashboard className="h-4 w-4 flex-shrink-0" />
+          <LayoutDashboard className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-dashboard))]" />
           <span>Dashboard</span>
         </Link>
 
@@ -210,7 +210,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             )}
           >
             <div className="flex items-center gap-3">
-              <Briefcase className="h-4 w-4 flex-shrink-0" />
+              <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-assets))]" />
               <span>Assets</span>
             </div>
             {expandedCategories.has('assets') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -219,17 +219,18 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           {expandedCategories.has('assets') && (
             <div className="mt-1 ml-4 border-l-2 border-border pl-3 space-y-0.5">
               <Link to="/holdings" onClick={onItemClick} className={mobileNavItemClass(isActive('/holdings'))}>
-                <Package className="h-4 w-4 flex-shrink-0" />
+                <Package className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-holdings))]" />
                 <span>All Holdings</span>
               </Link>
               {sortedAssetItems.map(item => {
                 const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
+                const iconColor = IconColorMap[item.icon || 'Package'] || '';
                 const isItemActive = item.type === 'mf'
                   ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
                   : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
                 return (
                   <Link key={item.code} to={item.path} onClick={onItemClick} className={mobileNavItemClass(isItemActive)}>
-                    <Icon className="h-4 w-4 flex-shrink-0" />
+                    <Icon className={cn("h-4 w-4 flex-shrink-0", iconColor)} />
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -242,13 +243,13 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           <span className="px-3 pb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 select-none">Markets</span>
           {hasPriceFeedTypes && (
             <Link to="/prices" onClick={onItemClick} className={mobileNavItemClass(isActive('/prices'))}>
-              <TrendingUp className="h-4 w-4 flex-shrink-0" />
+              <TrendingUp className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-market))]" />
               <span>Market</span>
             </Link>
           )}
           {hasTransactionTypes && (
             <Link to="/transactions" onClick={onItemClick} className={mobileNavItemClass(isActive('/transactions'))}>
-              <Receipt className="h-4 w-4 flex-shrink-0" />
+              <Receipt className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-transactions))]" />
               <span>Transactions</span>
             </Link>
           )}
@@ -257,35 +258,35 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
         <div className="pt-3">
           <span className="px-3 pb-1.5 block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/60 select-none">Insights</span>
           <Link to="/reports" onClick={onItemClick} className={mobileNavItemClass(isActive('/reports'))}>
-            <BarChart3 className="h-4 w-4 flex-shrink-0" />
+            <BarChart3 className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-reports))]" />
             <span>Reports</span>
           </Link>
           <Link to="/goals" onClick={onItemClick} className={mobileNavItemClass(isActive('/goals'))}>
-            <Target className="h-4 w-4 flex-shrink-0" />
+            <Target className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-goals))]" />
             <span>Goals</span>
           </Link>
           <Link to="/rebalancing" onClick={onItemClick} className={mobileNavItemClass(isActive('/rebalancing'))}>
-            <Scale className="h-4 w-4 flex-shrink-0" />
+            <Scale className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-rebalancing))]" />
             <span>Rebalancing</span>
           </Link>
           <Link to="/liabilities" onClick={onItemClick} className={mobileNavItemClass(isActive('/liabilities'))}>
-            <CreditCard className="h-4 w-4 flex-shrink-0" />
+            <CreditCard className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-liabilities))]" />
             <span>Liabilities</span>
           </Link>
           <Link to="/performance" onClick={onItemClick} className={mobileNavItemClass(isActive('/performance'))}>
-            <Activity className="h-4 w-4 flex-shrink-0" />
+            <Activity className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-performance))]" />
             <span>Performance</span>
           </Link>
           <Link to="/net-worth" onClick={onItemClick} className={mobileNavItemClass(isActive('/net-worth'))}>
-            <LineChart className="h-4 w-4 flex-shrink-0" />
+            <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-networth))]" />
             <span>Net Worth</span>
           </Link>
           <Link to="/tax" onClick={onItemClick} className={mobileNavItemClass(isActive('/tax'))}>
-            <Receipt className="h-4 w-4 flex-shrink-0" />
+            <Receipt className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-tax))]" />
             <span>Tax Reports</span>
           </Link>
           <Link to="/alerts" onClick={onItemClick} className={mobileNavItemClass(isActive('/alerts'))}>
-            <Bell className="h-4 w-4 flex-shrink-0" />
+            <Bell className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-alerts))]" />
             <span>Alerts</span>
           </Link>
         </div>
@@ -301,7 +302,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             )}
           >
             <div className="flex items-center gap-3">
-              <Settings className="h-4 w-4 flex-shrink-0" />
+              <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
               <span>Settings</span>
             </div>
             {expandedCategories.has('settings') ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -309,19 +310,19 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
           {expandedCategories.has('settings') && (
             <div className="mt-1 ml-4 border-l-2 border-border pl-3 space-y-0.5">
               <Link to="/settings/asset-types" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/asset-types'))}>
-                <Briefcase className="h-4 w-4 flex-shrink-0" />
+                <Briefcase className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
                 <span>Asset Types</span>
               </Link>
               <Link to="/settings/mf-schemes" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/mf-schemes'))}>
-                <LineChart className="h-4 w-4 flex-shrink-0" />
+                <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-mf))]" />
                 <span>MF Schemes</span>
               </Link>
               <Link to="/settings/preferences" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/preferences'))}>
-                <Settings className="h-4 w-4 flex-shrink-0" />
+                <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
                 <span>Preferences</span>
               </Link>
               <Link to="/settings/profile" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/profile'))}>
-                <User className="h-4 w-4 flex-shrink-0" />
+                <User className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
                 <span>Profile</span>
               </Link>
             </div>
