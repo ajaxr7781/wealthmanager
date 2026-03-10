@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,8 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowRightLeft, AlertCircle, CheckCircle2, Plus } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { ArrowRightLeft, AlertCircle, CheckCircle2, Plus, Search, Loader2 } from 'lucide-react';
 import { useMfSwitch } from '@/hooks/useMfSwitch';
+import { useSchemeSearch } from '@/hooks/useMfSchemes';
+import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -55,6 +62,11 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
   const [destId, setDestId] = useState('');
   const [newFundName, setNewFundName] = useState('');
   const [newFundFolio, setNewFundFolio] = useState('');
+  const [selectedSchemeCode, setSelectedSchemeCode] = useState<number | null>(null);
+  const [schemeSearchTerm, setSchemeSearchTerm] = useState('');
+  const [schemePopoverOpen, setSchemePopoverOpen] = useState(false);
+  const debouncedSearch = useDebounce(schemeSearchTerm, 300);
+  const { data: schemeResults, isLoading: isSearching } = useSchemeSearch(debouncedSearch);
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10));
   const [switchUnits, setSwitchUnits] = useState('');
   const [switchAmount, setSwitchAmount] = useState('');
@@ -114,6 +126,9 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
     setDestId('');
     setNewFundName('');
     setNewFundFolio('');
+    setSelectedSchemeCode(null);
+    setSchemeSearchTerm('');
+    setSchemePopoverOpen(false);
     setTxDate(new Date().toISOString().slice(0, 10));
     setSwitchUnits('');
     setSwitchAmount('');
@@ -261,15 +276,80 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
                 </SelectContent>
               </Select>
 
-              {/* New fund name input */}
+              {/* New fund - searchable scheme picker */}
               {isNewFund && (
                 <div className="space-y-2 rounded-md border p-3 bg-muted/30">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">New Fund Name</Label>
+                    <Label className="text-xs">Search Scheme Master</Label>
+                    <Popover open={schemePopoverOpen} onOpenChange={setSchemePopoverOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between font-normal h-auto min-h-9 text-left"
+                        >
+                          {newFundName ? (
+                            <span className="text-sm truncate">{newFundName}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Search by scheme name...</span>
+                          )}
+                          <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                        <div className="p-2">
+                          <div className="flex items-center gap-2 border-b pb-2 mb-1">
+                            <Search className="h-4 w-4 text-muted-foreground" />
+                            <input
+                              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                              placeholder="Type at least 3 characters..."
+                              value={schemeSearchTerm}
+                              onChange={e => setSchemeSearchTerm(e.target.value)}
+                              autoFocus
+                            />
+                            {isSearching && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                          </div>
+                          <div className="max-h-48 overflow-y-auto">
+                            {debouncedSearch.length < 3 ? (
+                              <p className="text-xs text-muted-foreground p-2">Type at least 3 characters to search</p>
+                            ) : isSearching ? (
+                              <p className="text-xs text-muted-foreground p-2">Searching...</p>
+                            ) : schemeResults && schemeResults.length > 0 ? (
+                              schemeResults.map(s => (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  className="w-full text-left px-2 py-1.5 text-sm hover:bg-accent rounded-sm transition-colors"
+                                  onClick={() => {
+                                    setNewFundName(s.scheme_name);
+                                    setSelectedSchemeCode(s.scheme_code);
+                                    setSchemePopoverOpen(false);
+                                    setSchemeSearchTerm('');
+                                  }}
+                                >
+                                  <div className="text-sm leading-tight">{s.scheme_name}</div>
+                                  {s.fund_house && (
+                                    <div className="text-xs text-muted-foreground">{s.fund_house}</div>
+                                  )}
+                                </button>
+                              ))
+                            ) : (
+                              <p className="text-xs text-muted-foreground p-2">No schemes found</p>
+                            )}
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    {selectedSchemeCode && (
+                      <p className="text-xs text-muted-foreground">Scheme code: {selectedSchemeCode}</p>
+                    )}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Or enter fund name manually</Label>
                     <Input
                       placeholder="e.g. Kotak Emerging Equity Fund - Direct Growth"
                       value={newFundName}
-                      onChange={e => setNewFundName(e.target.value)}
+                      onChange={e => { setNewFundName(e.target.value); setSelectedSchemeCode(null); }}
                     />
                   </div>
                   <div className="space-y-1.5">
