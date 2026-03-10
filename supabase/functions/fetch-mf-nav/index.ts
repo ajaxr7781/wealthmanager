@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
           }
 
           if (navData) {
-            result.nav = navData.nav
+            result.nav = Math.round(navData.nav * 100) / 100
             result.nav_date = parseAmfiDate(navData.date)
             result.source = 'AMFI'
             result.success = true
