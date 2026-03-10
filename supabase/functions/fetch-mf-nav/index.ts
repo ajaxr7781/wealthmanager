@@ -252,7 +252,7 @@ Deno.serve(async (req) => {
           
           if (data.data && data.data.length > 0) {
             const latest = data.data[0]
-            result.nav = parseFloat(latest.nav)
+            result.nav = Math.round(parseFloat(latest.nav) * 100) / 100
             // Convert date from DD-MM-YYYY to YYYY-MM-DD
             const [day, month, year] = latest.date.split('-')
             result.nav_date = `${year}-${month}-${day}`
@@ -285,7 +285,7 @@ Deno.serve(async (req) => {
           }
 
           if (navData) {
-            result.nav = navData.nav
+            result.nav = Math.round(navData.nav * 100) / 100
             result.nav_date = parseAmfiDate(navData.date)
             result.source = 'AMFI'
             result.success = true
@@ -346,6 +346,26 @@ Deno.serve(async (req) => {
                 absolute_return_pct: Math.round(returnPct * 100) / 100
               })
               .eq('id', holding.id)
+          }
+        }
+
+        // Also update unified assets table for MF holdings
+        const { data: linkedAssets } = await supabase
+          .from('assets')
+          .select('id, units_held')
+          .eq('scheme_id', scheme.id)
+          .in('asset_type', ['mutual_fund', 'sip'])
+
+        if (linkedAssets) {
+          for (const la of linkedAssets) {
+            const assetCurrentValue = (Number(la.units_held) || 0) * result.nav
+            await supabase
+              .from('assets')
+              .update({
+                nav_or_price: result.nav,
+                current_value: Math.round(assetCurrentValue * 100) / 100
+              })
+              .eq('id', la.id)
           }
         }
       }
