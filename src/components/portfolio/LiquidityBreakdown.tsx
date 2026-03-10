@@ -7,8 +7,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Droplets, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import type { Asset } from '@/types/assets';
-import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import type { Asset, AssetType } from '@/types/assets';
+import { DEFAULT_INR_TO_AED, ASSET_TYPE_LABELS } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
 import {
   calculateLiquidityBreakdown,
