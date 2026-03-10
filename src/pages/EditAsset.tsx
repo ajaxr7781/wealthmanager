@@ -318,7 +318,16 @@ export default function EditAsset() {
                       step="0.01"
                       min="0"
                       value={formData.nav_or_price || ''}
-                      onChange={(e) => updateForm({ nav_or_price: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const newNav = parseFloat(e.target.value) || 0;
+                        const qty = Number(formData.quantity) || Number(formData.units_held) || 0;
+                        const updates: Record<string, any> = { nav_or_price: newNav };
+                        if (qty > 0) {
+                          updates.current_value = newNav * qty;
+                          updates.current_price_per_unit = newNav;
+                        }
+                        updateForm(updates);
+                      }}
                     />
                   </div>
                 </div>
