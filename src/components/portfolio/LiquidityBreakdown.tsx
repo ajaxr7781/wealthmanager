@@ -10,6 +10,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import type { Asset, AssetType } from '@/types/assets';
 import { DEFAULT_INR_TO_AED, ASSET_TYPE_LABELS } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
+import { useAssetCategories } from '@/hooks/useAssetConfig';
 import {
   calculateLiquidityBreakdown,
   getLiquidityInsights,
