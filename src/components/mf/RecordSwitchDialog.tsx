@@ -19,8 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowRightLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowRightLeft, AlertCircle, CheckCircle2, Plus } from 'lucide-react';
 import { useMfSwitch } from '@/hooks/useMfSwitch';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 import type { Asset } from '@/types/assets';
 
 interface RecordSwitchDialogProps {
@@ -31,6 +34,8 @@ interface RecordSwitchDialogProps {
 
 type Step = 'form' | 'confirm';
 
+const NEW_FUND_VALUE = '__NEW_FUND__';
+
 const STATUS_OPTIONS = [
   { value: 'completed', label: 'Completed' },
   { value: 'pending', label: 'Pending' },
@@ -40,11 +45,16 @@ const STATUS_OPTIONS = [
 
 export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: RecordSwitchDialogProps) {
   const switchMutation = useMfSwitch();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>('form');
+  const [isCreating, setIsCreating] = useState(false);
 
   const [sourceId, setSourceId] = useState(preselectedSourceId || '');
   const [destId, setDestId] = useState('');
+  const [newFundName, setNewFundName] = useState('');
+  const [newFundFolio, setNewFundFolio] = useState('');
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10));
   const [switchUnits, setSwitchUnits] = useState('');
   const [switchAmount, setSwitchAmount] = useState('');
@@ -55,8 +65,9 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
   const [remarks, setRemarks] = useState('');
   const [status, setStatus] = useState('completed');
 
+  const isNewFund = destId === NEW_FUND_VALUE;
   const sourceAsset = useMemo(() => mfAssets.find(a => a.id === sourceId), [mfAssets, sourceId]);
-  const destAsset = useMemo(() => mfAssets.find(a => a.id === destId), [mfAssets, destId]);
+  const destAsset = useMemo(() => isNewFund ? null : mfAssets.find(a => a.id === destId), [mfAssets, destId, isNewFund]);
 
   const availableUnits = sourceAsset ? Number(sourceAsset.units_held) || 0 : 0;
   const parsedUnits = Number(switchUnits) || 0;
@@ -64,7 +75,6 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
   const parsedDestNav = Number(destNav) || 0;
   const parsedDestUnits = Number(destUnits) || 0;
 
-  // Auto-calculate amount from units * NAV if both provided
   const computedAmount = useMemo(() => {
     const nav = Number(sourceNav) || 0;
     if (parsedUnits > 0 && nav > 0 && !switchAmount) {
@@ -73,24 +83,26 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
     return parsedAmount;
   }, [parsedUnits, sourceNav, switchAmount, parsedAmount]);
 
-  // Auto-calculate destination units
   const computedDestUnits = useMemo(() => {
     if (parsedDestUnits > 0) return parsedDestUnits;
     if (parsedDestNav > 0 && computedAmount > 0) return computedAmount / parsedDestNav;
     return 0;
   }, [parsedDestUnits, parsedDestNav, computedAmount]);
 
+  const destDisplayName = isNewFund ? newFundName : destAsset?.asset_name || '';
+
   const validationErrors = useMemo(() => {
     const errors: string[] = [];
     if (!sourceId) errors.push('Select source fund');
     if (!destId) errors.push('Select destination fund');
+    if (isNewFund && !newFundName.trim()) errors.push('Enter destination fund name');
     if (sourceId && destId && sourceId === destId) errors.push('Source and destination must be different');
     if (parsedUnits <= 0) errors.push('Enter switch units');
     if (parsedUnits > availableUnits + 0.0001) errors.push(`Only ${availableUnits.toFixed(4)} units available`);
     if (computedAmount <= 0) errors.push('Enter switch amount or source NAV');
     if (!txDate) errors.push('Enter transaction date');
     return errors;
-  }, [sourceId, destId, parsedUnits, availableUnits, computedAmount, txDate]);
+  }, [sourceId, destId, isNewFund, newFundName, parsedUnits, availableUnits, computedAmount, txDate]);
 
   const isValid = validationErrors.length === 0;
 
@@ -100,6 +112,8 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
   const resetForm = () => {
     setSourceId(preselectedSourceId || '');
     setDestId('');
+    setNewFundName('');
+    setNewFundFolio('');
     setTxDate(new Date().toISOString().slice(0, 10));
     setSwitchUnits('');
     setSwitchAmount('');
@@ -110,27 +124,68 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
     setRemarks('');
     setStatus('completed');
     setStep('form');
+    setIsCreating(false);
   };
 
   const handleSubmit = async () => {
-    await switchMutation.mutateAsync({
-      sourceAssetId: sourceId,
-      destinationAssetId: destId,
-      transactionDate: txDate,
-      switchUnits: parsedUnits,
-      switchAmount: computedAmount,
-      sourceNav: Number(sourceNav) || undefined,
-      destinationNav: parsedDestNav || undefined,
-      destinationUnits: computedDestUnits || undefined,
-      referenceNo: referenceNo || undefined,
-      remarks: remarks || undefined,
-      status: status as 'completed' | 'pending' | 'failed' | 'reversed',
-    });
-    setOpen(false);
-    resetForm();
+    if (!user) return;
+    setIsCreating(true);
+
+    try {
+      let actualDestId = destId;
+
+      // Create new destination fund if needed
+      if (isNewFund) {
+        const sourceType = sourceAsset?.asset_type || 'mutual_fund';
+        const { data: newAsset, error: createErr } = await supabase
+          .from('assets')
+          .insert({
+            user_id: user.id,
+            asset_name: newFundName.trim(),
+            asset_type: sourceType,
+            asset_type_code: sourceAsset?.asset_type_code || 'mutual_fund',
+            category_code: sourceAsset?.category_code || 'equity',
+            currency: sourceAsset?.currency || 'INR',
+            purchase_date: txDate,
+            total_cost: 0,
+            units_held: 0,
+            quantity: 0,
+            quantity_unit: 'units',
+            nav_or_price: parsedDestNav || null,
+            folio_no: newFundFolio || sourceAsset?.folio_no || null,
+            instrument_name: newFundName.trim(),
+            broker_platform: sourceAsset?.broker_platform || null,
+          })
+          .select()
+          .single();
+
+        if (createErr) throw createErr;
+        actualDestId = newAsset.id;
+        queryClient.invalidateQueries({ queryKey: ['assets'] });
+      }
+
+      await switchMutation.mutateAsync({
+        sourceAssetId: sourceId,
+        destinationAssetId: actualDestId,
+        transactionDate: txDate,
+        switchUnits: parsedUnits,
+        switchAmount: computedAmount,
+        sourceNav: Number(sourceNav) || undefined,
+        destinationNav: parsedDestNav || undefined,
+        destinationUnits: computedDestUnits || undefined,
+        referenceNo: referenceNo || undefined,
+        remarks: remarks || undefined,
+        status: status as 'completed' | 'pending' | 'failed' | 'reversed',
+      });
+      setOpen(false);
+      resetForm();
+    } catch (e: any) {
+      // Error is handled by the mutation's onError
+    } finally {
+      setIsCreating(false);
+    }
   };
 
-  // Destination options exclude source
   const destOptions = mfAssets.filter(a => a.id !== sourceId);
 
   return (
@@ -184,9 +239,15 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
             {/* Destination Fund */}
             <div className="space-y-2">
               <Label>Destination Fund (Switch In)</Label>
-              <Select value={destId} onValueChange={setDestId}>
+              <Select value={destId} onValueChange={(v) => { setDestId(v); if (v !== NEW_FUND_VALUE) setNewFundName(''); }}>
                 <SelectTrigger><SelectValue placeholder="Select destination fund" /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={NEW_FUND_VALUE}>
+                    <div className="flex items-center gap-1.5 text-primary">
+                      <Plus className="h-3.5 w-3.5" />
+                      <span className="text-sm font-medium">Create New Fund</span>
+                    </div>
+                  </SelectItem>
                   {destOptions.map(a => (
                     <SelectItem key={a.id} value={a.id}>
                       <div className="flex flex-col">
@@ -199,6 +260,28 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* New fund name input */}
+              {isNewFund && (
+                <div className="space-y-2 rounded-md border p-3 bg-muted/30">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">New Fund Name</Label>
+                    <Input
+                      placeholder="e.g. Kotak Emerging Equity Fund - Direct Growth"
+                      value={newFundName}
+                      onChange={e => setNewFundName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Folio Number (optional)</Label>
+                    <Input
+                      placeholder="e.g. 12345678/90"
+                      value={newFundFolio}
+                      onChange={e => setNewFundFolio(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Transaction Date */}
@@ -344,8 +427,11 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Destination Fund</span>
                 <div className="text-right">
-                  <p className="font-medium text-sm">{destAsset?.asset_name}</p>
-                  <Badge variant="default" className="text-xs">Switch In</Badge>
+                  <p className="font-medium text-sm">{destDisplayName}</p>
+                  <div className="flex items-center gap-1 justify-end">
+                    {isNewFund && <Badge variant="outline" className="text-xs">New</Badge>}
+                    <Badge variant="default" className="text-xs">Switch In</Badge>
+                  </div>
                 </div>
               </div>
               <div className="border-t pt-3 space-y-2 text-sm">
@@ -391,9 +477,9 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
               <Button variant="outline" onClick={() => setStep('form')} className="flex-1">
                 Back
               </Button>
-              <Button onClick={handleSubmit} className="flex-1" disabled={switchMutation.isPending}>
+              <Button onClick={handleSubmit} className="flex-1" disabled={switchMutation.isPending || isCreating}>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                {switchMutation.isPending ? 'Processing…' : 'Confirm Switch'}
+                {switchMutation.isPending || isCreating ? 'Processing…' : 'Confirm Switch'}
               </Button>
             </div>
           </div>
