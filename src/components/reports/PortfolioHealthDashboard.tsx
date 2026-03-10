@@ -38,8 +38,7 @@ export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, asse
   const status = getPerformanceStatus(totalPLPct);
   const StatusIcon = status.icon;
   const realizedPL = preciousMetalsSummary?.total_realized_pl_aed ?? 0;
-  const liquidity = classifyLiquidity(assets);
-  const liquidityTotal = liquidity.liquid + liquidity.semiLiquid + liquidity.illiquid;
+  const { totalEmi } = useLiabilitySummary();
 
   const donutData = overview.assets_by_type
     .filter(a => a.current_value > 0)
