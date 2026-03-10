@@ -1358,6 +1358,45 @@ export type Database = {
           },
         ]
       }
+      sync_job_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          job_name: string
+          metadata_json: Json | null
+          rows_failed: number | null
+          rows_processed: number | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_name: string
+          metadata_json?: Json | null
+          rows_failed?: number | null
+          rows_processed?: number | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_name?: string
+          metadata_json?: Json | null
+          rows_failed?: number | null
+          rows_processed?: number | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           created_at: string
