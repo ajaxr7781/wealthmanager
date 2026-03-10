@@ -21,6 +21,14 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Create job log entry
+    const { data: jobLog } = await supabase
+      .from('sync_job_logs')
+      .insert({ job_name: 'import-mf-scheme-master', status: 'running' })
+      .select('id')
+      .single()
+    const jobId = jobLog?.id
+
     // Parse request body for options
     let force = false
     let searchTerm = ''
