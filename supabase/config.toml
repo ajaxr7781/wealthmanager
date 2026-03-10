@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.send-metal-alert-email]
 verify_jwt = false
+
+[functions.update-mf-nav]
+verify_jwt = false
