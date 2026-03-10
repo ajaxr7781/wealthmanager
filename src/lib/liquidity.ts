@@ -7,6 +7,7 @@
  */
 
 import type { Asset } from '@/types/assets';
+import { DEFAULT_INR_TO_AED } from '@/types/assets';
 
 export type LiquidityTier = 'liquid' | 'semi_liquid' | 'illiquid';
 
