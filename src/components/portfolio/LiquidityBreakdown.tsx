@@ -173,7 +173,10 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
                 ?.assets.map(asset => {
                   const val = getValueAed
                     ? getValueAed(asset)
-                    : Number(asset.current_value) || Number(asset.total_cost) || 0;
+                    : (() => {
+                        const raw = Number(asset.current_value) || Number(asset.total_cost) || 0;
+                        return asset.currency === 'INR' ? raw * inrToAed : raw;
+                      })();
                   return (
                     <div key={asset.id} className="flex items-center justify-between text-sm py-1 px-1">
                       <span className="text-foreground truncate mr-2">{asset.asset_name}</span>
