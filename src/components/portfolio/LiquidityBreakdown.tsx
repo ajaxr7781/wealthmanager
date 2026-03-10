@@ -163,7 +163,13 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
         {selectedTier && (() => {
           const tierAssets = breakdown.byTier.find(t => t.tier === selectedTier)?.assets ?? [];
           
-          // Group by asset type, then list individual assets under each
+          // Build category label lookup
+          const catLabels: Record<string, string> = {};
+          for (const c of categories || []) {
+            catLabels[c.code] = c.name;
+          }
+          
+          // Group by category_code, then list individual assets under each
           const typeGroups: Record<string, { label: string; totalValue: number; items: { key: string; label: string; value: number }[] }> = {};
           
           for (const asset of tierAssets) {
@@ -174,15 +180,15 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
                   return asset.currency === 'INR' ? raw * inrToAed : raw;
                 })();
             
-            const typeKey = asset.asset_type;
-            if (!typeGroups[typeKey]) {
-              typeGroups[typeKey] = {
-                label: ASSET_TYPE_LABELS[typeKey as AssetType] || typeKey.replace(/_/g, ' '),
+            const groupKey = asset.category_code || asset.asset_type_code || asset.asset_type;
+            if (!typeGroups[groupKey]) {
+              typeGroups[groupKey] = {
+                label: catLabels[groupKey] || ASSET_TYPE_LABELS[groupKey as AssetType] || groupKey.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
                 totalValue: 0,
                 items: [],
               };
             }
-            typeGroups[typeKey].totalValue += val;
+            typeGroups[groupKey].totalValue += val;
             
             // For precious metals, use metal name instead of asset_name
             const displayName = asset.asset_type === 'precious_metals' && asset.metal_type
@@ -191,12 +197,12 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
             
             // Merge precious metals of same type
             const existingItem = asset.asset_type === 'precious_metals'
-              ? typeGroups[typeKey].items.find(i => i.key === `metal-${asset.metal_type}`)
+              ? typeGroups[groupKey].items.find(i => i.key === `metal-${asset.metal_type}`)
               : null;
             if (existingItem) {
               existingItem.value += val;
             } else {
-              typeGroups[typeKey].items.push({
+              typeGroups[groupKey].items.push({
                 key: asset.asset_type === 'precious_metals' ? `metal-${asset.metal_type}` : asset.id,
                 label: displayName,
                 value: val,
