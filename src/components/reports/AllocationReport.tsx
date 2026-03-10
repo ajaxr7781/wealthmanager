@@ -113,7 +113,7 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
   const geoTotal = uaeValue + indiaValue;
 
   // Liquidity allocation
-  const liquidityBreakdown = calculateLiquidityBreakdown(assets);
+  const liquidityBreakdown = calculateLiquidityBreakdown(assets, undefined, inrToAed);
   const byLiquidity = liquidityBreakdown.byTier.map(t => ({
     name: t.label,
     value: t.value,
