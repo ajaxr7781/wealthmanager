@@ -52,7 +52,9 @@ export default function MfDashboard() {
 
     const calcList: HoldingCalc[] = mfAssets.map(a => {
       const invested = Number(a.total_cost) || 0;
-      const value = Number(a.current_value) || invested;
+      const navPrice = Number(a.nav_or_price) || 0;
+      const units = Number(a.units_held) || 0;
+      const value = Number(a.current_value) || (navPrice && units ? navPrice * units : invested);
       const gain = value - invested;
       const gainPct = invested > 0 ? (gain / invested) * 100 : 0;
       // Extract fund house from asset name heuristic
