@@ -10,6 +10,9 @@ import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { formatRate } from '@/lib/xirrCalc';
 import { cn } from '@/lib/utils';
 import { NavHistoryChart } from '@/components/mf/NavHistoryChart';
+import { PerformanceMetrics } from '@/components/mf/PerformanceMetrics';
+import { GainLossBreakdown } from '@/components/mf/GainLossBreakdown';
+import { useNavHistory } from '@/hooks/useNavHistory';
 import { 
   ArrowLeft, 
   Edit, 
@@ -36,6 +39,7 @@ export default function MfHoldingDetail() {
   const navigate = useNavigate();
   const { data: asset, isLoading } = useAsset(id);
   const { data: transactions } = useAssetTransactions(id);
+  const { data: navHistory } = useNavHistory(asset?.scheme_id);
   const deleteAsset = useDeleteAsset();
 
   const currentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
@@ -250,6 +254,21 @@ export default function MfHoldingDetail() {
         {/* NAV History Chart */}
         <NavHistoryChart schemeId={asset.scheme_id} schemeName={asset.asset_name} />
 
+        {/* Performance Metrics & Gain/Loss */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PerformanceMetrics
+            navHistory={navHistory}
+            latestNav={asset.nav_or_price ? Number(asset.nav_or_price) : null}
+            purchaseDate={asset.purchase_date}
+            invested={invested}
+            currentValue={value}
+          />
+          <GainLossBreakdown
+            invested={invested}
+            currentValue={value}
+            fmtINR={fmtINR}
+          />
+        </div>
         {/* Transactions */}
         <Card>
           <CardHeader>
