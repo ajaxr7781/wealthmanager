@@ -126,6 +126,9 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
     setDestId('');
     setNewFundName('');
     setNewFundFolio('');
+    setSelectedSchemeCode(null);
+    setSchemeSearchTerm('');
+    setSchemePopoverOpen(false);
     setTxDate(new Date().toISOString().slice(0, 10));
     setSwitchUnits('');
     setSwitchAmount('');
