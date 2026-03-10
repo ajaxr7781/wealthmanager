@@ -380,7 +380,7 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
               </div>
 
               {parsedUnits >= availableUnits - 0.0001 && (
-                <div className="bg-amber-500/10 text-amber-700 dark:text-amber-400 rounded p-2 text-xs flex items-center gap-1.5">
+                <div className="bg-accent text-accent-foreground rounded p-2 text-xs flex items-center gap-1.5">
                   <AlertCircle className="h-3.5 w-3.5" />
                   Full switch — all units will be moved from source fund
                 </div>
