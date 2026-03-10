@@ -78,6 +78,8 @@ function AllocationPieCard({ title, data, total }: { title: string; data: { name
 }
 
 export function AllocationReport({ overview, assets }: AllocationReportProps) {
+  const { data: settings } = useUserSettings();
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const total = overview.total_current_value;
 
   // By Type (from overview)
