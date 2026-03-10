@@ -17,6 +17,8 @@ export interface AssetTransaction {
   notes: string | null;
   source_table: string | null;
   source_id: string | null;
+  switch_reference_id: string | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }

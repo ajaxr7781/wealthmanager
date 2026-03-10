@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAssets } from '@/hooks/useAssets';
 import { useRefreshMfNav } from '@/hooks/useMfNav';
+import { RecordSwitchDialog } from '@/components/mf/RecordSwitchDialog';
 import { 
   Plus, 
   RefreshCw, 
@@ -13,6 +14,7 @@ import {
   TrendingDown,
   Eye,
   Edit,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +61,9 @@ export default function MfHoldingsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            {holdings.length >= 2 && (
+              <RecordSwitchDialog mfAssets={holdings} />
+            )}
             <Button
               variant="outline"
               onClick={handleRefreshAll}

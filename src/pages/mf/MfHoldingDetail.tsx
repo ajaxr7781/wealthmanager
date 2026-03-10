@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
+import { useAsset, useDeleteAsset, useAssets } from '@/hooks/useAssets';
 import { useAssetTransactions } from '@/hooks/useAssetTransactions';
 import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { formatRate } from '@/lib/xirrCalc';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { NavHistoryChart } from '@/components/mf/NavHistoryChart';
 import { PerformanceMetrics } from '@/components/mf/PerformanceMetrics';
 import { GainLossBreakdown } from '@/components/mf/GainLossBreakdown';
+import { RecordSwitchDialog } from '@/components/mf/RecordSwitchDialog';
 import { useNavHistory } from '@/hooks/useNavHistory';
 import { 
   ArrowLeft, 
@@ -20,6 +21,7 @@ import {
   TrendingUp, 
   TrendingDown,
   Calculator,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -40,7 +42,10 @@ export default function MfHoldingDetail() {
   const { data: asset, isLoading } = useAsset(id);
   const { data: transactions } = useAssetTransactions(id);
   const { data: navHistory } = useNavHistory(asset?.scheme_id);
+  const { data: allAssets } = useAssets();
   const deleteAsset = useDeleteAsset();
+
+  const mfAssets = allAssets?.filter(a => a.asset_type === 'mutual_fund') || [];
 
   const currentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
   const computedXirr = useComputedXirr(transactions, currentValue);
@@ -115,6 +120,18 @@ export default function MfHoldingDetail() {
             </div>
           </div>
           <div className="flex gap-2">
+            {mfAssets.length >= 2 && (
+              <RecordSwitchDialog
+                mfAssets={mfAssets}
+                preselectedSourceId={id}
+                trigger={
+                  <Button variant="outline">
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Switch
+                  </Button>
+                }
+              />
+            )}
             <Button variant="outline" asChild>
               <Link to={`/asset/${id}/edit`}>
                 <Edit className="h-4 w-4 mr-2" />
@@ -283,15 +300,28 @@ export default function MfHoldingDetail() {
               <div className="space-y-2">
                 {transactions.map((tx) => {
                   const isBuy = ['BUY', 'PURCHASE', 'SWITCH_IN'].includes(tx.transaction_type);
+                  const isSwitch = ['SWITCH_IN', 'SWITCH_OUT'].includes(tx.transaction_type);
                   return (
-                    <div key={tx.id} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div key={tx.id} className={cn(
+                      "flex justify-between items-center p-3 border rounded-lg",
+                      isSwitch && "border-primary/30 bg-primary/5"
+                    )}>
                       <div>
-                        <Badge variant={isBuy ? 'default' : 'secondary'}>
-                          {tx.transaction_type}
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={isSwitch ? 'outline' : (isBuy ? 'default' : 'secondary')}
+                            className={cn(isSwitch && "border-primary/50 text-primary")}
+                          >
+                            {isSwitch && <ArrowRightLeft className="h-3 w-3 mr-1" />}
+                            {tx.transaction_type}
+                          </Badge>
+                          {tx.status && tx.status !== 'completed' && (
+                            <Badge variant="secondary" className="text-[10px] capitalize">{tx.status}</Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground mt-1">
                           {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
                         </p>
+                        {tx.notes && <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>}
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{fmtINR(Number(tx.amount))}</p>

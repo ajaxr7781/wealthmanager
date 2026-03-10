@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAssets } from '@/hooks/useAssets';
+import { RecordSwitchDialog } from '@/components/mf/RecordSwitchDialog';
 import { useRefreshMfNav } from '@/hooks/useMfNav';
 import { useLatestSyncStatus } from '@/hooks/useSyncJobs';
 import { cn } from '@/lib/utils';
@@ -173,6 +174,9 @@ export default function MfDashboard() {
               <span className="text-xs text-muted-foreground">
                 NAV updated {formatDistanceToNow(new Date(navSyncStatus.started_at), { addSuffix: true })}
               </span>
+            )}
+            {allMfAssets.length >= 2 && (
+              <RecordSwitchDialog mfAssets={allAssets?.filter(a => a.asset_type === 'mutual_fund') || []} />
             )}
             <Button variant="outline" size="sm" onClick={() => refreshNav.mutate(undefined)} disabled={refreshNav.isPending}>
               <RefreshCw className={cn("h-4 w-4 mr-1", refreshNav.isPending && 'animate-spin')} />
