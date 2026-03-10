@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import type { PortfolioOverview, Asset } from '@/types/assets';
+import { calculateLiquidityBreakdown } from '@/lib/liquidity';
 
 interface AllocationReportProps {
   overview: PortfolioOverview;
@@ -107,6 +108,14 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
   ];
   const geoTotal = uaeValue + indiaValue;
 
+  // Liquidity allocation
+  const liquidityBreakdown = calculateLiquidityBreakdown(assets);
+  const byLiquidity = liquidityBreakdown.byTier.map(t => ({
+    name: t.label,
+    value: t.value,
+    color: t.color,
+  }));
+
   // Category allocation table
   const allCategories = [...byType].sort((a, b) => b.value - a.value);
 
@@ -115,7 +124,7 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
       {/* Pie Charts Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AllocationPieCard title="By Asset Type" data={byType} total={total} />
-        <AllocationPieCard title="By Category" data={byType} total={total} />
+        <AllocationPieCard title="By Liquidity" data={byLiquidity} total={liquidityBreakdown.total} />
         <AllocationPieCard title="By Currency" data={byCurrency} total={byCurrency.reduce((s, d) => s + d.value, 0)} />
         <AllocationPieCard title="By Geography" data={byGeo} total={geoTotal} />
       </div>

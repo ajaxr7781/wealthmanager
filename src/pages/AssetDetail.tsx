@@ -42,6 +42,7 @@ import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
 import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
+import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
@@ -175,9 +176,12 @@ export default function AssetDetail() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">{asset.asset_name}</h1>
-                <Badge variant="secondary" className="mt-1">
-                  {ASSET_TYPE_LABELS[asset.asset_type]}
-                </Badge>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="secondary">
+                    {ASSET_TYPE_LABELS[asset.asset_type]}
+                  </Badge>
+                  <LiquidityBadge asset={asset} />
+                </div>
               </div>
             </div>
             

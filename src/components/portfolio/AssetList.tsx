@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Asset } from '@/types/assets';
 import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
+import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { useUserSettings } from '@/hooks/useAssets';
 import { useLatestPrices } from '@/hooks/usePrices';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
@@ -352,10 +353,11 @@ export function AssetList({ assets }: AssetListProps) {
                 </div>
 
                 {/* Type (desktop) */}
-                <div className="hidden sm:block">
+                <div className="hidden sm:flex sm:items-center sm:gap-1.5 sm:flex-wrap">
                   <Badge variant="secondary" className="text-[10px] font-normal">
                     {ASSET_TYPE_LABELS[asset.asset_type]}
                   </Badge>
+                  <LiquidityBadge asset={asset} />
                   {asset.currency === 'INR' && (
                     <Badge variant="outline" className="text-[10px] ml-1">INR</Badge>
                   )}

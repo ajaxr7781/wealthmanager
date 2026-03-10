@@ -1,4 +1,6 @@
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
+import { useAssets } from '@/hooks/useAssets';
+import { useLiabilitySummary } from '@/hooks/useLiabilities';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
@@ -6,10 +8,13 @@ import { LivePrices } from '@/components/dashboard/LivePrices';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { FDMaturityAlerts } from '@/components/dashboard/FDMaturityAlerts';
 import { PortfolioTrendChart } from '@/components/dashboard/PortfolioTrendChart';
+import { LiquidityBreakdown } from '@/components/portfolio/LiquidityBreakdown';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { data: summary, isLoading, prices } = usePortfolioSummary();
+  const { data: assets } = useAssets();
+  const { totalEmi } = useLiabilitySummary();
 
   return (
     <AppLayout>
@@ -47,6 +52,16 @@ export default function Dashboard() {
                 <QuickActions />
               </div>
             </div>
+
+            {/* Liquidity Structure */}
+            {assets && assets.length > 0 && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <LiquidityBreakdown
+                  assets={assets}
+                  monthlyExpenses={totalEmi}
+                />
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-16">

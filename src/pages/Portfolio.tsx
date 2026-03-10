@@ -2,10 +2,12 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { usePortfolioOverview, useAssets } from '@/hooks/useAssets';
 import { useMetalPrices } from '@/hooks/useMetalPrices';
 import { useUnifiedRefresh } from '@/hooks/useUnifiedRefresh';
+import { useLiabilitySummary } from '@/hooks/useLiabilities';
 import { PortfolioSummaryCards } from '@/components/portfolio/PortfolioSummaryCards';
 import { AllocationBreakdown } from '@/components/portfolio/AllocationBreakdown';
 import { AssetList } from '@/components/portfolio/AssetList';
 import { LiveMetalPrices } from '@/components/portfolio/LiveMetalPrices';
+import { LiquidityBreakdown } from '@/components/portfolio/LiquidityBreakdown';
 import { PortfolioTrendChart } from '@/components/dashboard/PortfolioTrendChart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -17,6 +19,7 @@ export default function Portfolio() {
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: metalPrices, isLoading: pricesLoading } = useMetalPrices();
   const unifiedRefresh = useUnifiedRefresh();
+  const { totalEmi } = useLiabilitySummary();
 
   const isLoading = overviewLoading || assetsLoading;
 
@@ -76,6 +79,16 @@ export default function Portfolio() {
                 />
               </div>
             </div>
+
+            {/* Liquidity Structure */}
+            {assets && assets.length > 0 && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <LiquidityBreakdown
+                  assets={assets}
+                  monthlyExpenses={totalEmi}
+                />
+              </div>
+            )}
 
             {/* Asset List */}
             <AssetList assets={assets || []} />

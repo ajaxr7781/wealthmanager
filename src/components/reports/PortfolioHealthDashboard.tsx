@@ -3,9 +3,11 @@ import { Badge } from '@/components/ui/badge';
 import type { PortfolioOverview } from '@/types/assets';
 import type { PortfolioSummary } from '@/lib/calculations';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, PiggyBank, BarChart3, Droplets, Shield, Activity } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, PiggyBank, BarChart3, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Asset } from '@/types/assets';
+import { LiquidityBreakdown } from '@/components/portfolio/LiquidityBreakdown';
+import { useLiabilitySummary } from '@/hooks/useLiabilities';
 
 interface PortfolioHealthDashboardProps {
   overview: PortfolioOverview;
@@ -29,22 +31,6 @@ function getPerformanceStatus(returnPct: number) {
   return { label: 'Needs Review', color: 'bg-negative text-negative-foreground', icon: ArrowDownRight };
 }
 
-function classifyLiquidity(assets: Asset[]) {
-  let liquid = 0, semiLiquid = 0, illiquid = 0;
-  for (const a of assets) {
-    const val = Number(a.current_value) || Number(a.total_cost) || 0;
-    const cat = a.category_code || a.asset_type;
-    if (['precious_metals', 'shares', 'mutual_fund'].includes(cat)) {
-      liquid += val;
-    } else if (['fixed_deposit', 'sip'].includes(cat)) {
-      semiLiquid += val;
-    } else {
-      illiquid += val;
-    }
-  }
-  return { liquid, semiLiquid, illiquid };
-}
-
 export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, assets }: PortfolioHealthDashboardProps) {
   const totalPL = overview.total_profit_loss;
   const totalPLPct = overview.total_profit_loss_percent;
@@ -52,8 +38,7 @@ export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, asse
   const status = getPerformanceStatus(totalPLPct);
   const StatusIcon = status.icon;
   const realizedPL = preciousMetalsSummary?.total_realized_pl_aed ?? 0;
-  const liquidity = classifyLiquidity(assets);
-  const liquidityTotal = liquidity.liquid + liquidity.semiLiquid + liquidity.illiquid;
+  const { totalEmi } = useLiabilitySummary();
 
   const donutData = overview.assets_by_type
     .filter(a => a.current_value > 0)
@@ -62,14 +47,6 @@ export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, asse
       value: a.current_value,
       color: a.color || DONUT_COLORS[i % DONUT_COLORS.length],
     }));
-
-  // MF/SIP are now in assets_by_type — no separate push needed
-
-  const liquidityData = [
-    { name: 'Liquid', value: liquidity.liquid, color: 'hsl(142, 71%, 45%)' },
-    { name: 'Semi-Liquid', value: liquidity.semiLiquid, color: 'hsl(38, 92%, 50%)' },
-    { name: 'Illiquid', value: liquidity.illiquid, color: 'hsl(350, 89%, 60%)' },
-  ].filter(d => d.value > 0);
 
   return (
     <div className="space-y-6">
@@ -175,46 +152,8 @@ export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, asse
           </CardContent>
         </Card>
 
-        {/* Liquidity Split */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Droplets className="h-5 w-5 text-primary" /> Liquidity Split
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {liquidityTotal > 0 ? (
-              <>
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={liquidityData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={2} dataKey="value">
-                        {liquidityData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: number) => formatAED(v)} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="space-y-2 mt-4">
-                  {liquidityData.map(d => {
-                    const pct = ((d.value / liquidityTotal) * 100).toFixed(1);
-                    return (
-                      <div key={d.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                          <span className="text-sm">{d.name}</span>
-                        </div>
-                        <span className="text-sm font-medium">{formatAED(d.value)} ({pct}%)</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <p className="text-muted-foreground text-center py-8">No assets yet</p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Liquidity Structure — 3-tier */}
+        <LiquidityBreakdown assets={assets} monthlyExpenses={totalEmi} />
       </div>
     </div>
   );
