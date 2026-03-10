@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const { data: summary, isLoading, prices } = usePortfolioSummary();
+  const { data: assets } = useAssets();
+  const { totalEmi } = useLiabilitySummary();
 
   return (
     <AppLayout>
