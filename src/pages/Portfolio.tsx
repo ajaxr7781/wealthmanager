@@ -19,6 +19,7 @@ export default function Portfolio() {
   const { data: assets, isLoading: assetsLoading } = useAssets();
   const { data: metalPrices, isLoading: pricesLoading } = useMetalPrices();
   const unifiedRefresh = useUnifiedRefresh();
+  const { totalEmi } = useLiabilitySummary();
 
   const isLoading = overviewLoading || assetsLoading;
 
