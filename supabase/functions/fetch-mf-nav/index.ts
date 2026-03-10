@@ -348,6 +348,26 @@ Deno.serve(async (req) => {
               .eq('id', holding.id)
           }
         }
+
+        // Also update unified assets table for MF holdings
+        const { data: linkedAssets } = await supabase
+          .from('assets')
+          .select('id, units_held')
+          .eq('scheme_id', scheme.id)
+          .in('asset_type', ['mutual_fund', 'sip'])
+
+        if (linkedAssets) {
+          for (const la of linkedAssets) {
+            const assetCurrentValue = (Number(la.units_held) || 0) * result.nav
+            await supabase
+              .from('assets')
+              .update({
+                nav_or_price: result.nav,
+                current_value: Math.round(assetCurrentValue * 100) / 100
+              })
+              .eq('id', la.id)
+          }
+        }
       }
 
       results.push(result)
