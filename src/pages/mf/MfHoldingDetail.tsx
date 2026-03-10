@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
+import { useAsset, useDeleteAsset, useAssets } from '@/hooks/useAssets';
 import { useAssetTransactions } from '@/hooks/useAssetTransactions';
 import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { formatRate } from '@/lib/xirrCalc';
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { NavHistoryChart } from '@/components/mf/NavHistoryChart';
 import { PerformanceMetrics } from '@/components/mf/PerformanceMetrics';
 import { GainLossBreakdown } from '@/components/mf/GainLossBreakdown';
+import { RecordSwitchDialog } from '@/components/mf/RecordSwitchDialog';
 import { useNavHistory } from '@/hooks/useNavHistory';
 import { 
   ArrowLeft, 
@@ -20,6 +21,7 @@ import {
   TrendingUp, 
   TrendingDown,
   Calculator,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
