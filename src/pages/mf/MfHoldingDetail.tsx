@@ -39,6 +39,7 @@ export default function MfHoldingDetail() {
   const navigate = useNavigate();
   const { data: asset, isLoading } = useAsset(id);
   const { data: transactions } = useAssetTransactions(id);
+  const { data: navHistory } = useNavHistory(asset?.scheme_id);
   const deleteAsset = useDeleteAsset();
 
   const currentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
