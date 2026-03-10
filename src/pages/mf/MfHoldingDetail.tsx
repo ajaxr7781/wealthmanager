@@ -120,6 +120,18 @@ export default function MfHoldingDetail() {
             </div>
           </div>
           <div className="flex gap-2">
+            {mfAssets.length >= 2 && (
+              <RecordSwitchDialog
+                mfAssets={mfAssets}
+                preselectedSourceId={id}
+                trigger={
+                  <Button variant="outline">
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Switch
+                  </Button>
+                }
+              />
+            )}
             <Button variant="outline" asChild>
               <Link to={`/asset/${id}/edit`}>
                 <Edit className="h-4 w-4 mr-2" />

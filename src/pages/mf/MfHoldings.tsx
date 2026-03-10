@@ -61,6 +61,9 @@ export default function MfHoldingsPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            {holdings.length >= 2 && (
+              <RecordSwitchDialog mfAssets={holdings} />
+            )}
             <Button
               variant="outline"
               onClick={handleRefreshAll}
