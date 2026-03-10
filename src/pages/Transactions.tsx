@@ -126,11 +126,17 @@ export default function Transactions() {
     return Array.from(types);
   }, [unifiedTxs]);
 
-  // Get unique transaction types for filter
-  const txTypes = useMemo(() => {
-    const types = new Set<string>();
-    for (const tx of unifiedTxs) types.add(tx.transactionType);
-    return Array.from(types);
+  // Get unique display labels for filter (deduplicated after normalization)
+  const txDisplayTypes = useMemo(() => {
+    const labelToRawTypes = new Map<string, string[]>();
+    for (const tx of unifiedTxs) {
+      const label = getTxDisplayLabel(tx.transactionType);
+      if (!labelToRawTypes.has(label)) labelToRawTypes.set(label, []);
+      if (!labelToRawTypes.get(label)!.includes(tx.transactionType)) {
+        labelToRawTypes.get(label)!.push(tx.transactionType);
+      }
+    }
+    return labelToRawTypes;
   }, [unifiedTxs]);
 
   // Filter transactions
