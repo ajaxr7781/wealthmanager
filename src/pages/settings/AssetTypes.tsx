@@ -1,50 +1,38 @@
 import { AppLayout } from '@/components/layout/AppLayout';
-import { useCategoriesWithTypes, useToggleAssetType, useToggleAssetCategory } from '@/hooks/useAssetConfig';
+import { useCategoriesWithTypes, useToggleAssetType, useToggleAssetCategory, useDeleteAssetCategory, useDeleteAssetType } from '@/hooks/useAssetConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
-  Coins,
-  Landmark,
-  TrendingUp,
-  Building2,
-  Bitcoin,
-  Wallet,
-  Briefcase,
-  BarChart3,
-  PieChart,
-  FileText,
-  MapPin,
-  Package,
+  Coins, Landmark, TrendingUp, Building2, Bitcoin, Wallet,
+  Briefcase, BarChart3, PieChart, FileText, MapPin, Package, Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass, VALUATION_METHOD_LABELS } from '@/types/assetConfig';
 import { AddAssetTypeDialog } from '@/components/settings/AddAssetTypeDialog';
 import { AddAssetCategoryDialog } from '@/components/settings/AddAssetCategoryDialog';
 import { EditAssetCategoryDialog } from '@/components/settings/EditAssetCategoryDialog';
+import { EditAssetTypeDialog } from '@/components/settings/EditAssetTypeDialog';
 
 const IconMap: Record<string, typeof Coins> = {
-  Coins,
-  Landmark,
-  TrendingUp,
-  Building2,
-  Bitcoin,
-  Wallet,
-  Briefcase,
-  BarChart3,
-  PieChart,
-  FileText,
-  MapPin,
-  Package,
+  Coins, Landmark, TrendingUp, Building2, Bitcoin, Wallet,
+  Briefcase, BarChart3, PieChart, FileText, MapPin, Package,
   HandCoins: Wallet,
 };
 
 export default function AssetTypesSettings() {
-  const { data: categories, isLoading } = useCategoriesWithTypes(true); // Include inactive
+  const { data: categories, isLoading } = useCategoriesWithTypes(true);
   const toggleType = useToggleAssetType();
   const toggleCategory = useToggleAssetCategory();
+  const deleteCategory = useDeleteAssetCategory();
+  const deleteType = useDeleteAssetType();
 
   if (isLoading) {
     return (
@@ -130,23 +118,44 @@ export default function AssetTypesSettings() {
                                     {VALUATION_METHOD_LABELS[assetType.valuation_method]}
                                   </Badge>
                                   {assetType.supports_price_feed && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Live Prices
-                                    </Badge>
+                                    <Badge variant="outline" className="text-xs">Live Prices</Badge>
                                   )}
                                   {assetType.supports_transactions && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Transactions
-                                    </Badge>
+                                    <Badge variant="outline" className="text-xs">Transactions</Badge>
                                   )}
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
                               {assetType.is_system && (
-                                <Badge variant="secondary" className="text-xs">
-                                  System
-                                </Badge>
+                                <Badge variant="secondary" className="text-xs">System</Badge>
+                              )}
+                              <EditAssetTypeDialog assetType={assetType} />
+                              {!assetType.is_system && (
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete "{assetType.name}"?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently remove this asset type. Assets using this type may be affected.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteType.mutate(assetType.id)}
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               )}
                               <Switch
                                 checked={assetType.is_active}
@@ -221,6 +230,36 @@ export default function AssetTypesSettings() {
                         </div>
                         <div className="flex items-center gap-2">
                           <EditAssetCategoryDialog category={category} />
+                          {category.asset_types.length === 0 ? (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete "{category.name}"?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently remove this category.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteCategory.mutate(category.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <Button variant="ghost" size="icon" className="h-8 w-8" disabled title="Remove all asset types first">
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          )}
                           <Switch
                             checked={category.is_active}
                             onCheckedChange={(checked) => {

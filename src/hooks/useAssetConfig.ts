@@ -353,3 +353,55 @@ export function useToggleAssetCategory() {
     },
   });
 }
+
+/**
+ * Delete an asset category (only if it has no asset types)
+ */
+export function useDeleteAssetCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('asset_categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['asset-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-with-types'] });
+      toast.success('Category deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete category: ' + error.message);
+    },
+  });
+}
+
+/**
+ * Delete an asset type (only non-system types)
+ */
+export function useDeleteAssetType() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('asset_types')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['asset-types'] });
+      queryClient.invalidateQueries({ queryKey: ['categories-with-types'] });
+      toast.success('Asset type deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete asset type: ' + error.message);
+    },
+  });
+}
