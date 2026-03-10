@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Droplets, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
-import type { Asset } from '@/types/assets';
-import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import type { Asset, AssetType } from '@/types/assets';
+import { DEFAULT_INR_TO_AED, ASSET_TYPE_LABELS } from '@/types/assets';
 import { useUserSettings } from '@/hooks/useAssets';
 import {
   calculateLiquidityBreakdown,
@@ -160,9 +161,8 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
         {selectedTier && (() => {
           const tierAssets = breakdown.byTier.find(t => t.tier === selectedTier)?.assets ?? [];
           
-          // Group precious metals by metal_type
-          const grouped: { key: string; label: string; value: number }[] = [];
-          const metalBuckets: Record<string, { label: string; value: number }> = {};
+          // Group by asset type, then list individual assets under each
+          const typeGroups: Record<string, { label: string; totalValue: number; items: { key: string; label: string; value: number }[] }> = {};
           
           for (const asset of tierAssets) {
             const val = getValueAed
@@ -172,22 +172,40 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
                   return asset.currency === 'INR' ? raw * inrToAed : raw;
                 })();
             
-            if (asset.asset_type === 'precious_metals' && asset.metal_type) {
-              const metalKey = asset.metal_type;
-              if (!metalBuckets[metalKey]) {
-                metalBuckets[metalKey] = { label: metalKey === 'XAU' ? 'Gold' : metalKey === 'XAG' ? 'Silver' : asset.asset_name, value: 0 };
-              }
-              metalBuckets[metalKey].value += val;
+            const typeKey = asset.asset_type;
+            if (!typeGroups[typeKey]) {
+              typeGroups[typeKey] = {
+                label: ASSET_TYPE_LABELS[typeKey as AssetType] || typeKey.replace(/_/g, ' '),
+                totalValue: 0,
+                items: [],
+              };
+            }
+            typeGroups[typeKey].totalValue += val;
+            
+            // For precious metals, use metal name instead of asset_name
+            const displayName = asset.asset_type === 'precious_metals' && asset.metal_type
+              ? (asset.metal_type === 'XAU' ? 'Gold' : asset.metal_type === 'XAG' ? 'Silver' : asset.asset_name)
+              : asset.asset_name;
+            
+            // Merge precious metals of same type
+            const existingItem = asset.asset_type === 'precious_metals'
+              ? typeGroups[typeKey].items.find(i => i.key === `metal-${asset.metal_type}`)
+              : null;
+            if (existingItem) {
+              existingItem.value += val;
             } else {
-              grouped.push({ key: asset.id, label: asset.asset_name, value: val });
+              typeGroups[typeKey].items.push({
+                key: asset.asset_type === 'precious_metals' ? `metal-${asset.metal_type}` : asset.id,
+                label: displayName,
+                value: val,
+              });
             }
           }
           
-          for (const [key, bucket] of Object.entries(metalBuckets)) {
-            grouped.push({ key: `metal-${key}`, label: bucket.label, value: bucket.value });
-          }
+          const sortedGroups = Object.entries(typeGroups)
+            .sort(([, a], [, b]) => b.totalValue - a.totalValue);
           
-          grouped.sort((a, b) => b.value - a.value);
+          const totalAssetCount = sortedGroups.reduce((sum, [, g]) => sum + g.items.length, 0);
           
           return (
             <div className="border rounded-lg p-3 bg-muted/30 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -196,15 +214,31 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
                   {LIQUIDITY_TIERS[selectedTier].label} Assets
                 </h4>
                 <Badge variant="outline" className="text-xs">
-                  {grouped.length} assets
+                  {totalAssetCount} assets
                 </Badge>
               </div>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                {grouped.map(item => (
-                  <div key={item.key} className="flex items-center justify-between text-sm py-1 px-1">
-                    <span className="text-foreground truncate mr-2">{item.label}</span>
-                    <span className="text-muted-foreground whitespace-nowrap">{fmt(item.value)}</span>
-                  </div>
+              <div className="space-y-1 max-h-64 overflow-y-auto">
+                {sortedGroups.map(([typeKey, group]) => (
+                  <Collapsible key={typeKey} defaultOpen={sortedGroups.length <= 3}>
+                    <CollapsibleTrigger className="w-full flex items-center justify-between text-sm py-1.5 px-1 hover:bg-accent/50 rounded transition-colors">
+                      <span className="font-medium text-foreground">{group.label}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground text-xs">{group.items.length}</span>
+                        <span className="font-medium text-foreground">{fmt(group.totalValue)}</span>
+                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="pl-3 border-l-2 border-border/50 ml-1 space-y-0.5">
+                        {group.items.sort((a, b) => b.value - a.value).map(item => (
+                          <div key={item.key} className="flex items-center justify-between text-xs py-1 px-1">
+                            <span className="text-muted-foreground truncate mr-2">{item.label}</span>
+                            <span className="text-muted-foreground whitespace-nowrap">{fmt(item.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 ))}
               </div>
             </div>
