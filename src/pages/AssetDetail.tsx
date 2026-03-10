@@ -434,6 +434,15 @@ export default function AssetDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Transactions */}
+        <div className="mt-6">
+          <AssetTransactionSection
+            assetId={id!}
+            currency={asset.currency}
+            fmtCurrency={(v) => formatCurrencyVal(v, asset.currency)}
+          />
+        </div>
       </div>
     </AppLayout>
   );
