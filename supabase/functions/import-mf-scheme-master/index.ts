@@ -207,6 +207,16 @@ Deno.serve(async (req) => {
       resultSchemes = schemes.slice(0, 100)
     }
 
+    // Log success
+    if (jobId) {
+      await supabase.from('sync_job_logs').update({
+        status: 'success',
+        completed_at: new Date().toISOString(),
+        rows_processed: insertedCount,
+        metadata_json: { total_fetched: schemes.length, cached: insertedCount, source: 'mfapi' }
+      }).eq('id', jobId)
+    }
+
     return new Response(JSON.stringify({
       success: true,
       source: 'mfapi',
