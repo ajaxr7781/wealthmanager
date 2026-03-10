@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import type { PortfolioOverview, Asset } from '@/types/assets';
+import { calculateLiquidityBreakdown } from '@/lib/liquidity';
 
 interface AllocationReportProps {
   overview: PortfolioOverview;
