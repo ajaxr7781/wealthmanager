@@ -245,6 +245,7 @@ export default function Transactions() {
                   <tbody>
                     {filteredTxs.map((tx) => {
                       const isBuy = ['BUY', 'PURCHASE', 'SIP', 'SWITCH_IN'].includes(tx.transactionType);
+                      const isSwitch = ['SWITCH_IN', 'SWITCH_OUT'].includes(tx.transactionType);
                       return (
                         <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/50">
                           <td className="p-4 text-sm">
@@ -255,13 +256,15 @@ export default function Transactions() {
                           </td>
                           <td className="p-4">
                             <Badge
-                              variant={isBuy ? 'default' : 'secondary'}
+                              variant={isSwitch ? 'outline' : (isBuy ? 'default' : 'secondary')}
                               className={cn(
                                 "text-xs",
-                                isBuy ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
+                                isSwitch
+                                  ? "border-primary/50 text-primary"
+                                  : isBuy ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative"
                               )}
                             >
-                              {isBuy ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
+                              {isSwitch ? <ArrowRightLeft className="h-3 w-3 mr-1" /> : (isBuy ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />)}
                               {getTxDisplayLabel(tx.transactionType)}
                             </Badge>
                           </td>
