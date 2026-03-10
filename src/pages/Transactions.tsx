@@ -262,7 +262,7 @@ export default function Transactions() {
                               )}
                             >
                               {isBuy ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
-                              {tx.transactionType}
+                              {getTxDisplayLabel(tx.transactionType)}
                             </Badge>
                           </td>
                           <td className="p-4 text-sm text-right">
