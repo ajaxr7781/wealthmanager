@@ -103,12 +103,13 @@ export interface LiquidityBreakdownResult {
 
 /**
  * Classify all assets into 3-tier liquidity breakdown.
- * Uses current_value if available, otherwise total_cost.
- * Optionally accepts a currency conversion factor per asset.
+ * By default converts INR values to AED using the provided rate.
+ * Pass a custom getValueAed to override (e.g. for live metal prices).
  */
 export function calculateLiquidityBreakdown(
   assets: Asset[],
-  getValueAed?: (asset: Asset) => number
+  getValueAed?: (asset: Asset) => number,
+  inrToAed: number = DEFAULT_INR_TO_AED
 ): LiquidityBreakdownResult {
   const buckets: Record<LiquidityTier, { value: number; assets: Asset[] }> = {
     liquid: { value: 0, assets: [] },
@@ -118,9 +119,13 @@ export function calculateLiquidityBreakdown(
 
   for (const asset of assets) {
     const tier = classifyAssetLiquidity(asset);
-    const value = getValueAed
-      ? getValueAed(asset)
-      : Number(asset.current_value) || Number(asset.total_cost) || 0;
+    let value: number;
+    if (getValueAed) {
+      value = getValueAed(asset);
+    } else {
+      const raw = Number(asset.current_value) || Number(asset.total_cost) || 0;
+      value = asset.currency === 'INR' ? raw * inrToAed : raw;
+    }
     
     buckets[tier].value += value;
     buckets[tier].assets.push(asset);
