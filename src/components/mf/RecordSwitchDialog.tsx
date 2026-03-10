@@ -62,6 +62,11 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
   const [destId, setDestId] = useState('');
   const [newFundName, setNewFundName] = useState('');
   const [newFundFolio, setNewFundFolio] = useState('');
+  const [selectedSchemeCode, setSelectedSchemeCode] = useState<number | null>(null);
+  const [schemeSearchTerm, setSchemeSearchTerm] = useState('');
+  const [schemePopoverOpen, setSchemePopoverOpen] = useState(false);
+  const debouncedSearch = useDebounce(schemeSearchTerm, 300);
+  const { data: schemeResults, isLoading: isSearching } = useSchemeSearch(debouncedSearch);
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10));
   const [switchUnits, setSwitchUnits] = useState('');
   const [switchAmount, setSwitchAmount] = useState('');
