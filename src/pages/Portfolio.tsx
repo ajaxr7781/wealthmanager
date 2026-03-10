@@ -80,6 +80,16 @@ export default function Portfolio() {
               </div>
             </div>
 
+            {/* Liquidity Structure */}
+            {assets && assets.length > 0 && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <LiquidityBreakdown
+                  assets={assets}
+                  monthlyExpenses={totalEmi}
+                />
+              </div>
+            )}
+
             {/* Asset List */}
             <AssetList assets={assets || []} />
           </>
