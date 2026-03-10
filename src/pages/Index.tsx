@@ -1,4 +1,6 @@
 import { usePortfolioSummary } from '@/hooks/usePortfolioSummary';
+import { useAssets } from '@/hooks/useAssets';
+import { useLiabilitySummary } from '@/hooks/useLiabilities';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { AllocationChart } from '@/components/dashboard/AllocationChart';
@@ -6,6 +8,7 @@ import { LivePrices } from '@/components/dashboard/LivePrices';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { FDMaturityAlerts } from '@/components/dashboard/FDMaturityAlerts';
 import { PortfolioTrendChart } from '@/components/dashboard/PortfolioTrendChart';
+import { LiquidityBreakdown } from '@/components/portfolio/LiquidityBreakdown';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
