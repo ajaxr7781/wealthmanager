@@ -26,6 +26,7 @@ import ProfileSettings from "./pages/settings/Profile";
 import MfSchemesSettings from "./pages/settings/MfSchemes";
 import DataManagement from "./pages/settings/DataManagement";
 import MfHoldingsPage from "./pages/mf/MfHoldings";
+import MfDashboard from "./pages/mf/MfDashboard";
 import AddMfHolding from "./pages/mf/AddMfHolding";
 import MfHoldingDetail from "./pages/mf/MfHoldingDetail";
 import EditMfHolding from "./pages/mf/EditMfHolding";
