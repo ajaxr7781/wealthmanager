@@ -21,6 +21,14 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Create job log entry
+    const { data: jobLog } = await supabase
+      .from('sync_job_logs')
+      .insert({ job_name: 'import-mf-scheme-master', status: 'running' })
+      .select('id')
+      .single()
+    const jobId = jobLog?.id
+
     // Parse request body for options
     let force = false
     let searchTerm = ''
@@ -199,6 +207,16 @@ Deno.serve(async (req) => {
       resultSchemes = schemes.slice(0, 100)
     }
 
+    // Log success
+    if (jobId) {
+      await supabase.from('sync_job_logs').update({
+        status: 'success',
+        completed_at: new Date().toISOString(),
+        rows_processed: insertedCount,
+        metadata_json: { total_fetched: schemes.length, cached: insertedCount, source: 'mfapi' }
+      }).eq('id', jobId)
+    }
+
     return new Response(JSON.stringify({
       success: true,
       source: 'mfapi',
@@ -216,6 +234,15 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in import-mf-scheme-master:', error)
+    // Log failure - need supabase client; recreate if needed
+    try {
+      const supabase2 = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+      await supabase2.from('sync_job_logs').update({
+        status: 'failed',
+        completed_at: new Date().toISOString(),
+        error_message: error instanceof Error ? error.message : 'Unknown error'
+      }).eq('job_name', 'import-mf-scheme-master').eq('status', 'running')
+    } catch { /* ignore logging errors */ }
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

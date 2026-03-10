@@ -24,6 +24,7 @@ import AssetTypesSettings from "./pages/settings/AssetTypes";
 import PreferencesSettings from "./pages/settings/Preferences";
 import ProfileSettings from "./pages/settings/Profile";
 import MfSchemesSettings from "./pages/settings/MfSchemes";
+import DataManagement from "./pages/settings/DataManagement";
 import MfHoldingsPage from "./pages/mf/MfHoldings";
 import AddMfHolding from "./pages/mf/AddMfHolding";
 import MfHoldingDetail from "./pages/mf/MfHoldingDetail";
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
                 <Route path="/settings/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
                 <Route path="/settings/mf-schemes" element={<ProtectedRoute><MfSchemesSettings /></ProtectedRoute>} />
+                <Route path="/settings/data-management" element={<ProtectedRoute><DataManagement /></ProtectedRoute>} />
                 
                 {/* Mutual Fund Routes */}
                 <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
