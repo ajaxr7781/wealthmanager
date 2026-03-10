@@ -11,6 +11,23 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+/** Normalize raw transaction types to user-friendly display labels */
+const TX_DISPLAY_LABELS: Record<string, string> = {
+  BUY: 'Purchase',
+  PURCHASE: 'Purchase',
+  SELL: 'Sell',
+  REDEEM: 'Redemption',
+  SWITCH_IN: 'Switch In',
+  SWITCH_OUT: 'Switch Out',
+  SIP: 'SIP',
+  DEPOSIT: 'Deposit',
+  WITHDRAWAL: 'Withdrawal',
+  INTEREST: 'Interest',
+  DIVIDEND: 'Dividend',
+};
+
+const getTxDisplayLabel = (type: string) => TX_DISPLAY_LABELS[type] || type;
+
 interface UnifiedTransaction {
   id: string;
   date: string;
