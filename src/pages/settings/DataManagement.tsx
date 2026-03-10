@@ -20,9 +20,9 @@ import { format, formatDistanceToNow } from 'date-fns';
 function StatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'success':
-      return <Badge variant="default" className="bg-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1" />Success</Badge>;
+      return <Badge className="bg-[hsl(var(--chart-2))] text-primary-foreground"><CheckCircle2 className="h-3 w-3 mr-1" />Success</Badge>;
     case 'partial':
-      return <Badge variant="default" className="bg-amber-600"><AlertTriangle className="h-3 w-3 mr-1" />Partial</Badge>;
+      return <Badge className="bg-[hsl(var(--chart-4))] text-primary-foreground"><AlertTriangle className="h-3 w-3 mr-1" />Partial</Badge>;
     case 'failed':
       return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Failed</Badge>;
     case 'running':
