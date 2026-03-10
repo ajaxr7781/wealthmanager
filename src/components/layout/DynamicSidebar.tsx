@@ -136,7 +136,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
         code: 'mutual_funds',
         name: 'Mutual Funds',
         icon: 'LineChart',
-        path: '/mf/holdings',
+        path: '/mf',
         totalValue: categoryTotals?.['mutual_funds']?.totalValue || 0,
       },
       {
