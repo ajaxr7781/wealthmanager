@@ -353,10 +353,11 @@ export function AssetList({ assets }: AssetListProps) {
                 </div>
 
                 {/* Type (desktop) */}
-                <div className="hidden sm:block">
+                <div className="hidden sm:flex sm:items-center sm:gap-1.5 sm:flex-wrap">
                   <Badge variant="secondary" className="text-[10px] font-normal">
                     {ASSET_TYPE_LABELS[asset.asset_type]}
                   </Badge>
+                  <LiquidityBadge asset={asset} />
                   {asset.currency === 'INR' && (
                     <Badge variant="outline" className="text-[10px] ml-1">INR</Badge>
                   )}
