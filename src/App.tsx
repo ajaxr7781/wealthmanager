@@ -26,6 +26,7 @@ import ProfileSettings from "./pages/settings/Profile";
 import MfSchemesSettings from "./pages/settings/MfSchemes";
 import DataManagement from "./pages/settings/DataManagement";
 import MfHoldingsPage from "./pages/mf/MfHoldings";
+import MfDashboard from "./pages/mf/MfDashboard";
 import AddMfHolding from "./pages/mf/AddMfHolding";
 import MfHoldingDetail from "./pages/mf/MfHoldingDetail";
 import EditMfHolding from "./pages/mf/EditMfHolding";
@@ -90,6 +91,7 @@ const App = () => (
                 <Route path="/settings/data-management" element={<ProtectedRoute><DataManagement /></ProtectedRoute>} />
                 
                 {/* Mutual Fund Routes */}
+                <Route path="/mf" element={<ProtectedRoute><MfDashboard /></ProtectedRoute>} />
                 <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
                 <Route path="/mf/holdings/new" element={<ProtectedRoute><AddMfHolding /></ProtectedRoute>} />
                 <Route path="/mf/holdings/:id" element={<ProtectedRoute><MfHoldingDetail /></ProtectedRoute>} />

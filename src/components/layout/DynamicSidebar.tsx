@@ -136,7 +136,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
         code: 'mutual_funds',
         name: 'Mutual Funds',
         icon: 'LineChart',
-        path: '/mf/holdings',
+        path: '/mf',
         totalValue: categoryTotals?.['mutual_funds']?.totalValue || 0,
       },
       {
@@ -227,7 +227,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                 const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
                 const iconColor = IconColorMap[item.icon || 'Package'] || '';
                 const isItemActive = item.type === 'mf'
-                  ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
+                  ? isActive('/mf') || isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
                   : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
                 return (
                   <Link key={item.code} to={item.path} onClick={onItemClick} className={mobileNavItemClass(isItemActive)}>
@@ -359,7 +359,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
             const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
             const iconColor = IconColorMap[item.icon || 'Package'] || '';
             const isItemActive = item.type === 'mf'
-              ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
+              ? isActive('/mf') || isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
               : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
             return (
               <NavItem collapsed label={item.name} key={item.code}>
@@ -407,7 +407,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                 const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
                 const iconColor = IconColorMap[item.icon || 'Package'] || '';
                 const isItemActive = item.type === 'mf'
-                  ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
+                  ? isActive('/mf') || isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
                   : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
                 return (
                   <NavItem collapsed={false} label={item.name} key={item.code}>
