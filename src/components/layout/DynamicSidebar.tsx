@@ -28,6 +28,7 @@ import {
   Bell,
   Activity,
   User,
+  DatabaseZap,
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import {
