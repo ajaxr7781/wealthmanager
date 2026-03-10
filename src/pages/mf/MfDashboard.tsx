@@ -176,7 +176,7 @@ export default function MfDashboard() {
               </span>
             )}
             {allMfAssets.length >= 2 && (
-              <RecordSwitchDialog mfAssets={allAssets?.filter(a => a.asset_type === 'mutual_fund') || []} />
+              <RecordSwitchDialog mfAssets={allAssets?.filter(a => a.asset_type === 'mutual_fund' || a.asset_type === 'sip') || []} />
             )}
             <Button variant="outline" size="sm" onClick={() => refreshNav.mutate(undefined)} disabled={refreshNav.isPending}>
               <RefreshCw className={cn("h-4 w-4 mr-1", refreshNav.isPending && 'animate-spin')} />
