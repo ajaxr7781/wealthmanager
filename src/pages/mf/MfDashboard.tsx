@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAssets } from '@/hooks/useAssets';
+import { RecordSwitchDialog } from '@/components/mf/RecordSwitchDialog';
 import { useRefreshMfNav } from '@/hooks/useMfNav';
 import { useLatestSyncStatus } from '@/hooks/useSyncJobs';
 import { cn } from '@/lib/utils';
