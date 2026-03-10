@@ -42,6 +42,7 @@ import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
 import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
+import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
