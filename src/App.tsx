@@ -24,6 +24,7 @@ import AssetTypesSettings from "./pages/settings/AssetTypes";
 import PreferencesSettings from "./pages/settings/Preferences";
 import ProfileSettings from "./pages/settings/Profile";
 import MfSchemesSettings from "./pages/settings/MfSchemes";
+import DataManagement from "./pages/settings/DataManagement";
 import MfHoldingsPage from "./pages/mf/MfHoldings";
 import AddMfHolding from "./pages/mf/AddMfHolding";
 import MfHoldingDetail from "./pages/mf/MfHoldingDetail";
