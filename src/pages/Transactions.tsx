@@ -11,6 +11,23 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+/** Normalize raw transaction types to user-friendly display labels */
+const TX_DISPLAY_LABELS: Record<string, string> = {
+  BUY: 'Purchase',
+  PURCHASE: 'Purchase',
+  SELL: 'Sell',
+  REDEEM: 'Redemption',
+  SWITCH_IN: 'Switch In',
+  SWITCH_OUT: 'Switch Out',
+  SIP: 'SIP',
+  DEPOSIT: 'Deposit',
+  WITHDRAWAL: 'Withdrawal',
+  INTEREST: 'Interest',
+  DIVIDEND: 'Dividend',
+};
+
+const getTxDisplayLabel = (type: string) => TX_DISPLAY_LABELS[type] || type;
+
 interface UnifiedTransaction {
   id: string;
   date: string;
@@ -109,18 +126,24 @@ export default function Transactions() {
     return Array.from(types);
   }, [unifiedTxs]);
 
-  // Get unique transaction types for filter
-  const txTypes = useMemo(() => {
-    const types = new Set<string>();
-    for (const tx of unifiedTxs) types.add(tx.transactionType);
-    return Array.from(types);
+  // Get unique display labels for filter (deduplicated after normalization)
+  const txDisplayTypes = useMemo(() => {
+    const labelToRawTypes = new Map<string, string[]>();
+    for (const tx of unifiedTxs) {
+      const label = getTxDisplayLabel(tx.transactionType);
+      if (!labelToRawTypes.has(label)) labelToRawTypes.set(label, []);
+      if (!labelToRawTypes.get(label)!.includes(tx.transactionType)) {
+        labelToRawTypes.get(label)!.push(tx.transactionType);
+      }
+    }
+    return labelToRawTypes;
   }, [unifiedTxs]);
 
-  // Filter transactions
+  // Filter transactions — sideFilter now matches against display labels
   const filteredTxs = useMemo(() => {
     return unifiedTxs.filter(tx => {
       if (typeFilter !== 'all' && tx.assetType !== typeFilter) return false;
-      if (sideFilter !== 'all' && tx.transactionType !== sideFilter) return false;
+      if (sideFilter !== 'all' && getTxDisplayLabel(tx.transactionType) !== sideFilter) return false;
       if (dateFrom && tx.date < dateFrom) return false;
       if (dateTo && tx.date > dateTo) return false;
       return true;
@@ -159,8 +182,8 @@ export default function Transactions() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {txTypes.map(t => (
-                <SelectItem key={t} value={t}>{t}</SelectItem>
+              {Array.from(txDisplayTypes.keys()).map(label => (
+                <SelectItem key={label} value={label}>{label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -239,7 +262,7 @@ export default function Transactions() {
                               )}
                             >
                               {isBuy ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
-                              {tx.transactionType}
+                              {getTxDisplayLabel(tx.transactionType)}
                             </Badge>
                           </td>
                           <td className="p-4 text-sm text-right">
