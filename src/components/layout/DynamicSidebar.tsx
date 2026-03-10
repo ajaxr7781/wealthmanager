@@ -407,7 +407,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                 const Icon = item.icon === 'LineChart' ? LineChart : item.icon === 'Calendar' ? Calendar : IconMap[item.icon || 'Package'] || Package;
                 const iconColor = IconColorMap[item.icon || 'Package'] || '';
                 const isItemActive = item.type === 'mf'
-                  ? isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
+                  ? isActive('/mf') || isActive('/mf/holdings') || (isActivePrefix('/mf/') && !isActive('/mf/sips'))
                   : item.type === 'sip' ? isActive('/mf/sips') : isActive(item.path);
                 return (
                   <NavItem collapsed={false} label={item.name} key={item.code}>

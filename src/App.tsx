@@ -91,6 +91,7 @@ const App = () => (
                 <Route path="/settings/data-management" element={<ProtectedRoute><DataManagement /></ProtectedRoute>} />
                 
                 {/* Mutual Fund Routes */}
+                <Route path="/mf" element={<ProtectedRoute><MfDashboard /></ProtectedRoute>} />
                 <Route path="/mf/holdings" element={<ProtectedRoute><MfHoldingsPage /></ProtectedRoute>} />
                 <Route path="/mf/holdings/new" element={<ProtectedRoute><AddMfHolding /></ProtectedRoute>} />
                 <Route path="/mf/holdings/:id" element={<ProtectedRoute><MfHoldingDetail /></ProtectedRoute>} />
