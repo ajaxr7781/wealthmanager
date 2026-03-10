@@ -252,7 +252,7 @@ Deno.serve(async (req) => {
           
           if (data.data && data.data.length > 0) {
             const latest = data.data[0]
-            result.nav = parseFloat(latest.nav)
+            result.nav = Math.round(parseFloat(latest.nav) * 100) / 100
             // Convert date from DD-MM-YYYY to YYYY-MM-DD
             const [day, month, year] = latest.date.split('-')
             result.nav_date = `${year}-${month}-${day}`
