@@ -254,6 +254,21 @@ export default function MfHoldingDetail() {
         {/* NAV History Chart */}
         <NavHistoryChart schemeId={asset.scheme_id} schemeName={asset.asset_name} />
 
+        {/* Performance Metrics & Gain/Loss */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PerformanceMetrics
+            navHistory={navHistory}
+            latestNav={asset.nav_or_price ? Number(asset.nav_or_price) : null}
+            purchaseDate={asset.purchase_date}
+            invested={invested}
+            currentValue={value}
+          />
+          <GainLossBreakdown
+            invested={invested}
+            currentValue={value}
+            fmtINR={fmtINR}
+          />
+        </div>
         {/* Transactions */}
         <Card>
           <CardHeader>
