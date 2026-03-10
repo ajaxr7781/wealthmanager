@@ -10,6 +10,9 @@ import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { formatRate } from '@/lib/xirrCalc';
 import { cn } from '@/lib/utils';
 import { NavHistoryChart } from '@/components/mf/NavHistoryChart';
+import { PerformanceMetrics } from '@/components/mf/PerformanceMetrics';
+import { GainLossBreakdown } from '@/components/mf/GainLossBreakdown';
+import { useNavHistory } from '@/hooks/useNavHistory';
 import { 
   ArrowLeft, 
   Edit, 
