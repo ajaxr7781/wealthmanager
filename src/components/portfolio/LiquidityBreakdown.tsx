@@ -157,36 +157,59 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
         </div>
 
         {/* Selected Tier Drill-down */}
-        {selectedTier && (
-          <div className="border rounded-lg p-3 bg-muted/30 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium text-foreground">
-                {LIQUIDITY_TIERS[selectedTier].label} Assets
-              </h4>
-              <Badge variant="outline" className="text-xs">
-                {breakdown.byTier.find(t => t.tier === selectedTier)?.assets.length ?? 0} assets
-              </Badge>
+        {selectedTier && (() => {
+          const tierAssets = breakdown.byTier.find(t => t.tier === selectedTier)?.assets ?? [];
+          
+          // Group precious metals by metal_type
+          const grouped: { key: string; label: string; value: number }[] = [];
+          const metalBuckets: Record<string, { label: string; value: number }> = {};
+          
+          for (const asset of tierAssets) {
+            const val = getValueAed
+              ? getValueAed(asset)
+              : (() => {
+                  const raw = Number(asset.current_value) || Number(asset.total_cost) || 0;
+                  return asset.currency === 'INR' ? raw * inrToAed : raw;
+                })();
+            
+            if (asset.asset_type === 'precious_metals' && asset.metal_type) {
+              const metalKey = asset.metal_type;
+              if (!metalBuckets[metalKey]) {
+                metalBuckets[metalKey] = { label: metalKey === 'XAU' ? 'Gold' : metalKey === 'XAG' ? 'Silver' : asset.asset_name, value: 0 };
+              }
+              metalBuckets[metalKey].value += val;
+            } else {
+              grouped.push({ key: asset.id, label: asset.asset_name, value: val });
+            }
+          }
+          
+          for (const [key, bucket] of Object.entries(metalBuckets)) {
+            grouped.push({ key: `metal-${key}`, label: bucket.label, value: bucket.value });
+          }
+          
+          grouped.sort((a, b) => b.value - a.value);
+          
+          return (
+            <div className="border rounded-lg p-3 bg-muted/30 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-foreground">
+                  {LIQUIDITY_TIERS[selectedTier].label} Assets
+                </h4>
+                <Badge variant="outline" className="text-xs">
+                  {grouped.length} assets
+                </Badge>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {grouped.map(item => (
+                  <div key={item.key} className="flex items-center justify-between text-sm py-1 px-1">
+                    <span className="text-foreground truncate mr-2">{item.label}</span>
+                    <span className="text-muted-foreground whitespace-nowrap">{fmt(item.value)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
-              {breakdown.byTier
-                .find(t => t.tier === selectedTier)
-                ?.assets.map(asset => {
-                  const val = getValueAed
-                    ? getValueAed(asset)
-                    : (() => {
-                        const raw = Number(asset.current_value) || Number(asset.total_cost) || 0;
-                        return asset.currency === 'INR' ? raw * inrToAed : raw;
-                      })();
-                  return (
-                    <div key={asset.id} className="flex items-center justify-between text-sm py-1 px-1">
-                      <span className="text-foreground truncate mr-2">{asset.asset_name}</span>
-                      <span className="text-muted-foreground whitespace-nowrap">{fmt(val)}</span>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Emergency Coverage */}
         {monthlyExpenses > 0 && (
