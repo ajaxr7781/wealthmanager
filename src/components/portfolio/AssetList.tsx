@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Asset } from '@/types/assets';
 import { ASSET_TYPE_LABELS, DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
+import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { useUserSettings } from '@/hooks/useAssets';
 import { useLatestPrices } from '@/hooks/usePrices';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
