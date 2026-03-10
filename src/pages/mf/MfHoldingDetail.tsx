@@ -300,15 +300,28 @@ export default function MfHoldingDetail() {
               <div className="space-y-2">
                 {transactions.map((tx) => {
                   const isBuy = ['BUY', 'PURCHASE', 'SWITCH_IN'].includes(tx.transaction_type);
+                  const isSwitch = ['SWITCH_IN', 'SWITCH_OUT'].includes(tx.transaction_type);
                   return (
-                    <div key={tx.id} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div key={tx.id} className={cn(
+                      "flex justify-between items-center p-3 border rounded-lg",
+                      isSwitch && "border-primary/30 bg-primary/5"
+                    )}>
                       <div>
-                        <Badge variant={isBuy ? 'default' : 'secondary'}>
-                          {tx.transaction_type}
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={isSwitch ? 'outline' : (isBuy ? 'default' : 'secondary')}
+                            className={cn(isSwitch && "border-primary/50 text-primary")}
+                          >
+                            {isSwitch && <ArrowRightLeft className="h-3 w-3 mr-1" />}
+                            {tx.transaction_type}
+                          </Badge>
+                          {tx.status && tx.status !== 'completed' && (
+                            <Badge variant="secondary" className="text-[10px] capitalize">{tx.status}</Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground mt-1">
                           {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
                         </p>
+                        {tx.notes && <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>}
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{fmtINR(Number(tx.amount))}</p>
