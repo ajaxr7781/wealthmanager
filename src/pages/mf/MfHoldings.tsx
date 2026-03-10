@@ -23,7 +23,8 @@ export default function MfHoldingsPage() {
   const refreshNav = useRefreshMfNav();
 
   // Filter to MF assets only
-  const holdings = allAssets?.filter(a => a.asset_type === 'mutual_fund') || [];
+  // Include both mutual_fund and sip assets for holdings and switch dialog
+  const holdings = allAssets?.filter(a => a.asset_type === 'mutual_fund' || a.asset_type === 'sip') || [];
 
   const totalInvested = holdings.reduce((sum, h) => sum + Number(h.total_cost), 0);
   const totalValue = holdings.reduce((sum, h) => sum + (Number(h.current_value) || Number(h.total_cost)), 0);

@@ -45,7 +45,7 @@ export default function MfHoldingDetail() {
   const { data: allAssets } = useAssets();
   const deleteAsset = useDeleteAsset();
 
-  const mfAssets = allAssets?.filter(a => a.asset_type === 'mutual_fund') || [];
+  const mfAssets = allAssets?.filter(a => a.asset_type === 'mutual_fund' || a.asset_type === 'sip') || [];
 
   const currentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
   const computedXirr = useComputedXirr(transactions, currentValue);
