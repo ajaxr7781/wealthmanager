@@ -6,6 +6,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, PiggyBank, BarChart3, Droplets, Shield, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Asset } from '@/types/assets';
+import { LiquidityBreakdown } from '@/components/portfolio/LiquidityBreakdown';
+import { useLiabilitySummary } from '@/hooks/useLiabilities';
 
 interface PortfolioHealthDashboardProps {
   overview: PortfolioOverview;
@@ -27,22 +29,6 @@ function getPerformanceStatus(returnPct: number) {
   if (returnPct >= 12) return { label: 'Strong', color: 'bg-positive text-positive-foreground', icon: TrendingUp };
   if (returnPct >= 6) return { label: 'Moderate', color: 'bg-warning text-warning-foreground', icon: Activity };
   return { label: 'Needs Review', color: 'bg-negative text-negative-foreground', icon: ArrowDownRight };
-}
-
-function classifyLiquidity(assets: Asset[]) {
-  let liquid = 0, semiLiquid = 0, illiquid = 0;
-  for (const a of assets) {
-    const val = Number(a.current_value) || Number(a.total_cost) || 0;
-    const cat = a.category_code || a.asset_type;
-    if (['precious_metals', 'shares', 'mutual_fund'].includes(cat)) {
-      liquid += val;
-    } else if (['fixed_deposit', 'sip'].includes(cat)) {
-      semiLiquid += val;
-    } else {
-      illiquid += val;
-    }
-  }
-  return { liquid, semiLiquid, illiquid };
 }
 
 export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, assets }: PortfolioHealthDashboardProps) {
