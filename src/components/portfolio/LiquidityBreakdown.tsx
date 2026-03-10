@@ -40,10 +40,12 @@ const EMERGENCY_STATUS_STYLES = {
 
 export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, compact = false }: LiquidityBreakdownProps) {
   const { formatAed } = useCurrency();
+  const { data: settings } = useUserSettings();
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const [selectedTier, setSelectedTier] = useState<LiquidityTier | null>(null);
   const [showInsights, setShowInsights] = useState(false);
 
-  const breakdown = calculateLiquidityBreakdown(assets, getValueAed);
+  const breakdown = calculateLiquidityBreakdown(assets, getValueAed, inrToAed);
   const insights = getLiquidityInsights(breakdown);
   const emergency = calculateEmergencyCoverage(breakdown.liquid, monthlyExpenses);
 
