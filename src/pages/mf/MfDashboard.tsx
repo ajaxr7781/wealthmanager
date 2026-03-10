@@ -175,6 +175,9 @@ export default function MfDashboard() {
                 NAV updated {formatDistanceToNow(new Date(navSyncStatus.started_at), { addSuffix: true })}
               </span>
             )}
+            {allMfAssets.length >= 2 && (
+              <RecordSwitchDialog mfAssets={allAssets?.filter(a => a.asset_type === 'mutual_fund') || []} />
+            )}
             <Button variant="outline" size="sm" onClick={() => refreshNav.mutate(undefined)} disabled={refreshNav.isPending}>
               <RefreshCw className={cn("h-4 w-4 mr-1", refreshNav.isPending && 'animate-spin')} />
               Refresh NAVs
