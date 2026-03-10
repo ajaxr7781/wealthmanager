@@ -182,8 +182,8 @@ export default function Transactions() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              {txTypes.map(t => (
-                <SelectItem key={t} value={t}>{t}</SelectItem>
+              {Array.from(txDisplayTypes.keys()).map(label => (
+                <SelectItem key={label} value={label}>{label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
