@@ -5,6 +5,8 @@ import { AlertTriangle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import type { PortfolioOverview, Asset } from '@/types/assets';
+import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import { useUserSettings } from '@/hooks/useAssets';
 import { calculateLiquidityBreakdown } from '@/lib/liquidity';
 
 interface AllocationReportProps {
@@ -76,6 +78,8 @@ function AllocationPieCard({ title, data, total }: { title: string; data: { name
 }
 
 export function AllocationReport({ overview, assets }: AllocationReportProps) {
+  const { data: settings } = useUserSettings();
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const total = overview.total_current_value;
 
   // By Type (from overview)
@@ -109,7 +113,7 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
   const geoTotal = uaeValue + indiaValue;
 
   // Liquidity allocation
-  const liquidityBreakdown = calculateLiquidityBreakdown(assets);
+  const liquidityBreakdown = calculateLiquidityBreakdown(assets, undefined, inrToAed);
   const byLiquidity = liquidityBreakdown.byTier.map(t => ({
     name: t.label,
     value: t.value,

@@ -7,6 +7,8 @@ import { Droplets, ChevronDown, ChevronUp, Info, AlertTriangle, CheckCircle2, Sh
 import { cn } from '@/lib/utils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import type { Asset } from '@/types/assets';
+import { DEFAULT_INR_TO_AED } from '@/types/assets';
+import { useUserSettings } from '@/hooks/useAssets';
 import {
   calculateLiquidityBreakdown,
   getLiquidityInsights,
@@ -38,10 +40,12 @@ const EMERGENCY_STATUS_STYLES = {
 
 export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, compact = false }: LiquidityBreakdownProps) {
   const { formatAed } = useCurrency();
+  const { data: settings } = useUserSettings();
+  const inrToAed = settings?.inr_to_aed_rate || DEFAULT_INR_TO_AED;
   const [selectedTier, setSelectedTier] = useState<LiquidityTier | null>(null);
   const [showInsights, setShowInsights] = useState(false);
 
-  const breakdown = calculateLiquidityBreakdown(assets, getValueAed);
+  const breakdown = calculateLiquidityBreakdown(assets, getValueAed, inrToAed);
   const insights = getLiquidityInsights(breakdown);
   const emergency = calculateEmergencyCoverage(breakdown.liquid, monthlyExpenses);
 
@@ -169,7 +173,10 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
                 ?.assets.map(asset => {
                   const val = getValueAed
                     ? getValueAed(asset)
-                    : Number(asset.current_value) || Number(asset.total_cost) || 0;
+                    : (() => {
+                        const raw = Number(asset.current_value) || Number(asset.total_cost) || 0;
+                        return asset.currency === 'INR' ? raw * inrToAed : raw;
+                      })();
                   return (
                     <div key={asset.id} className="flex items-center justify-between text-sm py-1 px-1">
                       <span className="text-foreground truncate mr-2">{asset.asset_name}</span>
