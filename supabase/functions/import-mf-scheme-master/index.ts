@@ -234,6 +234,15 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error in import-mf-scheme-master:', error)
+    // Log failure - need supabase client; recreate if needed
+    try {
+      const supabase2 = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+      await supabase2.from('sync_job_logs').update({
+        status: 'failed',
+        completed_at: new Date().toISOString(),
+        error_message: error instanceof Error ? error.message : 'Unknown error'
+      }).eq('job_name', 'import-mf-scheme-master').eq('status', 'running')
+    } catch { /* ignore logging errors */ }
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
