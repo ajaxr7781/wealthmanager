@@ -207,6 +207,9 @@ export function usePortfolioOverview() {
             total_cost: Number(asset.total_cost),
           });
           currentVal = fdResult.currentValue;
+        } else if ((asset.asset_type === 'mutual_fund' || asset.asset_type === 'sip') && asset.nav_or_price && asset.units_held) {
+          // For MF/SIP, compute from NAV * units if current_value not set
+          currentVal = Number(asset.current_value) || (Number(asset.nav_or_price) * Number(asset.units_held));
         } else {
           currentVal = Number(asset.current_value) || invested;
         }

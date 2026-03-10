@@ -71,6 +71,9 @@ export default function Holdings() {
         total_cost: Number(a.total_cost),
       }).currentValue;
     }
+    if ((a.asset_type === 'mutual_fund' || a.asset_type === 'sip') && a.nav_or_price && a.units_held) {
+      return Number(a.current_value) || (Number(a.nav_or_price) * Number(a.units_held));
+    }
     return Number(a.current_value) || Number(a.total_cost) || 0;
   };
 
