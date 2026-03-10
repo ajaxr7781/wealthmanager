@@ -326,6 +326,10 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                 <User className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
                 <span>Profile</span>
               </Link>
+              <Link to="/settings/data-management" onClick={onItemClick} className={mobileNavItemClass(isActive('/settings/data-management'))}>
+                <DatabaseZap className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />
+                <span>Data Sync</span>
+              </Link>
             </div>
           )}
         </div>
