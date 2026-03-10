@@ -223,6 +223,8 @@ export type Database = {
           quantity_unit: string | null
           source_id: string | null
           source_table: string | null
+          status: string | null
+          switch_reference_id: string | null
           transaction_date: string
           transaction_type: string
           updated_at: string
@@ -240,6 +242,8 @@ export type Database = {
           quantity_unit?: string | null
           source_id?: string | null
           source_table?: string | null
+          status?: string | null
+          switch_reference_id?: string | null
           transaction_date: string
           transaction_type: string
           updated_at?: string
@@ -257,6 +261,8 @@ export type Database = {
           quantity_unit?: string | null
           source_id?: string | null
           source_table?: string | null
+          status?: string | null
+          switch_reference_id?: string | null
           transaction_date?: string
           transaction_type?: string
           updated_at?: string
