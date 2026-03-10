@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
           const data: MFAPILatestResponse = await response.json()
           if (data.data && data.data.length > 0) {
             const latest = data.data[0]
-            nav = parseFloat(latest.nav)
+            nav = Math.round(parseFloat(latest.nav) * 100) / 100
             const [day, month, year] = latest.date.split('-')
             navDate = `${year}-${month}-${day}`
             source = 'MFAPI'
