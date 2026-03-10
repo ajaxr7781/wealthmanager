@@ -43,6 +43,7 @@ import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
 import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
 import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
+import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
@@ -433,6 +434,15 @@ export default function AssetDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Transactions */}
+        <div className="mt-6">
+          <AssetTransactionSection
+            assetId={id!}
+            currency={asset.currency}
+            fmtCurrency={(v) => formatCurrencyVal(v, asset.currency)}
+          />
+        </div>
       </div>
     </AppLayout>
   );
