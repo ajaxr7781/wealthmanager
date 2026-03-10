@@ -490,6 +490,7 @@ export function DynamicSidebarNav({ onItemClick, isMobile, collapsed }: DynamicS
                {renderDesktopItem('/settings/mf-schemes', <LineChart className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-mf))]" />, 'MF Schemes')}
                {renderDesktopItem('/settings/preferences', <Settings className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Preferences')}
                {renderDesktopItem('/settings/profile', <User className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Profile')}
+               {renderDesktopItem('/settings/data-management', <DatabaseZap className="h-4 w-4 flex-shrink-0 text-[hsl(var(--icon-settings))]" />, 'Data Sync')}
             </div>
           )}
         </>
