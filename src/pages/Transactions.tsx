@@ -139,11 +139,11 @@ export default function Transactions() {
     return labelToRawTypes;
   }, [unifiedTxs]);
 
-  // Filter transactions
+  // Filter transactions — sideFilter now matches against display labels
   const filteredTxs = useMemo(() => {
     return unifiedTxs.filter(tx => {
       if (typeFilter !== 'all' && tx.assetType !== typeFilter) return false;
-      if (sideFilter !== 'all' && tx.transactionType !== sideFilter) return false;
+      if (sideFilter !== 'all' && getTxDisplayLabel(tx.transactionType) !== sideFilter) return false;
       if (dateFrom && tx.date < dateFrom) return false;
       if (dateTo && tx.date > dateTo) return false;
       return true;
