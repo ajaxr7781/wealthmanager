@@ -215,7 +215,7 @@ Deno.serve(async (req) => {
             navEntry = amfiData.get(scheme.amfi_scheme_code.toString())
           }
           if (navEntry) {
-            nav = navEntry.nav
+            nav = Math.round(navEntry.nav * 100) / 100
             navDate = parseAmfiDate(navEntry.date)
             source = 'AMFI'
           }
