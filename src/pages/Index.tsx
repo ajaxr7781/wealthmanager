@@ -52,6 +52,16 @@ export default function Dashboard() {
                 <QuickActions />
               </div>
             </div>
+
+            {/* Liquidity Structure */}
+            {assets && assets.length > 0 && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <LiquidityBreakdown
+                  assets={assets}
+                  monthlyExpenses={totalEmi}
+                />
+              </div>
+            )}
           </>
         ) : (
           <div className="text-center py-16">
