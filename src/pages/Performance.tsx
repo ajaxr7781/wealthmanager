@@ -378,7 +378,7 @@ export default function PerformancePage() {
                       <XAxis type="number" tickFormatter={(v) => `${v.toFixed(0)}%`} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                       <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={75} />
                       <RTooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
-                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Return']} />
+                        formatter={(value: number) => [`${value.toFixed(4)}%`, 'Return']} />
                       <Bar dataKey="gainPct" radius={[0, 4, 4, 0]}>
                         {categoryHeatmap.map((entry, i) => (
                           <Cell key={i} fill={entry.gainPct >= 0 ? 'hsl(var(--positive))' : 'hsl(var(--destructive))'} />
