@@ -216,7 +216,7 @@ export default function MfDashboard() {
                 value={fmtINR(Math.abs(summary.totalGain))}
                 valueClass={summary.totalGain >= 0 ? 'text-positive' : 'text-negative'}
                 prefix={summary.totalGain >= 0 ? '+' : '-'}
-                suffix={` (${summary.returnPct >= 0 ? '+' : ''}${summary.returnPct.toFixed(1)}%)`}
+                suffix={` (${summary.returnPct >= 0 ? '+' : ''}${summary.returnPct.toFixed(4)}%)`}
                 icon={summary.totalGain >= 0 
                   ? <TrendingUp className="h-5 w-5 text-positive" /> 
                   : <TrendingDown className="h-5 w-5 text-negative" />
