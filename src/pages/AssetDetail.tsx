@@ -441,6 +441,7 @@ export default function AssetDetail() {
             assetId={id!}
             currency={asset.currency}
             fmtCurrency={(v) => formatCurrencyVal(v, asset.currency)}
+            assetType={asset.asset_type}
           />
         </div>
       </div>
