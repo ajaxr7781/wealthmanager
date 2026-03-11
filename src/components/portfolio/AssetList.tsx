@@ -271,7 +271,7 @@ export function AssetList({ assets }: AssetListProps) {
                   <div className="text-right">
                     <p className="font-medium text-sm">{formatINR(mfCurrentValue)}</p>
                     <p className={cn("text-xs", mfPL >= 0 ? "text-positive" : "text-negative")}>
-                      {mfPL >= 0 ? '+' : ''}{mfPLPct.toFixed(1)}%
+                      {mfPL >= 0 ? '+' : ''}{mfPLPct.toFixed(4)}%
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
