@@ -61,7 +61,7 @@ const TX_TYPES = [
   { value: 'SIP_INSTALLMENT', label: 'SIP Installment' },
 ];
 
-export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetType }: AssetTransactionSectionProps) {
+export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetType, sipAmount, sipDayOfMonth, sipStartDate, sipEndDate, sipStatus, totalCost: assetTotalCost, unitsHeld }: AssetTransactionSectionProps) {
   const { data: transactions, isLoading } = useAssetTransactions(assetId);
   const createTx = useCreateAssetTransaction();
   const deleteTx = useDeleteAssetTransaction();
