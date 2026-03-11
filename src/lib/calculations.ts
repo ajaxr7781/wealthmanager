@@ -375,7 +375,7 @@ export function calculatePortfolioSummary(
 /**
  * Format number with specified decimals
  */
-export function formatNumber(value: number, decimals: number = 2): string {
+export function formatNumber(value: number, decimals: number = 4): string {
   return value.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
