@@ -176,7 +176,7 @@ export function useEvaluateAlerts() {
                   status: 'open',
                   severity: rule.severity,
                   title: `Overexposure: ${cat.label}`,
-                  message: `${cat.label} is ${pct.toFixed(1)}% of portfolio (threshold: ${threshold}%)`,
+                  message: `${cat.label} is ${pct.toFixed(4)}% of portfolio (threshold: ${threshold}%)`,
                   context_json: { category: cat.type, pct, threshold },
                   triggered_at: new Date().toISOString(),
                 });
