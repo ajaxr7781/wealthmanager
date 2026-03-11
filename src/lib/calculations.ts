@@ -387,7 +387,7 @@ export function formatNumber(value: number, decimals: number = 4): string {
  */
 export function formatCurrency(value: number | null, showSymbol: boolean = true): string {
   if (value === null) return '—';
-  const formatted = formatNumber(value, 2);
+  const formatted = formatNumber(value, 4);
   return showSymbol ? `AED ${formatted}` : formatted;
 }
 
