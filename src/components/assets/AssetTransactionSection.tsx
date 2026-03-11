@@ -313,7 +313,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                   </Badge>
                   <p className="text-sm text-muted-foreground mt-1">
                     {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
-                    {tx.price_per_unit && <span className="ml-2">NAV: ₹{Number(tx.price_per_unit).toFixed(2)}</span>}
+                    {tx.price_per_unit && <span className="ml-2">NAV: ₹{Number(tx.price_per_unit).toFixed(4)}</span>}
                     {tx.quantity > 1 && <span className="ml-2">Units: {Number(tx.quantity).toFixed(4)}</span>}
                   </p>
                   {tx.notes && <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>}

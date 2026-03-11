@@ -472,7 +472,7 @@ export default function AddAsset() {
                     <p className="font-medium mb-1">Selected Metal: {selectedType.name}</p>
                     {metalPrices && metalPrices[formData.metal_type as 'XAU' | 'XAG'] && (
                       <p>
-                        Live Price: AED {metalPrices[formData.metal_type as 'XAU' | 'XAG']?.aed_per_gram.toFixed(2)}/g
+                        Live Price: AED {metalPrices[formData.metal_type as 'XAU' | 'XAG']?.aed_per_gram.toFixed(4)}/g
                       </p>
                     )}
                   </div>
