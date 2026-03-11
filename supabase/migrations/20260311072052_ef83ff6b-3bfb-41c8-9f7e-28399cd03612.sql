@@ -1,0 +1,1 @@
+DELETE FROM asset_transactions WHERE id = 'b1b46c60-97cd-4232-9f28-a2755c7f496c';
