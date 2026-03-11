@@ -150,7 +150,7 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-negative flex items-center gap-0.5 justify-end">
-                        <ArrowDownRight className="h-3 w-3" />{a.returnPct.toFixed(1)}%
+                        <ArrowDownRight className="h-3 w-3" />{a.returnPct.toFixed(4)}%
                       </p>
                       <p className="text-xs text-muted-foreground">{fmt(a.absoluteGain)}</p>
                     </div>

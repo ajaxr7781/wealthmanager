@@ -99,7 +99,7 @@ export function RealEstateReport({ assets, totalPortfolioValue }: RealEstateRepo
                 <span className="text-sm text-muted-foreground">P/L</span>
                 <span className={cn("font-medium text-sm flex items-center gap-0.5", isProfit ? "text-positive" : "text-negative")}>
                   {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  {isProfit ? '+' : ''}{formatAED(pl)} ({plPct >= 0 ? '+' : ''}{plPct.toFixed(1)}%)
+                  {isProfit ? '+' : ''}{formatAED(pl)} ({plPct >= 0 ? '+' : ''}{plPct.toFixed(4)}%)
                 </span>
               </div>
             </CardContent>
