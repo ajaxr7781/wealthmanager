@@ -194,7 +194,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'info',
       title: 'Large Semi-Liquid Allocation',
-      message: `${semiLiquidPct.toFixed(1)}% of your portfolio is in semi-liquid instruments. These can typically be redeemed in a few days but may involve penalties or delays.`,
+      message: `${semiLiquidPct.toFixed(4)}% of your portfolio is in semi-liquid instruments. These can typically be redeemed in a few days but may involve penalties or delays.`,
     });
   }
 
