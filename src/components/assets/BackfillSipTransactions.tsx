@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -62,6 +64,7 @@ export function BackfillSipTransactions({
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [maxInstallments, setMaxInstallments] = useState<string>('');
 
   // Compute which months already have transactions
   const existingMonths = useMemo(() => {
@@ -75,8 +78,8 @@ export function BackfillSipTransactions({
     return months;
   }, [existingTransactions]);
 
-  // Generate installments from start date to end date (or today)
-  const installments = useMemo(() => {
+  // Generate all possible installments from start date to end date (or today)
+  const allPossibleInstallments = useMemo(() => {
     if (!sipAmount || !sipStartDate || !sipDayOfMonth) return [];
 
     const start = new Date(sipStartDate);
@@ -101,6 +104,15 @@ export function BackfillSipTransactions({
     return results;
   }, [sipAmount, sipStartDate, sipEndDate, sipDayOfMonth, existingMonths]);
 
+  // Apply max installments cap
+  const installments = useMemo(() => {
+    const cap = maxInstallments ? parseInt(maxInstallments, 10) : 0;
+    if (cap > 0 && cap < allPossibleInstallments.length) {
+      return allPossibleInstallments.slice(0, cap);
+    }
+    return allPossibleInstallments;
+  }, [allPossibleInstallments, maxInstallments]);
+
   const totalAmount = installments.reduce((sum, i) => sum + i.amount, 0);
 
   const fmtINR = (v: number) =>
@@ -115,27 +127,24 @@ export function BackfillSipTransactions({
     setLoading(true);
 
     try {
-      // Insert all transactions in batch
       const rows = installments.map((inst) => ({
         user_id: user.id,
         asset_id: assetId,
         transaction_type: 'SIP_INSTALLMENT',
         transaction_date: format(inst.date, 'yyyy-MM-dd'),
         amount: inst.amount,
-        quantity: 1, // placeholder since we don't know per-installment units
+        quantity: 1,
         quantity_unit: 'units',
         fees: 0,
         notes: 'Auto-generated historical installment',
       }));
 
-      // Insert in batches of 50
       for (let i = 0; i < rows.length; i += 50) {
         const batch = rows.slice(i, i + 50);
         const { error } = await supabase.from('asset_transactions').insert(batch);
         if (error) throw error;
       }
 
-      // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['asset-transactions', assetId] });
       queryClient.invalidateQueries({ queryKey: ['asset', assetId] });
       queryClient.invalidateQueries({ queryKey: ['assets'] });
@@ -154,7 +163,7 @@ export function BackfillSipTransactions({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setMaxInstallments(''); }}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <History className="h-4 w-4 mr-2" />
@@ -199,6 +208,26 @@ export function BackfillSipTransactions({
               </div>
             </div>
 
+            {/* Installment count override */}
+            <div className="space-y-2">
+              <Label htmlFor="max-installments" className="text-sm">
+                Number of installments (optional)
+              </Label>
+              <Input
+                id="max-installments"
+                type="number"
+                min="1"
+                max={allPossibleInstallments.length || undefined}
+                placeholder={`Auto: ${allPossibleInstallments.length} (from dates)`}
+                value={maxInstallments}
+                onChange={(e) => setMaxInstallments(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to use date range, or enter a number to cap installments. 
+                Useful for completed SIPs where you know the exact count (e.g., "4" for 4 months).
+              </p>
+            </div>
+
             {installments.length === 0 ? (
               <div className="text-center py-6 space-y-2">
                 <CheckCircle2 className="h-8 w-8 text-positive mx-auto" />
@@ -212,7 +241,14 @@ export function BackfillSipTransactions({
                 <div className="border rounded-lg p-3 space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">Installments to generate</span>
-                    <Badge variant="secondary">{installments.length}</Badge>
+                    <Badge variant="secondary">
+                      {installments.length}
+                      {maxInstallments && parseInt(maxInstallments) > 0 && parseInt(maxInstallments) < allPossibleInstallments.length && (
+                        <span className="ml-1 text-xs opacity-70">
+                          (capped from {allPossibleInstallments.length})
+                        </span>
+                      )}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Total amount</span>
