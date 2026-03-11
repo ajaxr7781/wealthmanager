@@ -105,7 +105,7 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
                           {format(new Date(a.purchaseDate), 'MMM yyyy')}
-                          {a.cagr !== null && <span>· CAGR {a.cagr.toFixed(1)}%</span>}
+                          {a.cagr !== null && <span>· CAGR {a.cagr.toFixed(4)}%</span>}
                         </div>
                       </div>
                     </div>
