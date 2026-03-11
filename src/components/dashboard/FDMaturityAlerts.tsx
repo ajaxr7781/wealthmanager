@@ -95,7 +95,7 @@ export function FDMaturityAlerts() {
           </div>
           <div className="text-right">
             <p className="text-lg font-semibold text-positive">
-              AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+              AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 4 })}
             </p>
             <p className="text-xs text-muted-foreground">
               {upcomingMaturities.length} FD{upcomingMaturities.length !== 1 ? 's' : ''} in next {filterDays} days
