@@ -220,11 +220,11 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
           if (v) setForm(f => ({ ...f, transaction_type: defaultTxType }));
         }}>
           <div className="flex gap-2">
-            {isMfOrSip && sipAmount && sipStartDate && sipDayOfMonth && (
+            {showBackfill && (
               <BackfillSipTransactions
                 assetId={assetId}
                 sipAmount={sipAmount}
-                sipDayOfMonth={sipDayOfMonth}
+                sipDayOfMonth={sipDayOfMonth || 1}
                 sipStartDate={sipStartDate}
                 sipEndDate={sipEndDate ?? null}
                 sipStatus={sipStatus ?? null}
