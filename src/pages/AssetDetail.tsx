@@ -497,6 +497,13 @@ export default function AssetDetail() {
             currency={asset.currency}
             fmtCurrency={(v) => formatCurrencyVal(v, asset.currency)}
             assetType={asset.asset_type}
+            sipAmount={asset.sip_amount ? Number(asset.sip_amount) : undefined}
+            sipDayOfMonth={asset.sip_day_of_month ? Number(asset.sip_day_of_month) : undefined}
+            sipStartDate={asset.sip_start_date ?? undefined}
+            sipEndDate={asset.sip_end_date}
+            sipStatus={asset.sip_status}
+            totalCost={totalCost}
+            unitsHeld={asset.units_held ? Number(asset.units_held) : null}
           />
         </div>
       </div>

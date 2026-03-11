@@ -36,12 +36,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAssetTransactions, useCreateAssetTransaction, useDeleteAssetTransaction } from '@/hooks/useAssetTransactions';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { BackfillSipTransactions } from './BackfillSipTransactions';
 
 interface AssetTransactionSectionProps {
   assetId: string;
   currency: string;
   fmtCurrency: (v: number) => string;
   assetType?: string;
+  sipAmount?: number;
+  sipDayOfMonth?: number;
+  sipStartDate?: string;
+  sipEndDate?: string | null;
+  sipStatus?: string | null;
+  totalCost?: number;
+  unitsHeld?: number | null;
 }
 
 const TX_TYPES = [
@@ -53,7 +61,7 @@ const TX_TYPES = [
   { value: 'SIP_INSTALLMENT', label: 'SIP Installment' },
 ];
 
-export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetType }: AssetTransactionSectionProps) {
+export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetType, sipAmount, sipDayOfMonth, sipStartDate, sipEndDate, sipStatus, totalCost: assetTotalCost, unitsHeld }: AssetTransactionSectionProps) {
   const { data: transactions, isLoading } = useAssetTransactions(assetId);
   const createTx = useCreateAssetTransaction();
   const deleteTx = useDeleteAssetTransaction();
@@ -210,12 +218,28 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
           setOpen(v);
           if (v) setForm(f => ({ ...f, transaction_type: defaultTxType }));
         }}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Transaction
-            </Button>
-          </DialogTrigger>
+          <div className="flex gap-2">
+            {isMfOrSip && sipAmount && sipStartDate && sipDayOfMonth && (
+              <BackfillSipTransactions
+                assetId={assetId}
+                sipAmount={sipAmount}
+                sipDayOfMonth={sipDayOfMonth}
+                sipStartDate={sipStartDate}
+                sipEndDate={sipEndDate ?? null}
+                sipStatus={sipStatus ?? null}
+                totalCost={assetTotalCost ?? 0}
+                unitsHeld={unitsHeld ?? null}
+                existingTransactions={transactions}
+                currency={currency}
+              />
+            )}
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
+            </DialogTrigger>
+          </div>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Record Transaction</DialogTitle>

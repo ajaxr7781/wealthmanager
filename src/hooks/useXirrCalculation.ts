@@ -5,7 +5,7 @@ import { calculateXIRR } from '@/lib/xirrCalc';
 import type { AssetTransaction } from './useAssetTransactions';
 import { toast } from 'sonner';
 
-const BUY_TYPES = ['BUY', 'PURCHASE', 'SWITCH_IN', 'SIP'];
+const BUY_TYPES = ['BUY', 'PURCHASE', 'SWITCH_IN', 'SIP', 'SIP_INSTALLMENT', 'DEPOSIT'];
 const SELL_TYPES = ['SELL', 'REDEEM', 'SWITCH_OUT'];
 
 /**
