@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ import {
 export default function SipListPage() {
   const { data: allAssets, isLoading } = useAssets();
   const updateAsset = useUpdateAsset();
+  const navigate = useNavigate();
   const [stoppingId, setStoppingId] = useState<string | null>(null);
 
   // Filter to SIP assets
@@ -178,7 +179,7 @@ export default function SipListPage() {
               const status = sip.sip_status || 'ACTIVE';
               
               return (
-                <Card key={sip.id} className="hover:shadow-md transition-shadow">
+                <Card key={sip.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/asset/${sip.id}`)}>
                   <CardContent className="py-4">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="space-y-1 flex-1">
@@ -199,7 +200,7 @@ export default function SipListPage() {
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         {status === 'ACTIVE' && (
                           <Button variant="ghost" size="sm" onClick={() => handlePause(sip.id)} title="Pause SIP">
                             <Pause className="h-4 w-4" />
@@ -215,10 +216,8 @@ export default function SipListPage() {
                             <StopCircle className="h-4 w-4 text-destructive" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/asset/${sip.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/asset/${sip.id}`)}>
+                          <Edit className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
