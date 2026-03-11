@@ -86,7 +86,7 @@ export function RiskExposure({ overview, assets }: RiskExposureProps) {
                 </div>
                 <div className="space-y-2 mt-4">
                   {riskData.map(d => {
-                    const pct = riskTotal > 0 ? ((d.value / riskTotal) * 100).toFixed(1) : '0';
+                    const pct = riskTotal > 0 ? ((d.value / riskTotal) * 100).toFixed(4) : '0';
                     return (
                       <div key={d.name} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
