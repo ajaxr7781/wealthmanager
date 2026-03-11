@@ -174,21 +174,50 @@ export default function AssetDetail() {
     ? (Math.pow(currentValue / totalCost, 1 / years) - 1) * 100
     : null;
 
+  // Get parent page info for breadcrumb
+  const location = useLocation();
+  const fromSip = location.state?.from === 'sip' || asset?.asset_type === 'sip';
+  const fromMf = location.state?.from === 'mf' || asset?.asset_type === 'mutual_fund';
+  
+  const getParentLink = () => {
+    if (fromSip) return { path: '/mf/sips', label: 'SIP Management' };
+    if (fromMf) return { path: '/mf/holdings', label: 'MF Holdings' };
+    return { path: '/portfolio', label: 'Portfolio' };
+  };
+  const parent = getParentLink();
+
   return (
     <AppLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">
+                  <Home className="h-4 w-4" />
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight className="h-4 w-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to={parent.path}>{parent.label}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight className="h-4 w-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>{asset.asset_name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Header */}
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate(-1)}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-4">
               <div className={cn(
