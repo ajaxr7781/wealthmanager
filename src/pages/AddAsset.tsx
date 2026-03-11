@@ -572,7 +572,7 @@ export default function AddAsset() {
                       <Input
                         id="nav_or_price"
                         type="number"
-                        step="0.01"
+                        step="0.0001"
                         min="0"
                         value={formData.nav_or_price || ''}
                         onChange={(e) => updateForm({ nav_or_price: parseFloat(e.target.value) || 0 })}
