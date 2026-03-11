@@ -375,7 +375,7 @@ export default function HoldingsByCategory() {
                             "text-sm",
                             isProfit ? "text-positive" : "text-negative"
                           )}>
-                            {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                            {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                           </p>
                         </div>
                         <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
