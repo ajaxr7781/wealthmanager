@@ -402,7 +402,7 @@ export function formatOz(value: number): string {
  * Format quantity in grams (2 decimals)
  */
 export function formatGrams(value: number): string {
-  return `${formatNumber(value, 2)} g`;
+  return `${formatNumber(value, 4)} g`;
 }
 
 /**
