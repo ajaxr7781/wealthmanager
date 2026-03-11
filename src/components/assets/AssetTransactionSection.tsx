@@ -90,7 +90,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
     const units = parseFloat(form.units);
 
     if (amount > 0 && units > 0 && !form.nav) {
-      const calc = Math.round((amount / units) * 100) / 100;
+      const calc = Math.round((amount / units) * 10000) / 10000;
       setForm(f => ({ ...f, nav: calc.toString() }));
     }
   }, [form.amount, form.units]);
