@@ -245,7 +245,7 @@ export default function MfDashboard() {
                       </div>
                     </div>
                     <span className="text-positive font-bold">
-                      +{summary.topGainer.gainPct.toFixed(1)}%
+                      +{summary.topGainer.gainPct.toFixed(4)}%
                     </span>
                   </CardContent>
                 </Card>
