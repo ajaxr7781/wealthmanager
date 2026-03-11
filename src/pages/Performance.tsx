@@ -233,7 +233,7 @@ export default function PerformancePage() {
                 <p className="text-xs text-muted-foreground mb-1">{r.period} Return</p>
                 {r.returnPct !== null ? (
                   <p className={cn("text-2xl font-bold", r.returnPct >= 0 ? "text-positive" : "text-destructive")}>
-                    {r.returnPct >= 0 ? '+' : ''}{r.returnPct.toFixed(1)}%
+                    {r.returnPct >= 0 ? '+' : ''}{r.returnPct.toFixed(4)}%
                   </p>
                 ) : (
                   <p className="text-lg text-muted-foreground">N/A</p>
