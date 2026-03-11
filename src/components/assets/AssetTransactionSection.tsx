@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,7 @@ interface AssetTransactionSectionProps {
   assetId: string;
   currency: string;
   fmtCurrency: (v: number) => string;
+  assetType?: string;
 }
 
 const TX_TYPES = [
@@ -35,9 +36,10 @@ const TX_TYPES = [
   { value: 'INTEREST', label: 'Interest Credit' },
   { value: 'BUY', label: 'Buy' },
   { value: 'SELL', label: 'Sell' },
+  { value: 'SIP_INSTALLMENT', label: 'SIP Installment' },
 ];
 
-export function AssetTransactionSection({ assetId, currency, fmtCurrency }: AssetTransactionSectionProps) {
+export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetType }: AssetTransactionSectionProps) {
   const { data: transactions, isLoading } = useAssetTransactions(assetId);
   const createTx = useCreateAssetTransaction();
   const [open, setOpen] = useState(false);
@@ -45,35 +47,89 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency }: Asse
     transaction_type: 'DEPOSIT',
     transaction_date: new Date().toISOString().slice(0, 10),
     amount: '',
+    nav: '',
+    units: '',
     notes: '',
   });
+
+  const isSipInstallment = form.transaction_type === 'SIP_INSTALLMENT';
+
+  // Auto-calculate: amount & NAV → units; amount & units → NAV
+  useEffect(() => {
+    if (!isSipInstallment) return;
+    const amount = parseFloat(form.amount);
+    const nav = parseFloat(form.nav);
+    const units = parseFloat(form.units);
+
+    if (amount > 0 && nav > 0 && !form.units) {
+      const calc = Math.round((amount / nav) * 10000) / 10000;
+      setForm(f => ({ ...f, units: calc.toString() }));
+    }
+  }, [form.amount, form.nav]);
+
+  useEffect(() => {
+    if (!isSipInstallment) return;
+    const amount = parseFloat(form.amount);
+    const units = parseFloat(form.units);
+
+    if (amount > 0 && units > 0 && !form.nav) {
+      const calc = Math.round((amount / units) * 100) / 100;
+      setForm(f => ({ ...f, nav: calc.toString() }));
+    }
+  }, [form.amount, form.units]);
+
+  const handleFieldChange = (field: string, value: string) => {
+    if (isSipInstallment) {
+      // Clear the third field when two are being entered
+      if (field === 'amount') {
+        setForm(f => ({ ...f, amount: value, units: '' }));
+      } else if (field === 'nav') {
+        setForm(f => ({ ...f, nav: value, units: '' }));
+      } else if (field === 'units') {
+        setForm(f => ({ ...f, units: value, nav: '' }));
+      } else {
+        setForm(f => ({ ...f, [field]: value }));
+      }
+    } else {
+      setForm(f => ({ ...f, [field]: value }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = Number(form.amount);
     if (!amount || amount <= 0) return;
 
+    const quantity = isSipInstallment ? Number(form.units) || 1 : 1;
+    const pricePerUnit = isSipInstallment ? Number(form.nav) || undefined : undefined;
+
     await createTx.mutateAsync({
       asset_id: assetId,
       transaction_type: form.transaction_type,
       transaction_date: form.transaction_date,
       amount,
-      quantity: 1,
-      quantity_unit: currency,
+      quantity,
+      quantity_unit: isSipInstallment ? 'units' : currency,
+      price_per_unit: pricePerUnit,
       notes: form.notes || undefined,
     });
 
     setOpen(false);
-    setForm({ transaction_type: 'DEPOSIT', transaction_date: new Date().toISOString().slice(0, 10), amount: '', notes: '' });
+    setForm({ transaction_type: 'DEPOSIT', transaction_date: new Date().toISOString().slice(0, 10), amount: '', nav: '', units: '', notes: '' });
   };
 
-  const isCredit = (type: string) => ['DEPOSIT', 'BUY', 'INTEREST'].includes(type);
+  const isCredit = (type: string) => ['DEPOSIT', 'BUY', 'INTEREST', 'SIP_INSTALLMENT'].includes(type);
+
+  const defaultTxType = (assetType === 'sip' || assetType === 'mutual_fund') ? 'SIP_INSTALLMENT' : 'DEPOSIT';
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Transactions</CardTitle>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(v) => {
+          setOpen(v);
+          if (v) setForm(f => ({ ...f, transaction_type: defaultTxType }));
+        }}>
           <DialogTrigger asChild>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
@@ -87,7 +143,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency }: Asse
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label>Type</Label>
-                <Select value={form.transaction_type} onValueChange={(v) => setForm(f => ({ ...f, transaction_type: v }))}>
+                <Select value={form.transaction_type} onValueChange={(v) => setForm(f => ({ ...f, transaction_type: v, nav: '', units: '' }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TX_TYPES.map(t => (
@@ -109,14 +165,42 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency }: Asse
                 <Label>Amount ({currency})</Label>
                 <Input
                   type="number"
-                  placeholder="100000"
+                  placeholder="e.g. 10000"
                   value={form.amount}
-                  onChange={(e) => setForm(f => ({ ...f, amount: e.target.value }))}
+                  onChange={(e) => handleFieldChange('amount', e.target.value)}
                   min="0"
                   step="0.01"
                   required
                 />
               </div>
+              {isSipInstallment && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>NAV (₹)</Label>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 125.45"
+                      value={form.nav}
+                      onChange={(e) => handleFieldChange('nav', e.target.value)}
+                      min="0"
+                      step="0.01"
+                    />
+                    <p className="text-xs text-muted-foreground">Auto-calculates if Amount & Units given</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Units</Label>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 79.7131"
+                      value={form.units}
+                      onChange={(e) => handleFieldChange('units', e.target.value)}
+                      min="0"
+                      step="0.0001"
+                    />
+                    <p className="text-xs text-muted-foreground">Auto-calculates if Amount & NAV given</p>
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Notes (optional)</Label>
                 <Textarea
@@ -145,10 +229,12 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency }: Asse
               <div key={tx.id} className="flex justify-between items-center p-3 border rounded-lg">
                 <div>
                   <Badge variant={isCredit(tx.transaction_type) ? 'default' : 'secondary'}>
-                    {tx.transaction_type}
+                    {tx.transaction_type === 'SIP_INSTALLMENT' ? 'SIP Installment' : tx.transaction_type}
                   </Badge>
                   <p className="text-sm text-muted-foreground mt-1">
                     {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
+                    {tx.price_per_unit && <span className="ml-2">NAV: ₹{Number(tx.price_per_unit).toFixed(2)}</span>}
+                    {tx.quantity > 1 && <span className="ml-2">Units: {Number(tx.quantity).toFixed(4)}</span>}
                   </p>
                   {tx.notes && <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>}
                 </div>
