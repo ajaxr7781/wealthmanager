@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Save, ChevronRight, Home } from 'lucide-react';
+import { ArrowLeft, Save, ChevronRight, Home } from 'lucide-react';
 import { FDFormFields } from '@/components/assets/FDFormFields';
 import { calculateFDCurrentValue } from '@/lib/fdCalculations';
 import type { Currency } from '@/types/assets';

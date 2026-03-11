@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ASSET_TYPE_LABELS } from '@/types/assets';
 import { 
+  ArrowLeft,
   Pencil, 
   Trash2, 
   Coins, 
