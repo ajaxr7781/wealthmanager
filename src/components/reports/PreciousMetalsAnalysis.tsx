@@ -10,7 +10,7 @@ interface PreciousMetalsAnalysisProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 function MetalCard({ inst, totalPortfolioValue }: { inst: InstrumentSummary; totalPortfolioValue: number }) {

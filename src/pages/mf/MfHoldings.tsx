@@ -171,7 +171,7 @@ export default function MfHoldingsPage() {
                           <p className={cn("text-sm font-medium",
                             gain >= 0 ? 'text-positive' : 'text-negative'
                           )}>
-                            {gain >= 0 ? '+' : ''}{fmtINR(gain)} ({pct >= 0 ? '+' : ''}{pct.toFixed(1)}%)
+                            {gain >= 0 ? '+' : ''}{fmtINR(gain)} ({pct >= 0 ? '+' : ''}{pct.toFixed(4)}%)
                           </p>
                         </div>
                         
