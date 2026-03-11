@@ -46,7 +46,7 @@ function GoalForm({ onSubmit, onClose }: {
     <form onSubmit={e => { e.preventDefault(); onSubmit({ name, target_amount: target, target_date: date || undefined, priority, notes: notes || undefined }); onClose(); }} className="space-y-4">
       <div><Label>Goal Name</Label><Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. House Down Payment" required /></div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div><Label>Target Amount (AED)</Label><Input type="number" min={0} step="0.01" value={target || ''} onChange={e => setTarget(+e.target.value)} required /></div>
+        <div><Label>Target Amount (AED)</Label><Input type="number" min={0} step="0.0001" value={target || ''} onChange={e => setTarget(+e.target.value)} required /></div>
         <div><Label>Target Date</Label><Input type="date" value={date} onChange={e => setDate(e.target.value)} /></div>
       </div>
       <div>

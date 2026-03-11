@@ -136,7 +136,7 @@ function PaymentDialog({ liability, open, onOpenChange }: {
           <p className="text-sm text-muted-foreground">
             Current outstanding: <span className="font-semibold text-foreground">{formatCurrency(liability.outstanding)}</span>
           </p>
-          <div><Label>Payment Amount</Label><Input type="number" min={0.01} step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required autoFocus /></div>
+          <div><Label>Payment Amount</Label><Input type="number" min={0.0001} step="0.0001" value={amount} onChange={e => setAmount(e.target.value)} required autoFocus /></div>
           <div><Label>Notes (optional)</Label><Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Jan 2026 EMI" /></div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
