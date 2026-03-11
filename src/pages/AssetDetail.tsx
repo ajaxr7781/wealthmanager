@@ -261,7 +261,7 @@ export default function AssetDetail() {
                 "text-sm",
                 isProfit ? "text-positive" : "text-negative"
               )}>
-                ({isProfit ? '+' : ''}{plPercent.toFixed(2)}%)
+                ({isProfit ? '+' : ''}{plPercent.toFixed(4)}%)
               </p>
             </CardContent>
           </Card>
@@ -282,7 +282,7 @@ export default function AssetDetail() {
                   "text-2xl font-bold",
                   cagr > 12 ? "text-positive" : cagr > 6 ? "text-warning" : "text-destructive"
                 )}>
-                  {cagr >= 0 ? '+' : ''}{cagr.toFixed(1)}%
+                  {cagr >= 0 ? '+' : ''}{cagr.toFixed(4)}%
                 </p>
               ) : (
                 <p className="text-lg text-muted-foreground">—</p>

@@ -10,7 +10,7 @@ interface RealEstateReportProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 export function RealEstateReport({ assets, totalPortfolioValue }: RealEstateReportProps) {
@@ -64,16 +64,16 @@ export function RealEstateReport({ assets, totalPortfolioValue }: RealEstateRepo
                 <div>
                   <p className="text-muted-foreground">CAGR</p>
                   <p className={cn("font-medium", (cagr ?? 0) >= 0 ? "text-positive" : "text-negative")}>
-                    {cagr !== null ? `${cagr.toFixed(1)}%` : '—'}
+                    {cagr !== null ? `${cagr.toFixed(4)}%` : '—'}
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">% of Portfolio</p>
-                  <p className="font-medium">{portfolioPct.toFixed(1)}%</p>
+                  <p className="font-medium">{portfolioPct.toFixed(4)}%</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Holding Period</p>
-                  <p className="font-medium">{years.toFixed(1)} years</p>
+                  <p className="font-medium">{years.toFixed(4)} years</p>
                 </div>
                 {asset.location && (
                   <div>
@@ -99,7 +99,7 @@ export function RealEstateReport({ assets, totalPortfolioValue }: RealEstateRepo
                 <span className="text-sm text-muted-foreground">P/L</span>
                 <span className={cn("font-medium text-sm flex items-center gap-0.5", isProfit ? "text-positive" : "text-negative")}>
                   {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  {isProfit ? '+' : ''}{formatAED(pl)} ({plPct >= 0 ? '+' : ''}{plPct.toFixed(1)}%)
+                  {isProfit ? '+' : ''}{formatAED(pl)} ({plPct >= 0 ? '+' : ''}{plPct.toFixed(4)}%)
                 </span>
               </div>
             </CardContent>

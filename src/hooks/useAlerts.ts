@@ -176,7 +176,7 @@ export function useEvaluateAlerts() {
                   status: 'open',
                   severity: rule.severity,
                   title: `Overexposure: ${cat.label}`,
-                  message: `${cat.label} is ${pct.toFixed(1)}% of portfolio (threshold: ${threshold}%)`,
+                  message: `${cat.label} is ${pct.toFixed(4)}% of portfolio (threshold: ${threshold}%)`,
                   context_json: { category: cat.type, pct, threshold },
                   triggered_at: new Date().toISOString(),
                 });
@@ -199,7 +199,7 @@ export function useEvaluateAlerts() {
                   status: 'open',
                   severity: rule.severity,
                   title: `Concentration Risk: ${asset.asset_name}`,
-                  message: `${asset.asset_name} is ${pct.toFixed(1)}% of portfolio (threshold: ${threshold}%)`,
+                  message: `${asset.asset_name} is ${pct.toFixed(4)}% of portfolio (threshold: ${threshold}%)`,
                   context_json: { asset_id: asset.id, pct, threshold },
                   triggered_at: new Date().toISOString(),
                 });
@@ -276,7 +276,7 @@ export function useEvaluateAlerts() {
                   status: 'open',
                   severity: rule.severity,
                   title: `Portfolio Drawdown`,
-                  message: `Portfolio is down ${drawdownPct.toFixed(1)}% from peak (threshold: ${threshold}%)`,
+                  message: `Portfolio is down ${drawdownPct.toFixed(4)}% from peak (threshold: ${threshold}%)`,
                   context_json: { peak, current, drawdown_pct: drawdownPct },
                   triggered_at: new Date().toISOString(),
                 });

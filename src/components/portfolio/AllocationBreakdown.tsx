@@ -129,7 +129,7 @@ export function AllocationBreakdown({ overview }: AllocationBreakdownProps) {
             const Icon = (item.icon && IconMap[item.icon]) || Coins;
             const isProfit = item.profit_loss >= 0;
             const pct = overview.total_current_value > 0 
-              ? (item.value / overview.total_current_value * 100).toFixed(1) 
+              ? (item.value / overview.total_current_value * 100).toFixed(4) 
               : '0';
             
             return (

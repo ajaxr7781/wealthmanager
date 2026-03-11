@@ -10,7 +10,7 @@ interface RiskExposureProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 export function RiskExposure({ overview, assets }: RiskExposureProps) {
@@ -86,7 +86,7 @@ export function RiskExposure({ overview, assets }: RiskExposureProps) {
                 </div>
                 <div className="space-y-2 mt-4">
                   {riskData.map(d => {
-                    const pct = riskTotal > 0 ? ((d.value / riskTotal) * 100).toFixed(1) : '0';
+                    const pct = riskTotal > 0 ? ((d.value / riskTotal) * 100).toFixed(4) : '0';
                     return (
                       <div key={d.name} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
@@ -121,13 +121,13 @@ export function RiskExposure({ overview, assets }: RiskExposureProps) {
                       <Pie data={currencyData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value">
                         {currencyData.map((e, i) => <Cell key={i} fill={e.color} />)}
                       </Pie>
-                      <Tooltip formatter={(v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 0 })} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                      <Tooltip formatter={(v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 4 })} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-2 mt-4">
                   {currencyData.map(d => {
-                    const pct = currTotal > 0 ? ((d.value / currTotal) * 100).toFixed(1) : '0';
+                    const pct = currTotal > 0 ? ((d.value / currTotal) * 100).toFixed(4) : '0';
                     return (
                       <div key={d.name} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">

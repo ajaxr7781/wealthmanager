@@ -92,7 +92,7 @@ export function FDFormFields({ formData, updateForm, selectedTypeCode }: FDFormF
           <Input
             id="interest_rate"
             type="number"
-            step="0.01"
+            step="0.0001"
             min="0"
             max="100"
             value={formData.interest_rate || ''}
@@ -134,7 +134,7 @@ export function FDFormFields({ formData, updateForm, selectedTypeCode }: FDFormF
               <p className="font-medium">FD Summary</p>
               <p className="text-muted-foreground">
                 Interest earned at maturity: {currency}{' '}
-                {(formData.maturity_amount - formData.principal).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                {(formData.maturity_amount - formData.principal).toLocaleString(undefined, { maximumFractionDigits: 4 })}
               </p>
             </div>
           )}

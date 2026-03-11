@@ -103,7 +103,7 @@ export function AllocationChart({ summary }: AllocationChartProps) {
               <Legend
                 formatter={(value, entry: any) => (
                   <span className="text-foreground">
-                    {value} ({entry.payload?.percent?.toFixed(1)}%)
+                    {value} ({entry.payload?.percent?.toFixed(4)}%)
                   </span>
                 )}
               />

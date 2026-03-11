@@ -11,11 +11,11 @@ interface CashFlowReportProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 function formatINR(v: number) {
-  return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 4 })}`;
 }
 
 function getNextSipDueDateFromAsset(asset: Asset): Date | null {

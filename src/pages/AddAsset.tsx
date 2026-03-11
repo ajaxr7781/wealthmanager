@@ -387,7 +387,7 @@ export default function AddAsset() {
                   <Input
                     id="total_cost"
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     min="0"
                     placeholder="0.00"
                     value={formData.total_cost || ''}
@@ -436,7 +436,7 @@ export default function AddAsset() {
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     Price per {formData.quantity_unit}: {formData.currency}{' '}
-                    {(formData.total_cost / formData.quantity).toFixed(2)}
+                    {(formData.total_cost / formData.quantity).toFixed(4)}
                   </p>
                 </div>
               )}
@@ -472,7 +472,7 @@ export default function AddAsset() {
                     <p className="font-medium mb-1">Selected Metal: {selectedType.name}</p>
                     {metalPrices && metalPrices[formData.metal_type as 'XAU' | 'XAG'] && (
                       <p>
-                        Live Price: AED {metalPrices[formData.metal_type as 'XAU' | 'XAG']?.aed_per_gram.toFixed(2)}/g
+                        Live Price: AED {metalPrices[formData.metal_type as 'XAU' | 'XAG']?.aed_per_gram.toFixed(4)}/g
                       </p>
                     )}
                   </div>
@@ -572,7 +572,7 @@ export default function AddAsset() {
                       <Input
                         id="nav_or_price"
                         type="number"
-                        step="0.01"
+                        step="0.0001"
                         min="0"
                         value={formData.nav_or_price || ''}
                         onChange={(e) => updateForm({ nav_or_price: parseFloat(e.target.value) || 0 })}
@@ -621,7 +621,7 @@ export default function AddAsset() {
                         <Input
                           id="interest_rate"
                           type="number"
-                          step="0.01"
+                          step="0.0001"
                           min="0"
                           max="100"
                           value={formData.interest_rate || ''}

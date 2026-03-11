@@ -172,13 +172,13 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'warning',
       title: 'Low Liquid Assets',
-      message: `Only ${liquidPct.toFixed(1)}% of your portfolio is instantly accessible. Consider keeping at least 10-15% in liquid assets for short-term needs.`,
+      message: `Only ${liquidPct.toFixed(4)}% of your portfolio is instantly accessible. Consider keeping at least 10-15% in liquid assets for short-term needs.`,
     });
   } else if (liquidPct >= 10 && liquidPct <= 30) {
     insights.push({
       type: 'success',
       title: 'Healthy Liquidity',
-      message: `${liquidPct.toFixed(1)}% of your portfolio is liquid — a well-balanced position for flexibility.`,
+      message: `${liquidPct.toFixed(4)}% of your portfolio is liquid — a well-balanced position for flexibility.`,
     });
   }
 
@@ -186,7 +186,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'warning',
       title: 'High Illiquid Concentration',
-      message: `${illiquidPct.toFixed(1)}% of your portfolio is in illiquid assets. This may limit your ability to access funds quickly if needed.`,
+      message: `${illiquidPct.toFixed(4)}% of your portfolio is in illiquid assets. This may limit your ability to access funds quickly if needed.`,
     });
   }
 
@@ -194,7 +194,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'info',
       title: 'Large Semi-Liquid Allocation',
-      message: `${semiLiquidPct.toFixed(1)}% of your portfolio is in semi-liquid instruments. These can typically be redeemed in a few days but may involve penalties or delays.`,
+      message: `${semiLiquidPct.toFixed(4)}% of your portfolio is in semi-liquid instruments. These can typically be redeemed in a few days but may involve penalties or delays.`,
     });
   }
 
@@ -202,7 +202,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'info',
       title: 'High Cash Position',
-      message: `${liquidPct.toFixed(1)}% is in liquid assets. Consider deploying some into growth-oriented investments for better returns.`,
+      message: `${liquidPct.toFixed(4)}% is in liquid assets. Consider deploying some into growth-oriented investments for better returns.`,
     });
   }
 

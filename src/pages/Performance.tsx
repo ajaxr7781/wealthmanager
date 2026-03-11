@@ -233,7 +233,7 @@ export default function PerformancePage() {
                 <p className="text-xs text-muted-foreground mb-1">{r.period} Return</p>
                 {r.returnPct !== null ? (
                   <p className={cn("text-2xl font-bold", r.returnPct >= 0 ? "text-positive" : "text-destructive")}>
-                    {r.returnPct >= 0 ? '+' : ''}{r.returnPct.toFixed(1)}%
+                    {r.returnPct >= 0 ? '+' : ''}{r.returnPct.toFixed(4)}%
                   </p>
                 ) : (
                   <p className="text-lg text-muted-foreground">N/A</p>
@@ -256,7 +256,7 @@ export default function PerformancePage() {
             </CardHeader>
             <CardContent>
               <p className={cn("text-3xl font-bold", maxDrawdown > 0 ? "text-destructive" : "text-positive")}>
-                -{maxDrawdown.toFixed(1)}%
+                -{maxDrawdown.toFixed(4)}%
               </p>
               {recoveryDays !== null ? (
                 <p className="text-sm text-muted-foreground mt-1">Recovered in {recoveryDays} days</p>
@@ -280,12 +280,12 @@ export default function PerformancePage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Contributions</span>
-                    <span className="font-medium text-foreground">AED {contributionSplit.contributions.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                    <span className="font-medium text-foreground">AED {contributionSplit.contributions.toLocaleString('en-US', { maximumFractionDigits: 4 })}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Market Return</span>
                     <span className={cn("font-medium", contributionSplit.marketReturn >= 0 ? "text-positive" : "text-destructive")}>
-                      AED {contributionSplit.marketReturn.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                      AED {contributionSplit.marketReturn.toLocaleString('en-US', { maximumFractionDigits: 4 })}
                     </span>
                   </div>
                   {contributionSplit.total !== 0 && (
@@ -323,16 +323,16 @@ export default function PerformancePage() {
                       <div>
                         <p className="font-medium text-sm text-foreground">{a.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {a.category} • CAGR: <span className={cn(a.cagr > 12 ? "text-positive" : a.cagr > 6 ? "text-warning" : "text-destructive")}>{a.cagr.toFixed(1)}%</span>
+                          {a.category} • CAGR: <span className={cn(a.cagr > 12 ? "text-positive" : a.cagr > 6 ? "text-warning" : "text-destructive")}>{a.cagr.toFixed(4)}%</span>
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-positive">
                         <ArrowUpRight className="h-4 w-4" />
-                        <span className="font-bold">{a.gainPct.toFixed(1)}%</span>
+                        <span className="font-bold">{a.gainPct.toFixed(4)}%</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">AED {a.gain.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                      <p className="text-xs text-muted-foreground">AED {a.gain.toLocaleString('en-US', { maximumFractionDigits: 4 })}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -351,15 +351,15 @@ export default function PerformancePage() {
                       <span className="text-lg font-bold text-muted-foreground w-6">#{i + 1}</span>
                       <div>
                         <p className="font-medium text-sm text-foreground">{a.name}</p>
-                        <p className="text-xs text-muted-foreground">{a.category} • CAGR: {a.cagr.toFixed(1)}%</p>
+                        <p className="text-xs text-muted-foreground">{a.category} • CAGR: {a.cagr.toFixed(4)}%</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-destructive">
                         <ArrowDownRight className="h-4 w-4" />
-                        <span className="font-bold">{a.gainPct.toFixed(1)}%</span>
+                        <span className="font-bold">{a.gainPct.toFixed(4)}%</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">AED {a.gain.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                      <p className="text-xs text-muted-foreground">AED {a.gain.toLocaleString('en-US', { maximumFractionDigits: 4 })}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -378,7 +378,7 @@ export default function PerformancePage() {
                       <XAxis type="number" tickFormatter={(v) => `${v.toFixed(0)}%`} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                       <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={12} width={75} />
                       <RTooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8 }}
-                        formatter={(value: number) => [`${value.toFixed(1)}%`, 'Return']} />
+                        formatter={(value: number) => [`${value.toFixed(4)}%`, 'Return']} />
                       <Bar dataKey="gainPct" radius={[0, 4, 4, 0]}>
                         {categoryHeatmap.map((entry, i) => (
                           <Cell key={i} fill={entry.gainPct >= 0 ? 'hsl(var(--positive))' : 'hsl(var(--destructive))'} />
@@ -427,7 +427,7 @@ export default function PerformancePage() {
                                 <td key={m} className="p-1 text-center">
                                   {val !== undefined ? (
                                     <span className={cn("inline-block px-2 py-1 rounded text-[10px] font-medium", getHeatColor(val))}>
-                                      {val >= 0 ? '+' : ''}{val.toFixed(1)}%
+                                      {val >= 0 ? '+' : ''}{val.toFixed(4)}%
                                     </span>
                                   ) : (
                                     <span className="text-muted-foreground">—</span>

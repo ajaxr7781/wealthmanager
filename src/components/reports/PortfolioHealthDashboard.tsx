@@ -22,7 +22,7 @@ const DONUT_COLORS = [
 ];
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 function getPerformanceStatus(returnPct: number) {
@@ -82,7 +82,7 @@ export function PortfolioHealthDashboard({ overview, preciousMetalsSummary, asse
           <CardContent>
             <div className={cn("text-2xl font-bold", isProfit ? "text-positive" : "text-negative")}>
               {isProfit ? '+' : ''}{formatAED(totalPL)}
-              <span className="text-sm ml-1">({totalPLPct >= 0 ? '+' : ''}{totalPLPct.toFixed(1)}%)</span>
+              <span className="text-sm ml-1">({totalPLPct >= 0 ? '+' : ''}{totalPLPct.toFixed(4)}%)</span>
             </div>
           </CardContent>
         </Card>

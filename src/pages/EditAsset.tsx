@@ -183,7 +183,7 @@ export default function EditAsset() {
                   <Input
                     id="total_cost"
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     min="0"
                     value={formData.total_cost || ''}
                     onChange={(e) => updateForm({ total_cost: parseFloat(e.target.value) || 0 })}
@@ -315,7 +315,7 @@ export default function EditAsset() {
                     <Input
                       id="nav_or_price"
                       type="number"
-                      step="0.01"
+                      step="0.0001"
                       min="0"
                       value={formData.nav_or_price || ''}
                       onChange={(e) => {

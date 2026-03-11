@@ -292,7 +292,7 @@ export default function HoldingsByCategory() {
                   totalPL >= 0 ? "text-positive" : "text-negative"
                 )}>
                   {totalPL >= 0 ? '+' : ''}{fmtAed(totalPL)}
-                  <span className="text-sm ml-2">({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(1)}%)</span>
+                  <span className="text-sm ml-2">({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(4)}%)</span>
                 </p>
               </CardContent>
             </Card>
@@ -311,7 +311,7 @@ export default function HoldingsByCategory() {
                   <p className={cn("text-2xl font-bold",
                     categoryCagr > 12 ? "text-positive" : categoryCagr > 6 ? "text-warning" : "text-destructive"
                   )}>
-                    {categoryCagr >= 0 ? '+' : ''}{categoryCagr.toFixed(1)}%
+                    {categoryCagr >= 0 ? '+' : ''}{categoryCagr.toFixed(4)}%
                   </p>
                 ) : (
                   <p className="text-lg text-muted-foreground">—</p>
@@ -375,7 +375,7 @@ export default function HoldingsByCategory() {
                             "text-sm",
                             isProfit ? "text-positive" : "text-negative"
                           )}>
-                            {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                            {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                           </p>
                         </div>
                         <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -479,7 +479,7 @@ export default function HoldingsByCategory() {
                       {/* Return */}
                       <div className="hidden sm:block text-right">
                         <p className={cn("text-sm font-medium", isProfit ? "text-positive" : "text-negative")}>
-                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                         </p>
                         <p className={cn("text-[11px]", isProfit ? "text-positive/70" : "text-negative/70")}>
                           {isProfit ? '+' : ''}{fmtAed(pl)}
@@ -490,7 +490,7 @@ export default function HoldingsByCategory() {
                       <div className="flex items-center justify-between sm:hidden">
                         <span className="text-sm font-medium">{fmtAed(currentValueAed)}</span>
                         <span className={cn("text-sm", isProfit ? "text-positive" : "text-negative")}>
-                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                         </span>
                       </div>
 

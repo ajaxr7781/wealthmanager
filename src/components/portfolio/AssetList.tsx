@@ -69,10 +69,10 @@ export function AssetList({ assets }: AssetListProps) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const formatAED = (v: number) =>
-    new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+    new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(v);
 
   const formatINR = (v: number) =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(v);
 
   const getLivePreciousMetalValueAED = (a: Asset): number | null => {
     if (a.asset_type !== 'precious_metals' || !a.metal_type || !a.quantity) return null;
@@ -271,7 +271,7 @@ export function AssetList({ assets }: AssetListProps) {
                   <div className="text-right">
                     <p className="font-medium text-sm">{formatINR(mfCurrentValue)}</p>
                     <p className={cn("text-xs", mfPL >= 0 ? "text-positive" : "text-negative")}>
-                      {mfPL >= 0 ? '+' : ''}{mfPLPct.toFixed(1)}%
+                      {mfPL >= 0 ? '+' : ''}{mfPLPct.toFixed(4)}%
                     </p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
@@ -372,7 +372,7 @@ export function AssetList({ assets }: AssetListProps) {
                 {/* Return */}
                 <div className="hidden sm:block text-right">
                   <p className={cn("text-sm font-medium", isProfit ? "text-positive" : "text-negative")}>
-                    {isProfit ? '+' : ''}{pct.toFixed(1)}%
+                    {isProfit ? '+' : ''}{pct.toFixed(4)}%
                   </p>
                   <p className={cn("text-[11px]", isProfit ? "text-positive/70" : "text-negative/70")}>
                     {isProfit ? '+' : ''}{formatAED(pl)}
@@ -383,7 +383,7 @@ export function AssetList({ assets }: AssetListProps) {
                 <div className="flex items-center justify-between sm:hidden">
                   <span className="text-sm font-medium">{formatAED(valueAED)}</span>
                   <span className={cn("text-sm", isProfit ? "text-positive" : "text-negative")}>
-                    {isProfit ? '+' : ''}{pct.toFixed(1)}%
+                    {isProfit ? '+' : ''}{pct.toFixed(4)}%
                   </span>
                 </div>
 

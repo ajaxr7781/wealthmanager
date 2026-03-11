@@ -131,7 +131,7 @@ export default function AddMfHolding() {
                   <Input
                     id="invested_amount"
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     min="0"
                     value={formData.invested_amount}
                     onChange={(e) => setFormData(prev => ({ ...prev, invested_amount: e.target.value }))}
@@ -160,7 +160,7 @@ export default function AddMfHolding() {
                   <CardContent className="py-3">
                     <p className="text-sm">
                       <strong>Estimated Current Value:</strong>{' '}
-                      ₹{(selectedScheme.latest_nav * parseFloat(formData.units_held || '0')).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                      ₹{(selectedScheme.latest_nav * parseFloat(formData.units_held || '0')).toLocaleString('en-IN', { maximumFractionDigits: 4 })}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Based on NAV of ₹{selectedScheme.latest_nav} as of {selectedScheme.latest_nav_date}

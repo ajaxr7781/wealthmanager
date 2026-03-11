@@ -90,7 +90,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
     const units = parseFloat(form.units);
 
     if (amount > 0 && units > 0 && !form.nav) {
-      const calc = Math.round((amount / units) * 100) / 100;
+      const calc = Math.round((amount / units) * 10000) / 10000;
       setForm(f => ({ ...f, nav: calc.toString() }));
     }
   }, [form.amount, form.units]);
@@ -139,14 +139,14 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
     const newCurrentValue = nav > 0 ? newUnits * nav : newQty > 0 ? Number(asset.current_value) || 0 : 0;
 
     const updateData: Record<string, number> = {
-      total_cost: Math.round(newCost * 100) / 100,
+      total_cost: Math.round(newCost * 10000) / 10000,
       quantity: Math.round(newQty * 10000) / 10000,
       units_held: Math.round(newUnits * 10000) / 10000,
-      current_value: Math.round(newCurrentValue * 100) / 100,
+      current_value: Math.round(newCurrentValue * 10000) / 10000,
     };
 
     if (txNav && txNav > 0) {
-      updateData.nav_or_price = Math.round(txNav * 100) / 100;
+      updateData.nav_or_price = Math.round(txNav * 10000) / 10000;
     }
 
     await supabase.from('assets').update(updateData).eq('id', assetId);
@@ -249,7 +249,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                   value={form.amount}
                   onChange={(e) => handleFieldChange('amount', e.target.value)}
                   min="0"
-                  step="0.01"
+                  step="0.0001"
                   required
                 />
               </div>
@@ -263,7 +263,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                       value={form.nav}
                       onChange={(e) => handleFieldChange('nav', e.target.value)}
                       min="0"
-                      step="0.01"
+                      step="0.0001"
                     />
                     <p className="text-xs text-muted-foreground">Auto-calculates if Amount & Units given</p>
                   </div>
@@ -313,7 +313,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                   </Badge>
                   <p className="text-sm text-muted-foreground mt-1">
                     {format(new Date(tx.transaction_date), 'dd MMM yyyy')}
-                    {tx.price_per_unit && <span className="ml-2">NAV: ₹{Number(tx.price_per_unit).toFixed(2)}</span>}
+                    {tx.price_per_unit && <span className="ml-2">NAV: ₹{Number(tx.price_per_unit).toFixed(4)}</span>}
                     {tx.quantity > 1 && <span className="ml-2">Units: {Number(tx.quantity).toFixed(4)}</span>}
                   </p>
                   {tx.notes && <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>}

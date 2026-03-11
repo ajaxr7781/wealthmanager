@@ -67,15 +67,15 @@ export function ReportExports({ assets, transactions, overview }: ReportExportsP
       `Generated: ${format(new Date(), 'yyyy-MM-dd HH:mm')}`,
       '',
       'Metric,Value (AED)',
-      `Total Invested,${overview.total_invested.toFixed(2)}`,
-      `Current Value,${overview.total_current_value.toFixed(2)}`,
-      `Total P/L,${overview.total_profit_loss.toFixed(2)}`,
-      `Total P/L %,${overview.total_profit_loss_percent.toFixed(2)}%`,
+      `Total Invested,${overview.total_invested.toFixed(4)}`,
+      `Current Value,${overview.total_current_value.toFixed(4)}`,
+      `Total P/L,${overview.total_profit_loss.toFixed(4)}`,
+      `Total P/L %,${overview.total_profit_loss_percent.toFixed(4)}%`,
       '',
       'Category Breakdown',
       'Category,Invested,Current Value,P/L,Count',
       ...overview.assets_by_type.map(a =>
-        `${escapeCSV(a.label)},${a.total_invested.toFixed(2)},${a.current_value.toFixed(2)},${a.profit_loss.toFixed(2)},${a.count}`
+        `${escapeCSV(a.label)},${a.total_invested.toFixed(4)},${a.current_value.toFixed(4)},${a.profit_loss.toFixed(4)},${a.count}`
       ),
     ];
     downloadCSV(lines.join('\n'), `portfolio-summary-${format(new Date(), 'yyyy-MM-dd')}.csv`);

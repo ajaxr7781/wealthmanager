@@ -35,7 +35,7 @@ export default function MfHoldingsPage() {
     refreshNav.mutate(undefined);
   };
 
-  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 4 }).format(v);
 
   if (isLoading) {
     return (
@@ -113,7 +113,7 @@ export default function MfHoldingsPage() {
               <p className={cn("text-2xl font-bold",
                 returnPct >= 0 ? 'text-positive' : 'text-negative'
               )}>
-                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
+                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(4)}%
               </p>
             </CardContent>
           </Card>
@@ -171,7 +171,7 @@ export default function MfHoldingsPage() {
                           <p className={cn("text-sm font-medium",
                             gain >= 0 ? 'text-positive' : 'text-negative'
                           )}>
-                            {gain >= 0 ? '+' : ''}{fmtINR(gain)} ({pct >= 0 ? '+' : ''}{pct.toFixed(1)}%)
+                            {gain >= 0 ? '+' : ''}{fmtINR(gain)} ({pct >= 0 ? '+' : ''}{pct.toFixed(4)}%)
                           </p>
                         </div>
                         
