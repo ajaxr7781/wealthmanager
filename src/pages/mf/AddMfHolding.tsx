@@ -131,7 +131,7 @@ export default function AddMfHolding() {
                   <Input
                     id="invested_amount"
                     type="number"
-                    step="0.01"
+                    step="0.0001"
                     min="0"
                     value={formData.invested_amount}
                     onChange={(e) => setFormData(prev => ({ ...prev, invested_amount: e.target.value }))}
