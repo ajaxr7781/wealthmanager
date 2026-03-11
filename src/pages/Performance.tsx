@@ -351,7 +351,7 @@ export default function PerformancePage() {
                       <span className="text-lg font-bold text-muted-foreground w-6">#{i + 1}</span>
                       <div>
                         <p className="font-medium text-sm text-foreground">{a.name}</p>
-                        <p className="text-xs text-muted-foreground">{a.category} • CAGR: {a.cagr.toFixed(1)}%</p>
+                        <p className="text-xs text-muted-foreground">{a.category} • CAGR: {a.cagr.toFixed(4)}%</p>
                       </div>
                     </div>
                     <div className="text-right">
