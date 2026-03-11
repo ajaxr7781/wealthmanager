@@ -139,14 +139,14 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
     const newCurrentValue = nav > 0 ? newUnits * nav : newQty > 0 ? Number(asset.current_value) || 0 : 0;
 
     const updateData: Record<string, number> = {
-      total_cost: Math.round(newCost * 100) / 100,
+      total_cost: Math.round(newCost * 10000) / 10000,
       quantity: Math.round(newQty * 10000) / 10000,
       units_held: Math.round(newUnits * 10000) / 10000,
-      current_value: Math.round(newCurrentValue * 100) / 100,
+      current_value: Math.round(newCurrentValue * 10000) / 10000,
     };
 
     if (txNav && txNav > 0) {
-      updateData.nav_or_price = Math.round(txNav * 100) / 100;
+      updateData.nav_or_price = Math.round(txNav * 10000) / 10000;
     }
 
     await supabase.from('assets').update(updateData).eq('id', assetId);
