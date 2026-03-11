@@ -427,7 +427,7 @@ export default function PerformancePage() {
                                 <td key={m} className="p-1 text-center">
                                   {val !== undefined ? (
                                     <span className={cn("inline-block px-2 py-1 rounded text-[10px] font-medium", getHeatColor(val))}>
-                                      {val >= 0 ? '+' : ''}{val.toFixed(1)}%
+                                      {val >= 0 ? '+' : ''}{val.toFixed(4)}%
                                     </span>
                                   ) : (
                                     <span className="text-muted-foreground">—</span>
