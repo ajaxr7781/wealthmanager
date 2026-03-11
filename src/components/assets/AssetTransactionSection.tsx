@@ -43,6 +43,13 @@ interface AssetTransactionSectionProps {
   currency: string;
   fmtCurrency: (v: number) => string;
   assetType?: string;
+  sipAmount?: number;
+  sipDayOfMonth?: number;
+  sipStartDate?: string;
+  sipEndDate?: string | null;
+  sipStatus?: string | null;
+  totalCost?: number;
+  unitsHeld?: number | null;
 }
 
 const TX_TYPES = [
