@@ -21,7 +21,7 @@ const COLORS = [
 ];
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 function AllocationPieCard({ title, data, total }: { title: string; data: { name: string; value: number; color: string }[]; total: number }) {

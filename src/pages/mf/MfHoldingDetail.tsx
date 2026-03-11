@@ -62,7 +62,7 @@ export default function MfHoldingDetail() {
     navigate('/holdings');
   };
 
-  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 4 }).format(v);
 
   if (isLoading) {
     return (
