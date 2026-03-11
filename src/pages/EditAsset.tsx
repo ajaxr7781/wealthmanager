@@ -50,6 +50,13 @@ export default function EditAsset() {
         broker_platform: asset.broker_platform,
         nav_or_price: asset.nav_or_price,
         sip_frequency: asset.sip_frequency,
+        sip_amount: asset.sip_amount,
+        sip_day_of_month: asset.sip_day_of_month,
+        sip_start_date: asset.sip_start_date,
+        sip_end_date: asset.sip_end_date,
+        sip_status: asset.sip_status,
+        folio_no: asset.folio_no,
+        units_held: asset.units_held,
         notes: asset.notes,
         metal_type: asset.metal_type,
       });
