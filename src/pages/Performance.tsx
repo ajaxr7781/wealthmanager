@@ -323,7 +323,7 @@ export default function PerformancePage() {
                       <div>
                         <p className="font-medium text-sm text-foreground">{a.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {a.category} • CAGR: <span className={cn(a.cagr > 12 ? "text-positive" : a.cagr > 6 ? "text-warning" : "text-destructive")}>{a.cagr.toFixed(1)}%</span>
+                          {a.category} • CAGR: <span className={cn(a.cagr > 12 ? "text-positive" : a.cagr > 6 ? "text-warning" : "text-destructive")}>{a.cagr.toFixed(4)}%</span>
                         </p>
                       </div>
                     </div>
