@@ -10,7 +10,7 @@ interface RiskExposureProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 export function RiskExposure({ overview, assets }: RiskExposureProps) {
