@@ -179,7 +179,7 @@ export default function SipListPage() {
               const status = sip.sip_status || 'ACTIVE';
               
               return (
-                <Card key={sip.id} className="hover:shadow-md transition-shadow">
+                <Card key={sip.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/asset/${sip.id}`)}>
                   <CardContent className="py-4">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="space-y-1 flex-1">
