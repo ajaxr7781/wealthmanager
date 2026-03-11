@@ -72,9 +72,17 @@ export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: asset, isLoading } = useAsset(id);
+  const { data: transactions } = useAssetTransactions(id);
   const deleteAsset = useDeleteAsset();
   const [learnOpen, setLearnOpen] = useState(false);
   const { convert, format: fmtCurrency } = useCurrency();
+
+  const isSipOrMf = asset?.asset_type === 'sip' || asset?.asset_type === 'mutual_fund';
+  const xirrCurrentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
+  const computedXirr = useComputedXirr(isSipOrMf ? transactions : undefined, isSipOrMf ? xirrCurrentValue : undefined);
+  const saveXirr = useSaveXirr();
+  const storedXirr = asset?.xirr_value != null ? Number(asset.xirr_value) : null;
+  const xirrChanged = computedXirr !== null && (storedXirr === null || Math.abs(computedXirr - storedXirr) > 0.0001);
 
   const handleDelete = async () => {
     if (!id) return;
