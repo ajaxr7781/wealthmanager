@@ -10,7 +10,7 @@ interface PreciousMetalsAnalysisProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 }
 
 function MetalCard({ inst, totalPortfolioValue }: { inst: InstrumentSummary; totalPortfolioValue: number }) {
@@ -62,7 +62,7 @@ function MetalCard({ inst, totalPortfolioValue }: { inst: InstrumentSummary; tot
             <p className="font-medium">
               {inst.current_value_aed !== null ? formatAED(inst.current_value_aed) : '—'}
             </p>
-            <p className="text-xs text-muted-foreground">{allocationPct.toFixed(4)}% of portfolio</p>
+            <p className="text-xs text-muted-foreground">{allocationPct.toFixed(1)}% of portfolio</p>
           </div>
         </div>
 
@@ -74,7 +74,7 @@ function MetalCard({ inst, totalPortfolioValue }: { inst: InstrumentSummary; tot
               {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
               {inst.unrealized_pl_aed !== null ? formatAED(inst.unrealized_pl_aed) : '—'}
               {inst.unrealized_pl_pct !== null && (
-                <span className="ml-1">({inst.unrealized_pl_pct >= 0 ? '+' : ''}{inst.unrealized_pl_pct.toFixed(4)}%)</span>
+                <span className="ml-1">({inst.unrealized_pl_pct >= 0 ? '+' : ''}{inst.unrealized_pl_pct.toFixed(1)}%)</span>
               )}
             </span>
           </div>

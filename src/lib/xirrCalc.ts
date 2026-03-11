@@ -67,5 +67,5 @@ export function calculateCAGR(
  */
 export function formatRate(rate: number | null): string {
   if (rate === null) return '—';
-  return `${(rate * 100).toFixed(4)}%`;
+  return `${(rate * 100).toFixed(2)}%`;
 }

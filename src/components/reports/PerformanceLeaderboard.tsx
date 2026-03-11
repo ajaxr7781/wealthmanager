@@ -46,9 +46,9 @@ function rankAssets(assets: Asset[], convertToAed: (v: number, cur: string) => n
 function exportLeaderboardCSV(ranked: RankedAsset[], symbol: string) {
   const headers = ['Rank', 'Asset Name', `Invested (${symbol})`, `Current Value (${symbol})`, `Gain (${symbol})`, 'Return %', 'CAGR %', 'Purchase Date'];
   const rows = ranked.map(a => [
-    a.rank, a.name, a.investedAed.toFixed(4), a.currentValueAed.toFixed(4),
-    a.absoluteGain.toFixed(4), a.returnPct.toFixed(4),
-    a.cagr !== null ? a.cagr.toFixed(4) : 'N/A', a.purchaseDate
+    a.rank, a.name, a.investedAed.toFixed(2), a.currentValueAed.toFixed(2),
+    a.absoluteGain.toFixed(2), a.returnPct.toFixed(2),
+    a.cagr !== null ? a.cagr.toFixed(2) : 'N/A', a.purchaseDate
   ]);
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -105,13 +105,13 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
                           {format(new Date(a.purchaseDate), 'MMM yyyy')}
-                          {a.cagr !== null && <span>· CAGR {a.cagr.toFixed(4)}%</span>}
+                          {a.cagr !== null && <span>· CAGR {a.cagr.toFixed(1)}%</span>}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-positive flex items-center gap-0.5 justify-end">
-                        <ArrowUpRight className="h-3 w-3" />+{a.returnPct.toFixed(4)}%
+                        <ArrowUpRight className="h-3 w-3" />+{a.returnPct.toFixed(1)}%
                       </p>
                       <p className="text-xs text-muted-foreground">+{fmt(a.absoluteGain)}</p>
                     </div>
@@ -144,13 +144,13 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="h-3 w-3" />
                           {format(new Date(a.purchaseDate), 'MMM yyyy')}
-                          {a.cagr !== null && <span>· CAGR {a.cagr.toFixed(4)}%</span>}
+                          {a.cagr !== null && <span>· CAGR {a.cagr.toFixed(1)}%</span>}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-negative flex items-center gap-0.5 justify-end">
-                        <ArrowDownRight className="h-3 w-3" />{a.returnPct.toFixed(4)}%
+                        <ArrowDownRight className="h-3 w-3" />{a.returnPct.toFixed(1)}%
                       </p>
                       <p className="text-xs text-muted-foreground">{fmt(a.absoluteGain)}</p>
                     </div>
@@ -196,9 +196,9 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                         {isProfit ? '+' : ''}{fmt(a.absoluteGain)}
                       </td>
                       <td className={cn("text-right py-2 px-3 font-medium", isProfit ? "text-positive" : "text-negative")}>
-                        {isProfit ? '+' : ''}{a.returnPct.toFixed(4)}%
+                        {isProfit ? '+' : ''}{a.returnPct.toFixed(1)}%
                       </td>
-                      <td className="text-right py-2 px-3">{a.cagr !== null ? `${a.cagr.toFixed(4)}%` : '—'}</td>
+                      <td className="text-right py-2 px-3">{a.cagr !== null ? `${a.cagr.toFixed(1)}%` : '—'}</td>
                     </tr>
                   );
                 })}

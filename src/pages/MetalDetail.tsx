@@ -248,7 +248,7 @@ export default function MetalDetail() {
             <CardContent>
               <p className={cn("text-xl sm:text-2xl font-bold", totals.pl >= 0 ? "text-positive" : "text-negative")}>
                 {totals.pl >= 0 ? '+' : ''}{fmtAed(totals.pl)}
-                <span className="text-sm ml-2">({totals.plPct >= 0 ? '+' : ''}{totals.plPct.toFixed(4)}%)</span>
+                <span className="text-sm ml-2">({totals.plPct >= 0 ? '+' : ''}{totals.plPct.toFixed(1)}%)</span>
               </p>
             </CardContent>
           </Card>
@@ -267,7 +267,7 @@ export default function MetalDetail() {
                 <p className={cn("text-xl sm:text-2xl font-bold",
                   totals.cagr > 12 ? "text-positive" : totals.cagr > 6 ? "text-warning" : "text-destructive"
                 )}>
-                  {totals.cagr >= 0 ? '+' : ''}{totals.cagr.toFixed(4)}%
+                  {totals.cagr >= 0 ? '+' : ''}{totals.cagr.toFixed(1)}%
                 </p>
               ) : (
                 <p className="text-lg text-muted-foreground">—</p>
@@ -329,7 +329,7 @@ export default function MetalDetail() {
                           <TableCell className="text-right">{fmtAed(invested)}</TableCell>
                           <TableCell className="text-right">{fmtAed(currentValue)}</TableCell>
                           <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
-                            {pl >= 0 ? '+' : ''}{plPct.toFixed(4)}%
+                            {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
                           </TableCell>
                         </TableRow>
                       );
@@ -382,7 +382,7 @@ export default function MetalDetail() {
                             <TableCell className="text-right">{fmtAed(invested)}</TableCell>
                             <TableCell className="text-right">{fmtAed(value)}</TableCell>
                             <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
-                              {pl >= 0 ? '+' : ''}{plPct.toFixed(4)}%
+                              {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
                             </TableCell>
                             <TableCell>
                               <Link to={`/asset/${asset.id}`}>

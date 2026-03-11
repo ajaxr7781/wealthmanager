@@ -227,7 +227,7 @@ export default function Holdings() {
                           isProfit ? "text-positive" : "text-negative"
                         )}>
                           {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                          {isProfit ? '+' : ''}{plPercent.toFixed(4)}%
+                          {isProfit ? '+' : ''}{plPercent.toFixed(1)}%
                         </span>
                       </div>
                     </CardContent>

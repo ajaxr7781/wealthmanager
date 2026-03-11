@@ -95,7 +95,7 @@ export function FDMaturityAlerts() {
           </div>
           <div className="text-right">
             <p className="text-lg font-semibold text-positive">
-              AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 4 })}
+              AED {totalMaturityValueAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
             </p>
             <p className="text-xs text-muted-foreground">
               {upcomingMaturities.length} FD{upcomingMaturities.length !== 1 ? 's' : ''} in next {filterDays} days
@@ -132,15 +132,15 @@ export function FDMaturityAlerts() {
                     {fd.currency === 'INR' ? (
                       <>
                         <p className="text-xs font-medium text-positive">
-                          ₹{Number(fd.maturity_amount).toLocaleString('en-IN', { maximumFractionDigits: 4 })}
+                          ₹{Number(fd.maturity_amount).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          ≈ AED {fd.maturityAmountAed.toLocaleString('en-US', { maximumFractionDigits: 4 })}
+                          ≈ AED {fd.maturityAmountAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                         </p>
                       </>
                     ) : (
                       <p className="text-xs font-medium text-positive">
-                        AED {Number(fd.maturity_amount).toLocaleString('en-US', { maximumFractionDigits: 4 })}
+                        AED {Number(fd.maturity_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
                       </p>
                     )}
                   </div>

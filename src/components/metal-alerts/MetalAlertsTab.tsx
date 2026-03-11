@@ -189,7 +189,7 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
             <div>
               <p className="text-xs text-muted-foreground">P/L</p>
               <p className={cn("text-sm font-semibold", totals.pl >= 0 ? "text-positive" : "text-negative")}>
-                {totals.pl >= 0 ? '+' : ''}{formatAed(totals.pl, { decimals: 4 })} ({totals.plPct >= 0 ? '+' : ''}{totals.plPct.toFixed(4)}%)
+                {totals.pl >= 0 ? '+' : ''}{formatAed(totals.pl, { decimals: 0 })} ({totals.plPct >= 0 ? '+' : ''}{totals.plPct.toFixed(1)}%)
               </p>
             </div>
             <div>

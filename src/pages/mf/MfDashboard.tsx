@@ -27,7 +27,7 @@ const CHART_COLORS = [
 ];
 
 const fmtINR = (v: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 4 }).format(v);
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
 
 interface HoldingCalc {
   id: string;
@@ -216,7 +216,7 @@ export default function MfDashboard() {
                 value={fmtINR(Math.abs(summary.totalGain))}
                 valueClass={summary.totalGain >= 0 ? 'text-positive' : 'text-negative'}
                 prefix={summary.totalGain >= 0 ? '+' : '-'}
-                suffix={` (${summary.returnPct >= 0 ? '+' : ''}${summary.returnPct.toFixed(4)}%)`}
+                suffix={` (${summary.returnPct >= 0 ? '+' : ''}${summary.returnPct.toFixed(1)}%)`}
                 icon={summary.totalGain >= 0 
                   ? <TrendingUp className="h-5 w-5 text-positive" /> 
                   : <TrendingDown className="h-5 w-5 text-negative" />
@@ -245,7 +245,7 @@ export default function MfDashboard() {
                       </div>
                     </div>
                     <span className="text-positive font-bold">
-                      +{summary.topGainer.gainPct.toFixed(4)}%
+                      +{summary.topGainer.gainPct.toFixed(1)}%
                     </span>
                   </CardContent>
                 </Card>
@@ -263,7 +263,7 @@ export default function MfDashboard() {
                       </div>
                     </div>
                     <span className="text-negative font-bold">
-                      {summary.worstPerformer.gainPct.toFixed(4)}%
+                      {summary.worstPerformer.gainPct.toFixed(1)}%
                     </span>
                   </CardContent>
                 </Card>
@@ -305,7 +305,7 @@ export default function MfDashboard() {
                       <div className="flex-1 space-y-1.5 text-sm">
                         {allocationByFundHouse.map((item, i) => {
                           const total = allocationByFundHouse.reduce((s, x) => s + x.value, 0);
-                          const pct = total > 0 ? (item.value / total * 100).toFixed(4) : '0';
+                          const pct = total > 0 ? (item.value / total * 100).toFixed(1) : '0';
                           return (
                             <div key={item.name} className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -400,7 +400,7 @@ export default function MfDashboard() {
                           <div className="text-right">
                             <p className="text-sm font-medium">{fmtINR(sip.value)}</p>
                             <p className={cn("text-xs", sip.gain >= 0 ? 'text-positive' : 'text-negative')}>
-                              {sip.gain >= 0 ? '+' : ''}{sip.gainPct.toFixed(4)}%
+                              {sip.gain >= 0 ? '+' : ''}{sip.gainPct.toFixed(1)}%
                             </p>
                           </div>
                         </div>
@@ -466,7 +466,7 @@ function PerformanceList({ title, items, positive }: { title: string; items: Hol
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground">{fmtINR(item.value)}</span>
                   <Badge variant="outline" className={cn("text-xs min-w-[60px] justify-center", positive ? 'text-positive border-positive/30' : 'text-negative border-negative/30')}>
-                    {item.gainPct >= 0 ? '+' : ''}{item.gainPct.toFixed(4)}%
+                    {item.gainPct >= 0 ? '+' : ''}{item.gainPct.toFixed(1)}%
                   </Badge>
                 </div>
               </Link>

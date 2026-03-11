@@ -21,7 +21,7 @@ const COLORS = [
 ];
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
 function AllocationPieCard({ title, data, total }: { title: string; data: { name: string; value: number; color: string }[]; total: number }) {
@@ -56,7 +56,7 @@ function AllocationPieCard({ title, data, total }: { title: string; data: { name
             </div>
             <div className="space-y-2 mt-3">
               {filtered.map(d => {
-                const pct = total > 0 ? ((d.value / total) * 100).toFixed(4) : '0';
+                const pct = total > 0 ? ((d.value / total) * 100).toFixed(1) : '0';
                 return (
                   <div key={d.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
@@ -165,10 +165,10 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
                       <td className={cn("text-right py-2 px-3", isProfit ? "text-positive" : "text-negative")}>
                         <span className="inline-flex items-center gap-0.5">
                           {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                          {isProfit ? '+' : ''}{plPct.toFixed(4)}%
+                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
                         </span>
                       </td>
-                      <td className="text-right py-2 px-3">{pct.toFixed(4)}%</td>
+                      <td className="text-right py-2 px-3">{pct.toFixed(1)}%</td>
                       <td className="text-center py-2 px-3">
                         {isConcentrated && (
                           <Badge variant="outline" className="text-warning border-warning/50">

@@ -375,7 +375,7 @@ export function calculatePortfolioSummary(
 /**
  * Format number with specified decimals
  */
-export function formatNumber(value: number, decimals: number = 4): string {
+export function formatNumber(value: number, decimals: number = 2): string {
   return value.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -387,7 +387,7 @@ export function formatNumber(value: number, decimals: number = 4): string {
  */
 export function formatCurrency(value: number | null, showSymbol: boolean = true): string {
   if (value === null) return '—';
-  const formatted = formatNumber(value, 4);
+  const formatted = formatNumber(value, 2);
   return showSymbol ? `AED ${formatted}` : formatted;
 }
 
@@ -402,7 +402,7 @@ export function formatOz(value: number): string {
  * Format quantity in grams (2 decimals)
  */
 export function formatGrams(value: number): string {
-  return `${formatNumber(value, 4)} g`;
+  return `${formatNumber(value, 2)} g`;
 }
 
 /**
@@ -411,7 +411,7 @@ export function formatGrams(value: number): string {
 export function formatPercent(value: number | null): string {
   if (value === null) return '—';
   const sign = value >= 0 ? '+' : '';
-  return `${sign}${formatNumber(value, 4)}%`;
+  return `${sign}${formatNumber(value, 2)}%`;
 }
 
 /**

@@ -31,7 +31,7 @@ export function PortfolioSummaryCards({ overview }: PortfolioSummaryCardsProps) 
 
   const formatPercent = (value: number) => {
     const sign = value >= 0 ? '+' : '';
-    return `${sign}${value.toFixed(4)}%`;
+    return `${sign}${value.toFixed(2)}%`;
   };
 
   const cards = [

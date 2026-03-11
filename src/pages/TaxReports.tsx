@@ -33,7 +33,7 @@ import {
 import { format, parseISO } from 'date-fns';
 
 const fmtINR = (v: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 4 }).format(v);
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
 
 export default function TaxReports() {
   const [fy, setFy] = useState(getCurrentFY());

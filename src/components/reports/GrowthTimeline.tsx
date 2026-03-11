@@ -11,7 +11,7 @@ interface GrowthTimelineProps {
 }
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
 export function GrowthTimeline({ assets, overview }: GrowthTimelineProps) {

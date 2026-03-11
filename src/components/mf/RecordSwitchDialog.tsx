@@ -402,7 +402,7 @@ export function RecordSwitchDialog({ mfAssets, preselectedSourceId, trigger }: R
                   value={switchAmount}
                   onChange={e => setSwitchAmount(e.target.value)}
                   min="0"
-                  step="0.0001"
+                  step="0.01"
                 />
                 {computedAmount > 0 && !switchAmount && (
                   <p className="text-xs text-muted-foreground">≈ {fmtINR(computedAmount)}</p>

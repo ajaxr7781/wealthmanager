@@ -34,7 +34,7 @@ export function GainLossBreakdown({ invested, currentValue, fmtINR }: GainLossBr
                 row.value > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />
               )}
               {row.isPct
-                ? `${row.value >= 0 ? '+' : ''}${row.value.toFixed(4)}%`
+                ? `${row.value >= 0 ? '+' : ''}${row.value.toFixed(2)}%`
                 : fmtINR(row.color ? Math.abs(row.value) : row.value)
               }
               {row.color && !row.isPct && row.value < 0 && ' loss'}

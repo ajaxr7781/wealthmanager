@@ -131,7 +131,7 @@ function ReturnBadge({ value, size = 'sm' }: { value: number | null; size?: 'sm'
       isPositive ? 'text-positive' : 'text-negative'
     )}>
       <Icon className={size === 'lg' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
-      {value >= 0 ? '+' : ''}{value.toFixed(4)}%
+      {value >= 0 ? '+' : ''}{value.toFixed(2)}%
     </span>
   );
 }
