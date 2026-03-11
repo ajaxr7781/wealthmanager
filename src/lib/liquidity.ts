@@ -202,7 +202,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'info',
       title: 'High Cash Position',
-      message: `${liquidPct.toFixed(1)}% is in liquid assets. Consider deploying some into growth-oriented investments for better returns.`,
+      message: `${liquidPct.toFixed(4)}% is in liquid assets. Consider deploying some into growth-oriented investments for better returns.`,
     });
   }
 

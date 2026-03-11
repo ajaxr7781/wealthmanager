@@ -266,9 +266,9 @@ export default function RebalancingPage() {
                           {row.breached && <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
                         </span>
                         <span className="text-muted-foreground">
-                          {row.current_pct.toFixed(1)}% → {row.target_pct.toFixed(1)}%
+                          {row.current_pct.toFixed(4)}% → {row.target_pct.toFixed(4)}%
                           <span className={cn("ml-2 font-medium", row.drift > 0 ? "text-positive" : row.drift < 0 ? "text-negative" : "text-muted-foreground")}>
-                            ({row.drift > 0 ? '+' : ''}{row.drift.toFixed(1)}%)
+                            ({row.drift > 0 ? '+' : ''}{row.drift.toFixed(4)}%)
                           </span>
                         </span>
                       </div>
