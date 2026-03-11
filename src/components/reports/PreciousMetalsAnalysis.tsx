@@ -62,7 +62,7 @@ function MetalCard({ inst, totalPortfolioValue }: { inst: InstrumentSummary; tot
             <p className="font-medium">
               {inst.current_value_aed !== null ? formatAED(inst.current_value_aed) : '—'}
             </p>
-            <p className="text-xs text-muted-foreground">{allocationPct.toFixed(1)}% of portfolio</p>
+            <p className="text-xs text-muted-foreground">{allocationPct.toFixed(4)}% of portfolio</p>
           </div>
         </div>
 
