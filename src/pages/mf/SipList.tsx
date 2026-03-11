@@ -33,6 +33,7 @@ import {
 export default function SipListPage() {
   const { data: allAssets, isLoading } = useAssets();
   const updateAsset = useUpdateAsset();
+  const navigate = useNavigate();
   const [stoppingId, setStoppingId] = useState<string | null>(null);
 
   // Filter to SIP assets
