@@ -137,6 +137,13 @@ export interface AssetFormData {
   broker_platform?: string;
   nav_or_price?: number;
   sip_frequency?: string;
+  sip_amount?: number;
+  sip_day_of_month?: number;
+  sip_start_date?: string;
+  sip_end_date?: string | null;
+  sip_status?: string;
+  folio_no?: string;
+  units_held?: number;
 }
 
 export interface PortfolioOverview {
