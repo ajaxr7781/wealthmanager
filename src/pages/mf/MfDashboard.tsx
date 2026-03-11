@@ -466,7 +466,7 @@ function PerformanceList({ title, items, positive }: { title: string; items: Hol
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground">{fmtINR(item.value)}</span>
                   <Badge variant="outline" className={cn("text-xs min-w-[60px] justify-center", positive ? 'text-positive border-positive/30' : 'text-negative border-negative/30')}>
-                    {item.gainPct >= 0 ? '+' : ''}{item.gainPct.toFixed(1)}%
+                    {item.gainPct >= 0 ? '+' : ''}{item.gainPct.toFixed(4)}%
                   </Badge>
                 </div>
               </Link>
