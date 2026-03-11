@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ASSET_TYPE_LABELS } from '@/types/assets';
 import { 
-  ArrowLeft, 
+  ArrowLeft,
   Pencil, 
   Trash2, 
   Coins, 
@@ -40,6 +40,8 @@ import {
   Percent,
   Clock,
   HelpCircle,
+  ChevronRight,
+  Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
@@ -49,6 +51,14 @@ import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
 import { Calculator } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
   precious_metals: Coins,
@@ -164,21 +174,50 @@ export default function AssetDetail() {
     ? (Math.pow(currentValue / totalCost, 1 / years) - 1) * 100
     : null;
 
+  // Get parent page info for breadcrumb
+  const location = useLocation();
+  const fromSip = location.state?.from === 'sip' || asset?.asset_type === 'sip';
+  const fromMf = location.state?.from === 'mf' || asset?.asset_type === 'mutual_fund';
+  
+  const getParentLink = () => {
+    if (fromSip) return { path: '/mf/sips', label: 'SIP Management' };
+    if (fromMf) return { path: '/mf/holdings', label: 'MF Holdings' };
+    return { path: '/portfolio', label: 'Portfolio' };
+  };
+  const parent = getParentLink();
+
   return (
     <AppLayout>
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/dashboard">
+                  <Home className="h-4 w-4" />
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight className="h-4 w-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to={parent.path}>{parent.label}</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>
+              <ChevronRight className="h-4 w-4" />
+            </BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>{asset.asset_name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         {/* Header */}
         <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate(-1)}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-4">
               <div className={cn(
