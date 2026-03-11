@@ -165,7 +165,7 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
                       <td className={cn("text-right py-2 px-3", isProfit ? "text-positive" : "text-negative")}>
                         <span className="inline-flex items-center gap-0.5">
                           {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                         </span>
                       </td>
                       <td className="text-right py-2 px-3">{pct.toFixed(1)}%</td>
