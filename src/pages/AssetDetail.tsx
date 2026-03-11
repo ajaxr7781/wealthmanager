@@ -302,6 +302,49 @@ export default function AssetDetail() {
               <p className="text-xs text-muted-foreground">{Math.round(days)} days held</p>
             </CardContent>
           </Card>
+
+          {isSipOrMf && (
+            <Card className="shadow-luxury">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-1">
+                  <Calculator className="h-3.5 w-3.5" />
+                  XIRR
+                  <Tooltip>
+                    <TooltipTrigger><HelpCircle className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent className="max-w-[200px]">Extended Internal Rate of Return — accounts for irregular cash flows (SIP installments, partial redemptions).</TooltipContent>
+                  </Tooltip>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {computedXirr !== null ? (
+                  <>
+                    <p className={cn(
+                      "text-2xl font-bold",
+                      computedXirr >= 0 ? "text-positive" : "text-negative"
+                    )}>
+                      {formatRate(computedXirr)}
+                    </p>
+                    {xirrChanged && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-6 px-2 mt-1"
+                        onClick={() => id && saveXirr.mutate({ assetId: id, xirr: computedXirr })}
+                        disabled={saveXirr.isPending}
+                      >
+                        {saveXirr.isPending ? 'Saving…' : 'Save XIRR'}
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-lg text-muted-foreground">—</p>
+                )}
+                {computedXirr === null && transactions && transactions.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Need buy/sell transactions</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <LearnMoreDialog
