@@ -311,7 +311,7 @@ export default function HoldingsByCategory() {
                   <p className={cn("text-2xl font-bold",
                     categoryCagr > 12 ? "text-positive" : categoryCagr > 6 ? "text-warning" : "text-destructive"
                   )}>
-                    {categoryCagr >= 0 ? '+' : ''}{categoryCagr.toFixed(1)}%
+                    {categoryCagr >= 0 ? '+' : ''}{categoryCagr.toFixed(4)}%
                   </p>
                 ) : (
                   <p className="text-lg text-muted-foreground">—</p>
