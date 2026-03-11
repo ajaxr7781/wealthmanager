@@ -339,23 +339,95 @@ export default function EditAsset() {
                   </div>
                 </div>
                 {assetTypeCode === 'sip' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="sip_frequency">SIP Frequency</Label>
-                    <Select
-                      value={formData.sip_frequency || 'monthly'}
-                      onValueChange={(value) => updateForm({ sip_frequency: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                    <div className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="sip_amount">Monthly SIP Amount</Label>
+                          <Input
+                            id="sip_amount"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={formData.sip_amount || ''}
+                            onChange={(e) => updateForm({ sip_amount: parseFloat(e.target.value) || 0 })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="sip_day_of_month">SIP Day of Month</Label>
+                          <Input
+                            id="sip_day_of_month"
+                            type="number"
+                            min="1"
+                            max="28"
+                            value={formData.sip_day_of_month || ''}
+                            onChange={(e) => updateForm({ sip_day_of_month: parseInt(e.target.value) || 0 })}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="sip_start_date">SIP Start Date</Label>
+                          <Input
+                            id="sip_start_date"
+                            type="date"
+                            value={formData.sip_start_date || ''}
+                            onChange={(e) => updateForm({ sip_start_date: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="sip_end_date">SIP End Date (optional)</Label>
+                          <Input
+                            id="sip_end_date"
+                            type="date"
+                            value={formData.sip_end_date || ''}
+                            onChange={(e) => updateForm({ sip_end_date: e.target.value || null })}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="sip_status">Status</Label>
+                          <Select
+                            value={formData.sip_status || 'ACTIVE'}
+                            onValueChange={(value) => updateForm({ sip_status: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ACTIVE">Active</SelectItem>
+                              <SelectItem value="PAUSED">Paused</SelectItem>
+                              <SelectItem value="COMPLETED">Completed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="sip_frequency">SIP Frequency</Label>
+                          <Select
+                            value={formData.sip_frequency || 'monthly'}
+                            onValueChange={(value) => updateForm({ sip_frequency: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="weekly">Weekly</SelectItem>
+                              <SelectItem value="monthly">Monthly</SelectItem>
+                              <SelectItem value="quarterly">Quarterly</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="folio_no">Folio Number</Label>
+                        <Input
+                          id="folio_no"
+                          value={formData.folio_no || ''}
+                          onChange={(e) => updateForm({ folio_no: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           )}
