@@ -372,7 +372,7 @@ export function AssetList({ assets }: AssetListProps) {
                 {/* Return */}
                 <div className="hidden sm:block text-right">
                   <p className={cn("text-sm font-medium", isProfit ? "text-positive" : "text-negative")}>
-                    {isProfit ? '+' : ''}{pct.toFixed(1)}%
+                    {isProfit ? '+' : ''}{pct.toFixed(4)}%
                   </p>
                   <p className={cn("text-[11px]", isProfit ? "text-positive/70" : "text-negative/70")}>
                     {isProfit ? '+' : ''}{formatAED(pl)}
