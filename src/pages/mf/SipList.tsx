@@ -370,6 +370,11 @@ export default function SipListPage() {
                             <span>Invested: <strong>{fmtINR(invested)}</strong></span>
                             {sip.units_held && <span>Units: <strong>{Number(sip.units_held).toFixed(4)}</strong></span>}
                             <span>Value: <strong className={isProfit ? "text-positive" : "text-negative"}>{fmtINR(value)}</strong></span>
+                            {sip.xirr_value != null && (
+                              <span>XIRR: <strong className={Number(sip.xirr_value) >= 0 ? "text-positive" : "text-negative"}>
+                                {(Number(sip.xirr_value) * 100).toFixed(2)}%
+                              </strong></span>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                             {sip.sip_amount && <span>Monthly: {fmtINR(Number(sip.sip_amount))}</span>}
