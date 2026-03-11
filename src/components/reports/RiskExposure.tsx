@@ -121,7 +121,7 @@ export function RiskExposure({ overview, assets }: RiskExposureProps) {
                       <Pie data={currencyData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value">
                         {currencyData.map((e, i) => <Cell key={i} fill={e.color} />)}
                       </Pie>
-                      <Tooltip formatter={(v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 0 })} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                      <Tooltip formatter={(v: number) => v.toLocaleString('en-US', { maximumFractionDigits: 4 })} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>

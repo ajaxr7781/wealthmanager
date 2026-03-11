@@ -140,7 +140,7 @@ export function FDMaturityAlerts() {
                       </>
                     ) : (
                       <p className="text-xs font-medium text-positive">
-                        AED {Number(fd.maturity_amount).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                        AED {Number(fd.maturity_amount).toLocaleString('en-US', { maximumFractionDigits: 4 })}
                       </p>
                     )}
                   </div>
