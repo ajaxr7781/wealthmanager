@@ -64,7 +64,7 @@ export function RealEstateReport({ assets, totalPortfolioValue }: RealEstateRepo
                 <div>
                   <p className="text-muted-foreground">CAGR</p>
                   <p className={cn("font-medium", (cagr ?? 0) >= 0 ? "text-positive" : "text-negative")}>
-                    {cagr !== null ? `${cagr.toFixed(1)}%` : '—'}
+                    {cagr !== null ? `${cagr.toFixed(4)}%` : '—'}
                   </p>
                 </div>
                 <div>
