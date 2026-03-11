@@ -2,6 +2,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
+import { useAssetTransactions } from '@/hooks/useAssetTransactions';
+import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
+import { formatRate } from '@/lib/xirrCalc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +47,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
 import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
+import { Calculator } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
@@ -68,9 +72,17 @@ export default function AssetDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: asset, isLoading } = useAsset(id);
+  const { data: transactions } = useAssetTransactions(id);
   const deleteAsset = useDeleteAsset();
   const [learnOpen, setLearnOpen] = useState(false);
   const { convert, format: fmtCurrency } = useCurrency();
+
+  const isSipOrMf = asset?.asset_type === 'sip' || asset?.asset_type === 'mutual_fund';
+  const xirrCurrentValue = asset ? Number(asset.current_value) || Number(asset.total_cost) : 0;
+  const computedXirr = useComputedXirr(isSipOrMf ? transactions : undefined, isSipOrMf ? xirrCurrentValue : undefined);
+  const saveXirr = useSaveXirr();
+  const storedXirr = asset?.xirr_value != null ? Number(asset.xirr_value) : null;
+  const xirrChanged = computedXirr !== null && (storedXirr === null || Math.abs(computedXirr - storedXirr) > 0.0001);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -223,7 +235,7 @@ export default function AssetDetail() {
         </div>
 
         {/* Value Summary */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
+        <div className={cn("grid gap-4 mb-6", isSipOrMf ? "md:grid-cols-5" : "md:grid-cols-4")}>
           <Card className="shadow-luxury">
             <CardHeader className="pb-2">
               <CardDescription>Total Cost</CardDescription>
@@ -290,6 +302,49 @@ export default function AssetDetail() {
               <p className="text-xs text-muted-foreground">{Math.round(days)} days held</p>
             </CardContent>
           </Card>
+
+          {isSipOrMf && (
+            <Card className="shadow-luxury">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-1">
+                  <Calculator className="h-3.5 w-3.5" />
+                  XIRR
+                  <Tooltip>
+                    <TooltipTrigger><HelpCircle className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
+                    <TooltipContent className="max-w-[200px]">Extended Internal Rate of Return — accounts for irregular cash flows (SIP installments, partial redemptions).</TooltipContent>
+                  </Tooltip>
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {computedXirr !== null ? (
+                  <>
+                    <p className={cn(
+                      "text-2xl font-bold",
+                      computedXirr >= 0 ? "text-positive" : "text-negative"
+                    )}>
+                      {formatRate(computedXirr)}
+                    </p>
+                    {xirrChanged && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-6 px-2 mt-1"
+                        onClick={() => id && saveXirr.mutate({ assetId: id, xirr: computedXirr })}
+                        disabled={saveXirr.isPending}
+                      >
+                        {saveXirr.isPending ? 'Saving…' : 'Save XIRR'}
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-lg text-muted-foreground">—</p>
+                )}
+                {computedXirr === null && transactions && transactions.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Need buy/sell transactions</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <LearnMoreDialog
