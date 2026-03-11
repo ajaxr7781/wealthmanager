@@ -235,7 +235,7 @@ export default function AssetDetail() {
         </div>
 
         {/* Value Summary */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
+        <div className={cn("grid gap-4 mb-6", isSipOrMf ? "md:grid-cols-5" : "md:grid-cols-4")}>
           <Card className="shadow-luxury">
             <CardHeader className="pb-2">
               <CardDescription>Total Cost</CardDescription>
