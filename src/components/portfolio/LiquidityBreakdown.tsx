@@ -268,7 +268,7 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
             <p className="text-xs text-muted-foreground">
               Your liquid assets cover approximately{' '}
               <span className={cn("font-semibold", EMERGENCY_STATUS_STYLES[emergency.status].color)}>
-                {emergency.months >= 99 ? '∞' : `${emergency.months.toFixed(1)}`} months
+                {emergency.months >= 99 ? '∞' : `${emergency.months.toFixed(4)}`} months
               </span>
               {' '}of expenses based on your monthly EMI obligations.
             </p>

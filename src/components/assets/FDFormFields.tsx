@@ -134,7 +134,7 @@ export function FDFormFields({ formData, updateForm, selectedTypeCode }: FDFormF
               <p className="font-medium">FD Summary</p>
               <p className="text-muted-foreground">
                 Interest earned at maturity: {currency}{' '}
-                {(formData.maturity_amount - formData.principal).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                {(formData.maturity_amount - formData.principal).toLocaleString(undefined, { maximumFractionDigits: 4 })}
               </p>
             </div>
           )}
