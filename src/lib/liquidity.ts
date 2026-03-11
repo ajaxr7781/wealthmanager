@@ -172,7 +172,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'warning',
       title: 'Low Liquid Assets',
-      message: `Only ${liquidPct.toFixed(1)}% of your portfolio is instantly accessible. Consider keeping at least 10-15% in liquid assets for short-term needs.`,
+      message: `Only ${liquidPct.toFixed(4)}% of your portfolio is instantly accessible. Consider keeping at least 10-15% in liquid assets for short-term needs.`,
     });
   } else if (liquidPct >= 10 && liquidPct <= 30) {
     insights.push({
