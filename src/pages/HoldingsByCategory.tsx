@@ -292,7 +292,7 @@ export default function HoldingsByCategory() {
                   totalPL >= 0 ? "text-positive" : "text-negative"
                 )}>
                   {totalPL >= 0 ? '+' : ''}{fmtAed(totalPL)}
-                  <span className="text-sm ml-2">({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(1)}%)</span>
+                  <span className="text-sm ml-2">({plPercent >= 0 ? '+' : ''}{plPercent.toFixed(4)}%)</span>
                 </p>
               </CardContent>
             </Card>
