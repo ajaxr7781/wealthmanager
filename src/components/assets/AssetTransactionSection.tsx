@@ -19,9 +19,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useAssetTransactions, useCreateAssetTransaction } from '@/hooks/useAssetTransactions';
+import { supabase } from '@/integrations/supabase/client';
+import { useAssetTransactions, useCreateAssetTransaction, useDeleteAssetTransaction } from '@/hooks/useAssetTransactions';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface AssetTransactionSectionProps {
   assetId: string;
@@ -42,6 +56,8 @@ const TX_TYPES = [
 export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetType }: AssetTransactionSectionProps) {
   const { data: transactions, isLoading } = useAssetTransactions(assetId);
   const createTx = useCreateAssetTransaction();
+  const deleteTx = useDeleteAssetTransaction();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     transaction_type: 'DEPOSIT',
@@ -53,13 +69,13 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
   });
 
   const isSipInstallment = form.transaction_type === 'SIP_INSTALLMENT';
+  const isMfOrSip = assetType === 'sip' || assetType === 'mutual_fund';
 
-  // Auto-calculate: amount & NAV → units; amount & units → NAV
+  // Auto-calculate: amount & NAV → units
   useEffect(() => {
     if (!isSipInstallment) return;
     const amount = parseFloat(form.amount);
     const nav = parseFloat(form.nav);
-    const units = parseFloat(form.units);
 
     if (amount > 0 && nav > 0 && !form.units) {
       const calc = Math.round((amount / nav) * 10000) / 10000;
@@ -67,6 +83,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
     }
   }, [form.amount, form.nav]);
 
+  // Auto-calculate: amount & units → NAV
   useEffect(() => {
     if (!isSipInstallment) return;
     const amount = parseFloat(form.amount);
@@ -80,7 +97,6 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
 
   const handleFieldChange = (field: string, value: string) => {
     if (isSipInstallment) {
-      // Clear the third field when two are being entered
       if (field === 'amount') {
         setForm(f => ({ ...f, amount: value, units: '' }));
       } else if (field === 'nav') {
@@ -93,6 +109,50 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
     } else {
       setForm(f => ({ ...f, [field]: value }));
     }
+  };
+
+  const updateAssetAfterTransaction = async (
+    txAmount: number,
+    txUnits: number,
+    txNav: number | undefined,
+    isAdd: boolean
+  ) => {
+    if (!isMfOrSip) return;
+
+    // Fetch current asset data
+    const { data: asset } = await supabase
+      .from('assets')
+      .select('total_cost, quantity, units_held, nav_or_price, current_value')
+      .eq('id', assetId)
+      .single();
+
+    if (!asset) return;
+
+    const currentCost = Number(asset.total_cost) || 0;
+    const currentQty = Number(asset.quantity) || 0;
+    const currentUnits = Number(asset.units_held) || 0;
+    const nav = txNav || Number(asset.nav_or_price) || 0;
+
+    const newCost = isAdd ? currentCost + txAmount : Math.max(0, currentCost - txAmount);
+    const newQty = isAdd ? currentQty + txUnits : Math.max(0, currentQty - txUnits);
+    const newUnits = isAdd ? currentUnits + txUnits : Math.max(0, currentUnits - txUnits);
+    const newCurrentValue = nav > 0 ? newUnits * nav : newQty > 0 ? Number(asset.current_value) || 0 : 0;
+
+    const updateData: Record<string, number> = {
+      total_cost: Math.round(newCost * 100) / 100,
+      quantity: Math.round(newQty * 10000) / 10000,
+      units_held: Math.round(newUnits * 10000) / 10000,
+      current_value: Math.round(newCurrentValue * 100) / 100,
+    };
+
+    if (txNav && txNav > 0) {
+      updateData.nav_or_price = Math.round(txNav * 100) / 100;
+    }
+
+    await supabase.from('assets').update(updateData).eq('id', assetId);
+    queryClient.invalidateQueries({ queryKey: ['asset', assetId] });
+    queryClient.invalidateQueries({ queryKey: ['assets'] });
+    queryClient.invalidateQueries({ queryKey: ['portfolio-overview'] });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,13 +174,33 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
       notes: form.notes || undefined,
     });
 
+    // Auto-update asset totals for SIP installments
+    if (isSipInstallment) {
+      await updateAssetAfterTransaction(amount, quantity, pricePerUnit, true);
+    }
+
     setOpen(false);
     setForm({ transaction_type: 'DEPOSIT', transaction_date: new Date().toISOString().slice(0, 10), amount: '', nav: '', units: '', notes: '' });
   };
 
+  const handleDelete = async (tx: typeof transactions extends (infer T)[] | undefined ? T : never) => {
+    if (!tx) return;
+    await deleteTx.mutateAsync(tx.id);
+
+    // Reverse asset totals if it was a SIP installment on MF/SIP asset
+    if (isMfOrSip && tx.transaction_type === 'SIP_INSTALLMENT') {
+      await updateAssetAfterTransaction(
+        Number(tx.amount),
+        Number(tx.quantity),
+        tx.price_per_unit ? Number(tx.price_per_unit) : undefined,
+        false
+      );
+    }
+  };
+
   const isCredit = (type: string) => ['DEPOSIT', 'BUY', 'INTEREST', 'SIP_INSTALLMENT'].includes(type);
 
-  const defaultTxType = (assetType === 'sip' || assetType === 'mutual_fund') ? 'SIP_INSTALLMENT' : 'DEPOSIT';
+  const defaultTxType = isMfOrSip ? 'SIP_INSTALLMENT' : 'DEPOSIT';
 
   return (
     <Card>
@@ -238,8 +318,33 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                   </p>
                   {tx.notes && <p className="text-xs text-muted-foreground mt-0.5">{tx.notes}</p>}
                 </div>
-                <div className="text-right">
+                <div className="flex items-center gap-2">
                   <p className="font-medium">{fmtCurrency(Number(tx.amount))}</p>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete this {tx.transaction_type === 'SIP_INSTALLMENT' ? 'SIP installment' : tx.transaction_type.toLowerCase()} of {fmtCurrency(Number(tx.amount))} dated {format(new Date(tx.transaction_date), 'dd MMM yyyy')}.
+                          {isMfOrSip && tx.transaction_type === 'SIP_INSTALLMENT' && ' The asset totals will be adjusted accordingly.'}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(tx)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             ))}
