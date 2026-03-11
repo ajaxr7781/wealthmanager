@@ -479,7 +479,7 @@ export default function HoldingsByCategory() {
                       {/* Return */}
                       <div className="hidden sm:block text-right">
                         <p className={cn("text-sm font-medium", isProfit ? "text-positive" : "text-negative")}>
-                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                         </p>
                         <p className={cn("text-[11px]", isProfit ? "text-positive/70" : "text-negative/70")}>
                           {isProfit ? '+' : ''}{fmtAed(pl)}
