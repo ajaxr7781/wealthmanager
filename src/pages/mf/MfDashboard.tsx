@@ -27,7 +27,7 @@ const CHART_COLORS = [
 ];
 
 const fmtINR = (v: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 4 }).format(v);
 
 interface HoldingCalc {
   id: string;

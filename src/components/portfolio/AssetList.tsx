@@ -69,10 +69,10 @@ export function AssetList({ assets }: AssetListProps) {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const formatAED = (v: number) =>
-    new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+    new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(v);
 
   const formatINR = (v: number) =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(v);
 
   const getLivePreciousMetalValueAED = (a: Asset): number | null => {
     if (a.asset_type !== 'precious_metals' || !a.metal_type || !a.quantity) return null;

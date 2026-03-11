@@ -22,7 +22,7 @@ const DONUT_COLORS = [
 ];
 
 function formatAED(v: number) {
-  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+  return `AED ${v.toLocaleString('en-US', { maximumFractionDigits: 4 })}`;
 }
 
 function getPerformanceStatus(returnPct: number) {

@@ -44,7 +44,7 @@ export default function SipListPage() {
   const totalInvested = sips.reduce((sum, s) => sum + Number(s.total_cost), 0);
   const totalValue = sips.reduce((sum, s) => sum + (Number(s.current_value) || Number(s.total_cost)), 0);
 
-  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+  const fmtINR = (v: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 4 }).format(v);
 
   const handlePause = (id: string) => {
     updateAsset.mutate({ id, sip_status: 'PAUSED' } as any);

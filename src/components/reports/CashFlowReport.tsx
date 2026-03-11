@@ -15,7 +15,7 @@ function formatAED(v: number) {
 }
 
 function formatINR(v: number) {
-  return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+  return `₹${v.toLocaleString('en-IN', { maximumFractionDigits: 4 })}`;
 }
 
 function getNextSipDueDateFromAsset(asset: Asset): Date | null {
