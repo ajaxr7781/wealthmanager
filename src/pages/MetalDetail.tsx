@@ -382,7 +382,7 @@ export default function MetalDetail() {
                             <TableCell className="text-right">{fmtAed(invested)}</TableCell>
                             <TableCell className="text-right">{fmtAed(value)}</TableCell>
                             <TableCell className={cn("text-right", pl >= 0 ? "text-positive" : "text-negative")}>
-                              {pl >= 0 ? '+' : ''}{plPct.toFixed(1)}%
+                              {pl >= 0 ? '+' : ''}{plPct.toFixed(4)}%
                             </TableCell>
                             <TableCell>
                               <Link to={`/asset/${asset.id}`}>

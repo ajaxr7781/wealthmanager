@@ -168,7 +168,7 @@ export function AllocationReport({ overview, assets }: AllocationReportProps) {
                           {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                         </span>
                       </td>
-                      <td className="text-right py-2 px-3">{pct.toFixed(1)}%</td>
+                      <td className="text-right py-2 px-3">{pct.toFixed(4)}%</td>
                       <td className="text-center py-2 px-3">
                         {isConcentrated && (
                           <Badge variant="outline" className="text-warning border-warning/50">
