@@ -36,6 +36,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAssetTransactions, useCreateAssetTransaction, useDeleteAssetTransaction } from '@/hooks/useAssetTransactions';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { BackfillSipTransactions } from './BackfillSipTransactions';
 
 interface AssetTransactionSectionProps {
   assetId: string;
