@@ -436,7 +436,7 @@ export default function AddAsset() {
                 <div className="p-3 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     Price per {formData.quantity_unit}: {formData.currency}{' '}
-                    {(formData.total_cost / formData.quantity).toFixed(2)}
+                    {(formData.total_cost / formData.quantity).toFixed(4)}
                   </p>
                 </div>
               )}
