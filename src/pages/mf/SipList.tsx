@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAssets, useUpdateAsset } from '@/hooks/useAssets';
 import {
-import { 
   Plus, 
   Calendar,
   Pause,
