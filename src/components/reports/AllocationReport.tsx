@@ -56,7 +56,7 @@ function AllocationPieCard({ title, data, total }: { title: string; data: { name
             </div>
             <div className="space-y-2 mt-3">
               {filtered.map(d => {
-                const pct = total > 0 ? ((d.value / total) * 100).toFixed(1) : '0';
+                const pct = total > 0 ? ((d.value / total) * 100).toFixed(4) : '0';
                 return (
                   <div key={d.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
