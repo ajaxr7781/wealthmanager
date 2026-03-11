@@ -90,7 +90,7 @@ export default function EditAsset() {
       ...formData,
       current_value: currentValue,
     });
-    navigate(`/asset/${id}`);
+    navigate(`/asset/${id}`, { replace: true });
   };
 
   const isLoading = assetLoading || categoriesLoading;
