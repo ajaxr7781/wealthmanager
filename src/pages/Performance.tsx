@@ -357,9 +357,9 @@ export default function PerformancePage() {
                     <div className="text-right">
                       <div className="flex items-center gap-1 text-destructive">
                         <ArrowDownRight className="h-4 w-4" />
-                        <span className="font-bold">{a.gainPct.toFixed(1)}%</span>
+                        <span className="font-bold">{a.gainPct.toFixed(4)}%</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">AED {a.gain.toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+                      <p className="text-xs text-muted-foreground">AED {a.gain.toLocaleString('en-US', { maximumFractionDigits: 4 })}</p>
                     </div>
                   </div>
                 </CardContent>
