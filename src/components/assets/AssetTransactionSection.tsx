@@ -218,12 +218,28 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
           setOpen(v);
           if (v) setForm(f => ({ ...f, transaction_type: defaultTxType }));
         }}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Transaction
-            </Button>
-          </DialogTrigger>
+          <div className="flex gap-2">
+            {isMfOrSip && sipAmount && sipStartDate && sipDayOfMonth && (
+              <BackfillSipTransactions
+                assetId={assetId}
+                sipAmount={sipAmount}
+                sipDayOfMonth={sipDayOfMonth}
+                sipStartDate={sipStartDate}
+                sipEndDate={sipEndDate ?? null}
+                sipStatus={sipStatus ?? null}
+                totalCost={assetTotalCost ?? 0}
+                unitsHeld={unitsHeld ?? null}
+                existingTransactions={transactions}
+                currency={currency}
+              />
+            )}
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
+            </DialogTrigger>
+          </div>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Record Transaction</DialogTitle>
