@@ -78,6 +78,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
 
   const isSipInstallment = form.transaction_type === 'SIP_INSTALLMENT';
   const isMfOrSip = assetType === 'sip' || assetType === 'mutual_fund';
+  const showBackfill = isMfOrSip && sipAmount && sipStartDate;
 
   // Auto-calculate: amount & NAV → units
   useEffect(() => {
