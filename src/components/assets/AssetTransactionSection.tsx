@@ -249,7 +249,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                   value={form.amount}
                   onChange={(e) => handleFieldChange('amount', e.target.value)}
                   min="0"
-                  step="0.01"
+                  step="0.0001"
                   required
                 />
               </div>
