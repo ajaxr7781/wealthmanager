@@ -263,7 +263,7 @@ export default function MfDashboard() {
                       </div>
                     </div>
                     <span className="text-negative font-bold">
-                      {summary.worstPerformer.gainPct.toFixed(1)}%
+                      {summary.worstPerformer.gainPct.toFixed(4)}%
                     </span>
                   </CardContent>
                 </Card>
