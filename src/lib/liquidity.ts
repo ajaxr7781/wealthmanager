@@ -178,7 +178,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'success',
       title: 'Healthy Liquidity',
-      message: `${liquidPct.toFixed(1)}% of your portfolio is liquid — a well-balanced position for flexibility.`,
+      message: `${liquidPct.toFixed(4)}% of your portfolio is liquid — a well-balanced position for flexibility.`,
     });
   }
 
