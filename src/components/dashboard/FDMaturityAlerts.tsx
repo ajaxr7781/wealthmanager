@@ -135,7 +135,7 @@ export function FDMaturityAlerts() {
                           ₹{Number(fd.maturity_amount).toLocaleString('en-IN', { maximumFractionDigits: 4 })}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          ≈ AED {fd.maturityAmountAed.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                          ≈ AED {fd.maturityAmountAed.toLocaleString('en-US', { maximumFractionDigits: 4 })}
                         </p>
                       </>
                     ) : (
