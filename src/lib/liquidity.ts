@@ -186,7 +186,7 @@ export function getLiquidityInsights(breakdown: LiquidityBreakdownResult): Liqui
     insights.push({
       type: 'warning',
       title: 'High Illiquid Concentration',
-      message: `${illiquidPct.toFixed(1)}% of your portfolio is in illiquid assets. This may limit your ability to access funds quickly if needed.`,
+      message: `${illiquidPct.toFixed(4)}% of your portfolio is in illiquid assets. This may limit your ability to access funds quickly if needed.`,
     });
   }
 
