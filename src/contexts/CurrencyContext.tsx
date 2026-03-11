@@ -79,7 +79,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
   const format = useCallback((amount: number | null, options?: { decimals?: number; compact?: boolean }): string => {
     if (amount === null) return '—';
-    const decimals = options?.decimals ?? 2;
+    const decimals = options?.decimals ?? 4;
     const formatted = amount.toLocaleString('en-US', {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,

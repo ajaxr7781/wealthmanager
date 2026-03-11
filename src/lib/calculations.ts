@@ -411,7 +411,7 @@ export function formatGrams(value: number): string {
 export function formatPercent(value: number | null): string {
   if (value === null) return '—';
   const sign = value >= 0 ? '+' : '';
-  return `${sign}${formatNumber(value, 2)}%`;
+  return `${sign}${formatNumber(value, 4)}%`;
 }
 
 /**
