@@ -196,9 +196,9 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                         {isProfit ? '+' : ''}{fmt(a.absoluteGain)}
                       </td>
                       <td className={cn("text-right py-2 px-3 font-medium", isProfit ? "text-positive" : "text-negative")}>
-                        {isProfit ? '+' : ''}{a.returnPct.toFixed(1)}%
+                        {isProfit ? '+' : ''}{a.returnPct.toFixed(4)}%
                       </td>
-                      <td className="text-right py-2 px-3">{a.cagr !== null ? `${a.cagr.toFixed(1)}%` : '—'}</td>
+                      <td className="text-right py-2 px-3">{a.cagr !== null ? `${a.cagr.toFixed(4)}%` : '—'}</td>
                     </tr>
                   );
                 })}

@@ -256,7 +256,7 @@ export default function PerformancePage() {
             </CardHeader>
             <CardContent>
               <p className={cn("text-3xl font-bold", maxDrawdown > 0 ? "text-destructive" : "text-positive")}>
-                -{maxDrawdown.toFixed(1)}%
+                -{maxDrawdown.toFixed(4)}%
               </p>
               {recoveryDays !== null ? (
                 <p className="text-sm text-muted-foreground mt-1">Recovered in {recoveryDays} days</p>

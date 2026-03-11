@@ -74,7 +74,7 @@ function MetalCard({ inst, totalPortfolioValue }: { inst: InstrumentSummary; tot
               {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
               {inst.unrealized_pl_aed !== null ? formatAED(inst.unrealized_pl_aed) : '—'}
               {inst.unrealized_pl_pct !== null && (
-                <span className="ml-1">({inst.unrealized_pl_pct >= 0 ? '+' : ''}{inst.unrealized_pl_pct.toFixed(1)}%)</span>
+                <span className="ml-1">({inst.unrealized_pl_pct >= 0 ? '+' : ''}{inst.unrealized_pl_pct.toFixed(4)}%)</span>
               )}
             </span>
           </div>

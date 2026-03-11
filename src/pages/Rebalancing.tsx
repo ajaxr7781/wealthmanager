@@ -318,10 +318,10 @@ export default function RebalancingPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">{formatCurrency(row.amount)}</TableCell>
-                          <TableCell className="text-right">{row.current_pct.toFixed(1)}%</TableCell>
-                          <TableCell className="text-right">{row.target_pct.toFixed(1)}%</TableCell>
+                          <TableCell className="text-right">{row.current_pct.toFixed(4)}%</TableCell>
+                          <TableCell className="text-right">{row.target_pct.toFixed(4)}%</TableCell>
                           <TableCell className={cn("text-right font-medium", row.drift > 0 ? "text-positive" : "text-negative")}>
-                            {row.drift > 0 ? '+' : ''}{row.drift.toFixed(1)}%
+                            {row.drift > 0 ? '+' : ''}{row.drift.toFixed(4)}%
                           </TableCell>
                         </TableRow>
                       ))}
