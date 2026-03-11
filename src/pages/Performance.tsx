@@ -285,7 +285,7 @@ export default function PerformancePage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Market Return</span>
                     <span className={cn("font-medium", contributionSplit.marketReturn >= 0 ? "text-positive" : "text-destructive")}>
-                      AED {contributionSplit.marketReturn.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                      AED {contributionSplit.marketReturn.toLocaleString('en-US', { maximumFractionDigits: 4 })}
                     </span>
                   </div>
                   {contributionSplit.total !== 0 && (
