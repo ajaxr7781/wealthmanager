@@ -111,7 +111,7 @@ export function PerformanceLeaderboard({ assets }: PerformanceLeaderboardProps) 
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-positive flex items-center gap-0.5 justify-end">
-                        <ArrowUpRight className="h-3 w-3" />+{a.returnPct.toFixed(1)}%
+                        <ArrowUpRight className="h-3 w-3" />+{a.returnPct.toFixed(4)}%
                       </p>
                       <p className="text-xs text-muted-foreground">+{fmt(a.absoluteGain)}</p>
                     </div>
