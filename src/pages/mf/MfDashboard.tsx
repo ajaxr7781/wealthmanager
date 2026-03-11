@@ -305,7 +305,7 @@ export default function MfDashboard() {
                       <div className="flex-1 space-y-1.5 text-sm">
                         {allocationByFundHouse.map((item, i) => {
                           const total = allocationByFundHouse.reduce((s, x) => s + x.value, 0);
-                          const pct = total > 0 ? (item.value / total * 100).toFixed(1) : '0';
+                          const pct = total > 0 ? (item.value / total * 100).toFixed(4) : '0';
                           return (
                             <div key={item.name} className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
