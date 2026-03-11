@@ -78,6 +78,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
 
   const isSipInstallment = form.transaction_type === 'SIP_INSTALLMENT';
   const isMfOrSip = assetType === 'sip' || assetType === 'mutual_fund';
+  const showBackfill = isMfOrSip && sipAmount && sipStartDate;
 
   // Auto-calculate: amount & NAV → units
   useEffect(() => {
@@ -219,11 +220,11 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
           if (v) setForm(f => ({ ...f, transaction_type: defaultTxType }));
         }}>
           <div className="flex gap-2">
-            {isMfOrSip && sipAmount && sipStartDate && sipDayOfMonth && (
+            {showBackfill && (
               <BackfillSipTransactions
                 assetId={assetId}
                 sipAmount={sipAmount}
-                sipDayOfMonth={sipDayOfMonth}
+                sipDayOfMonth={sipDayOfMonth || 1}
                 sipStartDate={sipStartDate}
                 sipEndDate={sipEndDate ?? null}
                 sipStatus={sipStatus ?? null}

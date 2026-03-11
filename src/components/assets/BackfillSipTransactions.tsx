@@ -21,13 +21,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { History, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { History, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import { format, addMonths, isBefore, startOfDay } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { AssetTransaction } from '@/hooks/useAssetTransactions';
+
+const BACKFILL_NOTE = 'Auto-generated historical installment';
 
 interface BackfillSipTransactionsProps {
   assetId: string;
@@ -63,8 +65,16 @@ export function BackfillSipTransactions({
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [revertConfirmOpen, setRevertConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [maxInstallments, setMaxInstallments] = useState<string>('');
+
+  // Count backfilled transactions (auto-generated ones)
+  const backfilledTransactions = useMemo(() => {
+    return existingTransactions?.filter(
+      (tx) => tx.notes === BACKFILL_NOTE && tx.transaction_type === 'SIP_INSTALLMENT'
+    ) || [];
+  }, [existingTransactions]);
 
   // Compute which months already have transactions
   const existingMonths = useMemo(() => {
@@ -136,7 +146,7 @@ export function BackfillSipTransactions({
         quantity: 1,
         quantity_unit: 'units',
         fees: 0,
-        notes: 'Auto-generated historical installment',
+        notes: BACKFILL_NOTE,
       }));
 
       for (let i = 0; i < rows.length; i += 50) {
@@ -159,7 +169,41 @@ export function BackfillSipTransactions({
     }
   };
 
-  if (!sipAmount || !sipStartDate || !sipDayOfMonth) return null;
+  const handleRevertBackfill = async () => {
+    if (backfilledTransactions.length === 0) return;
+    setLoading(true);
+
+    try {
+      const ids = backfilledTransactions.map((tx) => tx.id);
+      
+      // Delete in batches of 50
+      for (let i = 0; i < ids.length; i += 50) {
+        const batch = ids.slice(i, i + 50);
+        const { error } = await supabase
+          .from('asset_transactions')
+          .delete()
+          .in('id', batch);
+        if (error) throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['asset-transactions', assetId] });
+      queryClient.invalidateQueries({ queryKey: ['asset', assetId] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+
+      toast.success(`Removed ${ids.length} backfilled installments`);
+      setRevertConfirmOpen(false);
+      setOpen(false);
+    } catch (e: any) {
+      toast.error('Failed to revert: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!sipAmount || !sipStartDate) return null;
+
+  // Default sipDayOfMonth to 1 if not set
+  const effectiveDayOfMonth = sipDayOfMonth || 1;
 
   return (
     <>
@@ -182,6 +226,29 @@ export function BackfillSipTransactions({
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Revert section */}
+            {backfilledTransactions.length > 0 && (
+              <div className="border border-destructive/30 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Previously Backfilled</p>
+                    <p className="text-xs text-muted-foreground">
+                      {backfilledTransactions.length} auto-generated installments found
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setRevertConfirmOpen(true)}
+                    disabled={loading}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Revert All
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* SIP Info */}
             <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
               <div className="flex justify-between">
@@ -190,7 +257,7 @@ export function BackfillSipTransactions({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">SIP Day</span>
-                <span className="font-medium">{sipDayOfMonth}</span>
+                <span className="font-medium">{effectiveDayOfMonth}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Start Date</span>
@@ -270,7 +337,7 @@ export function BackfillSipTransactions({
                     <p className="text-muted-foreground">
                       This will create {installments.length} transaction records of {fmtINR(sipAmount)} each. 
                       NAV/units per installment are not known — only the cash flow dates and amounts are recorded, 
-                      which is sufficient for accurate XIRR calculation. Asset totals will NOT be modified.
+                      which is sufficient for accurate XIRR calculation. You can revert this at any time.
                     </p>
                   </div>
                 </div>
@@ -302,6 +369,7 @@ export function BackfillSipTransactions({
         </DialogContent>
       </Dialog>
 
+      {/* Confirm backfill */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -310,13 +378,36 @@ export function BackfillSipTransactions({
               This will create {installments.length} SIP installment transactions totalling {fmtINR(totalAmount)} 
               from {installments.length > 0 ? format(installments[0].date, 'MMM yyyy') : ''} to{' '}
               {installments.length > 0 ? format(installments[installments.length - 1].date, 'MMM yyyy') : ''}.
-              This cannot be undone in bulk (you'd need to delete them individually).
+              You can revert this later using the "Revert All" button.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleBackfill} disabled={loading}>
               {loading ? 'Generating…' : 'Confirm'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm revert */}
+      <AlertDialog open={revertConfirmOpen} onOpenChange={setRevertConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revert Backfill</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all {backfilledTransactions.length} auto-generated historical installments. 
+              Your manually added transactions will not be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRevertBackfill} 
+              disabled={loading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {loading ? 'Reverting…' : `Delete ${backfilledTransactions.length} Installments`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
