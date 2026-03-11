@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAssets, useUpdateAsset } from '@/hooks/useAssets';
-import { useAssetTransactions } from '@/hooks/useAssetTransactions';
-import { cn } from '@/lib/utils';
+import {
 import { 
   Plus, 
   Calendar,
