@@ -400,7 +400,7 @@ export default function MfDashboard() {
                           <div className="text-right">
                             <p className="text-sm font-medium">{fmtINR(sip.value)}</p>
                             <p className={cn("text-xs", sip.gain >= 0 ? 'text-positive' : 'text-negative')}>
-                              {sip.gain >= 0 ? '+' : ''}{sip.gainPct.toFixed(1)}%
+                              {sip.gain >= 0 ? '+' : ''}{sip.gainPct.toFixed(4)}%
                             </p>
                           </div>
                         </div>
