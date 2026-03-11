@@ -46,7 +46,7 @@ export default function EditMfHolding() {
       total_cost: parseFloat(formData.invested_amount) || 0,
     });
 
-    navigate(`/mf/holdings/${id}`);
+    navigate(`/mf/holdings/${id}`, { replace: true });
   };
 
   if (isLoading) {
