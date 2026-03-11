@@ -383,7 +383,7 @@ export function AssetList({ assets }: AssetListProps) {
                 <div className="flex items-center justify-between sm:hidden">
                   <span className="text-sm font-medium">{formatAED(valueAED)}</span>
                   <span className={cn("text-sm", isProfit ? "text-positive" : "text-negative")}>
-                    {isProfit ? '+' : ''}{pct.toFixed(1)}%
+                    {isProfit ? '+' : ''}{pct.toFixed(4)}%
                   </span>
                 </div>
 
