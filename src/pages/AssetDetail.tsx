@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAsset, useDeleteAsset } from '@/hooks/useAssets';
@@ -25,7 +25,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ASSET_TYPE_LABELS } from '@/types/assets';
 import { 
-  ArrowLeft, 
   Pencil, 
   Trash2, 
   Coins, 
@@ -40,6 +39,8 @@ import {
   Percent,
   Clock,
   HelpCircle,
+  ChevronRight,
+  Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
@@ -49,6 +50,14 @@ import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
 import { Calculator } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 const ASSET_ICONS: Record<string, typeof Coins> = {
   precious_metals: Coins,

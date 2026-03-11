@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAsset, useUpdateAsset } from '@/hooks/useAssets';
 import { useMetalPrices } from '@/hooks/useMetalPrices';
@@ -11,10 +11,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Save, ChevronRight, Home } from 'lucide-react';
 import { FDFormFields } from '@/components/assets/FDFormFields';
 import { calculateFDCurrentValue } from '@/lib/fdCalculations';
 import type { Currency } from '@/types/assets';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 export default function EditAsset() {
   const { id } = useParams();
