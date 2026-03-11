@@ -200,7 +200,7 @@ export default function SipListPage() {
                         </div>
                       </div>
                       
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         {status === 'ACTIVE' && (
                           <Button variant="ghost" size="sm" onClick={() => handlePause(sip.id)} title="Pause SIP">
                             <Pause className="h-4 w-4" />
@@ -216,10 +216,8 @@ export default function SipListPage() {
                             <StopCircle className="h-4 w-4 text-destructive" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/asset/${sip.id}/edit`}>
-                            <Edit className="h-4 w-4" />
-                          </Link>
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/asset/${sip.id}`)}>
+                          <Edit className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
