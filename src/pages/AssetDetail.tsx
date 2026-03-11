@@ -261,7 +261,7 @@ export default function AssetDetail() {
                 "text-sm",
                 isProfit ? "text-positive" : "text-negative"
               )}>
-                ({isProfit ? '+' : ''}{plPercent.toFixed(2)}%)
+                ({isProfit ? '+' : ''}{plPercent.toFixed(4)}%)
               </p>
             </CardContent>
           </Card>
