@@ -82,6 +82,52 @@ export default function SipListPage() {
 
   // Filter to SIP assets
   const sips = allAssets?.filter(a => a.asset_type === 'sip') || [];
+  const sipIds = useMemo(() => sips.map(s => s.id), [sips]);
+
+  // Fetch all transactions for SIP assets to compute XIRR
+  const { data: allSipTxs } = useQuery({
+    queryKey: ['sip-transactions-for-xirr', sipIds],
+    queryFn: async () => {
+      if (sipIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('asset_transactions')
+        .select('asset_id, transaction_type, transaction_date, amount, fees')
+        .in('asset_id', sipIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: sipIds.length > 0,
+  });
+
+  const BUY_TYPES = ['BUY', 'PURCHASE', 'SWITCH_IN', 'SIP', 'SIP_INSTALLMENT', 'DEPOSIT'];
+  const SELL_TYPES = ['SELL', 'REDEEM', 'SWITCH_OUT'];
+
+  // Compute XIRR per SIP
+  const xirrMap = useMemo(() => {
+    const map: Record<string, number | null> = {};
+    if (!allSipTxs) return map;
+
+    for (const sip of sips) {
+      const txs = allSipTxs.filter(t => t.asset_id === sip.id);
+      const currentValue = Number(sip.current_value) || 0;
+      if (txs.length === 0 || currentValue <= 0) { map[sip.id] = null; continue; }
+
+      const cashflows = txs
+        .filter(tx => BUY_TYPES.includes(tx.transaction_type) || SELL_TYPES.includes(tx.transaction_type))
+        .map(tx => {
+          const isBuy = BUY_TYPES.includes(tx.transaction_type);
+          return {
+            date: new Date(tx.transaction_date),
+            amount: isBuy ? -(Number(tx.amount) + Number(tx.fees || 0)) : Number(tx.amount) - Number(tx.fees || 0),
+          };
+        });
+
+      if (cashflows.length === 0) { map[sip.id] = null; continue; }
+      cashflows.push({ date: new Date(), amount: currentValue });
+      map[sip.id] = calculateXIRR(cashflows);
+    }
+    return map;
+  }, [allSipTxs, sips]);
 
   // Backfill-eligible SIPs (have sipAmount and sipStartDate)
   const backfillEligible = useMemo(() => 
