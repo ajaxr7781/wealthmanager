@@ -490,7 +490,7 @@ export default function HoldingsByCategory() {
                       <div className="flex items-center justify-between sm:hidden">
                         <span className="text-sm font-medium">{fmtAed(currentValueAed)}</span>
                         <span className={cn("text-sm", isProfit ? "text-positive" : "text-negative")}>
-                          {isProfit ? '+' : ''}{plPct.toFixed(1)}%
+                          {isProfit ? '+' : ''}{plPct.toFixed(4)}%
                         </span>
                       </div>
 

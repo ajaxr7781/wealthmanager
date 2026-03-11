@@ -113,7 +113,7 @@ export default function MfHoldingsPage() {
               <p className={cn("text-2xl font-bold",
                 returnPct >= 0 ? 'text-positive' : 'text-negative'
               )}>
-                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
+                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(4)}%
               </p>
             </CardContent>
           </Card>

@@ -144,7 +144,7 @@ export function LiquidityBreakdown({ assets, monthlyExpenses = 0, getValueAed, c
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-semibold text-foreground">{fmt(tier.value)}</span>
-                    <span className="text-xs text-muted-foreground ml-1.5">({tier.percent.toFixed(1)}%)</span>
+                    <span className="text-xs text-muted-foreground ml-1.5">({tier.percent.toFixed(4)}%)</span>
                   </div>
                 </div>
                 {/* Progress bar */}
