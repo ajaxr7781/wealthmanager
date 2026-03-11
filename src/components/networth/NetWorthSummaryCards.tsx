@@ -51,7 +51,7 @@ export function NetWorthSummaryCards({ stats, period, fmtCurrency }: Props) {
             {stats.change >= 0 ? '+' : ''}{fmtCurrency(stats.change)}
           </p>
           <p className={cn("text-sm", stats.change >= 0 ? 'text-positive' : 'text-negative')}>
-            {stats.changePct >= 0 ? '+' : ''}{stats.changePct.toFixed(2)}%
+            {stats.changePct >= 0 ? '+' : ''}{stats.changePct.toFixed(4)}%
           </p>
         </CardContent>
       </Card>

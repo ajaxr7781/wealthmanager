@@ -46,9 +46,9 @@ function rankAssets(assets: Asset[], convertToAed: (v: number, cur: string) => n
 function exportLeaderboardCSV(ranked: RankedAsset[], symbol: string) {
   const headers = ['Rank', 'Asset Name', `Invested (${symbol})`, `Current Value (${symbol})`, `Gain (${symbol})`, 'Return %', 'CAGR %', 'Purchase Date'];
   const rows = ranked.map(a => [
-    a.rank, a.name, a.investedAed.toFixed(2), a.currentValueAed.toFixed(2),
-    a.absoluteGain.toFixed(2), a.returnPct.toFixed(2),
-    a.cagr !== null ? a.cagr.toFixed(2) : 'N/A', a.purchaseDate
+    a.rank, a.name, a.investedAed.toFixed(4), a.currentValueAed.toFixed(4),
+    a.absoluteGain.toFixed(4), a.returnPct.toFixed(4),
+    a.cagr !== null ? a.cagr.toFixed(4) : 'N/A', a.purchaseDate
   ]);
   const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });

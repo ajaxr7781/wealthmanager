@@ -282,7 +282,7 @@ export default function AssetDetail() {
                   "text-2xl font-bold",
                   cagr > 12 ? "text-positive" : cagr > 6 ? "text-warning" : "text-destructive"
                 )}>
-                  {cagr >= 0 ? '+' : ''}{cagr.toFixed(1)}%
+                  {cagr >= 0 ? '+' : ''}{cagr.toFixed(4)}%
                 </p>
               ) : (
                 <p className="text-lg text-muted-foreground">—</p>

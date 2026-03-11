@@ -196,7 +196,7 @@ export default function MfHoldingDetail() {
                 {fmtINR(Math.abs(gain))}
               </p>
               <p className={cn("text-sm", gain >= 0 ? 'text-positive' : 'text-negative')}>
-                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
+                {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(4)}%
               </p>
             </CardContent>
           </Card>
