@@ -248,7 +248,7 @@ export default function MetalDetail() {
             <CardContent>
               <p className={cn("text-xl sm:text-2xl font-bold", totals.pl >= 0 ? "text-positive" : "text-negative")}>
                 {totals.pl >= 0 ? '+' : ''}{fmtAed(totals.pl)}
-                <span className="text-sm ml-2">({totals.plPct >= 0 ? '+' : ''}{totals.plPct.toFixed(1)}%)</span>
+                <span className="text-sm ml-2">({totals.plPct >= 0 ? '+' : ''}{totals.plPct.toFixed(4)}%)</span>
               </p>
             </CardContent>
           </Card>
