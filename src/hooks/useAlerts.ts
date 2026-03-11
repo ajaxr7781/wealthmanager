@@ -276,7 +276,7 @@ export function useEvaluateAlerts() {
                   status: 'open',
                   severity: rule.severity,
                   title: `Portfolio Drawdown`,
-                  message: `Portfolio is down ${drawdownPct.toFixed(1)}% from peak (threshold: ${threshold}%)`,
+                  message: `Portfolio is down ${drawdownPct.toFixed(4)}% from peak (threshold: ${threshold}%)`,
                   context_json: { peak, current, drawdown_pct: drawdownPct },
                   triggered_at: new Date().toISOString(),
                 });

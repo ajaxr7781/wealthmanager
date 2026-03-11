@@ -69,7 +69,7 @@ export function RealEstateReport({ assets, totalPortfolioValue }: RealEstateRepo
                 </div>
                 <div>
                   <p className="text-muted-foreground">% of Portfolio</p>
-                  <p className="font-medium">{portfolioPct.toFixed(1)}%</p>
+                  <p className="font-medium">{portfolioPct.toFixed(4)}%</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Holding Period</p>
