@@ -263,7 +263,7 @@ export function AssetTransactionSection({ assetId, currency, fmtCurrency, assetT
                       value={form.nav}
                       onChange={(e) => handleFieldChange('nav', e.target.value)}
                       min="0"
-                      step="0.01"
+                      step="0.0001"
                     />
                     <p className="text-xs text-muted-foreground">Auto-calculates if Amount & Units given</p>
                   </div>
