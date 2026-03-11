@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAssets, useUpdateAsset } from '@/hooks/useAssets';
+import { useQuery } from '@tanstack/react-query';
+import { calculateXIRR } from '@/lib/xirrCalc';
 import {
   Plus, 
   Calendar,
