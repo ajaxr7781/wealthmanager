@@ -621,7 +621,7 @@ export default function AddAsset() {
                         <Input
                           id="interest_rate"
                           type="number"
-                          step="0.01"
+                          step="0.0001"
                           min="0"
                           max="100"
                           value={formData.interest_rate || ''}
