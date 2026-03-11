@@ -280,7 +280,7 @@ export default function PerformancePage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Contributions</span>
-                    <span className="font-medium text-foreground">AED {contributionSplit.contributions.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                    <span className="font-medium text-foreground">AED {contributionSplit.contributions.toLocaleString('en-US', { maximumFractionDigits: 4 })}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Market Return</span>
