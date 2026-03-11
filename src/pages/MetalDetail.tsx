@@ -267,7 +267,7 @@ export default function MetalDetail() {
                 <p className={cn("text-xl sm:text-2xl font-bold",
                   totals.cagr > 12 ? "text-positive" : totals.cagr > 6 ? "text-warning" : "text-destructive"
                 )}>
-                  {totals.cagr >= 0 ? '+' : ''}{totals.cagr.toFixed(1)}%
+                  {totals.cagr >= 0 ? '+' : ''}{totals.cagr.toFixed(4)}%
                 </p>
               ) : (
                 <p className="text-lg text-muted-foreground">—</p>
