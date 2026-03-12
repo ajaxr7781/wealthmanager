@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -678,7 +679,7 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
           </DialogHeader>
           <div
             className="border rounded-lg overflow-hidden"
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }}
           />
         </DialogContent>
       </Dialog>

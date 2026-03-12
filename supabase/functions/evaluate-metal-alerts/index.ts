@@ -400,6 +400,10 @@ serve(async (req) => {
   }
 });
 
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function buildEmailBody(params: {
   metalLabel: string;
   currentPrice: number;
@@ -409,8 +413,8 @@ function buildEmailBody(params: {
 }): string {
   const { metalLabel, currentPrice, portfolio, rule, triggerReason } = params;
   const actionColor = rule.suggested_action === 'buy' ? '#22c55e' : rule.suggested_action === 'sell' ? '#ef4444' : '#f59e0b';
-  const actionLabel = rule.suggested_action.toUpperCase();
-  const amountLabel = `${rule.suggested_amount_value} ${rule.suggested_amount_type.toUpperCase()}`;
+  const actionLabel = escHtml(rule.suggested_action.toUpperCase());
+  const amountLabel = `${rule.suggested_amount_value} ${escHtml(rule.suggested_amount_type.toUpperCase())}`;
 
   return `
 <!DOCTYPE html>
@@ -421,8 +425,8 @@ function buildEmailBody(params: {
     <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
       <!-- Header -->
       <div style="background:linear-gradient(135deg,#1e293b,#334155);padding:24px;color:white;">
-        <h1 style="margin:0;font-size:20px;">⚡ ${metalLabel} Alert</h1>
-        <p style="margin:8px 0 0;opacity:0.8;font-size:14px;">${rule.rule_name}</p>
+        <h1 style="margin:0;font-size:20px;">⚡ ${escHtml(metalLabel)} Alert</h1>
+        <p style="margin:8px 0 0;opacity:0.8;font-size:14px;">${escHtml(rule.rule_name)}</p>
       </div>
       
       <!-- Action Badge -->
@@ -468,7 +472,7 @@ function buildEmailBody(params: {
       <!-- Trigger Reason -->
       <div style="padding:16px 24px;background:#f8fafc;border-top:1px solid #e5e7eb;">
         <p style="margin:0;font-size:13px;color:#6b7280;">
-          <strong>Why this triggered:</strong> ${triggerReason}
+          <strong>Why this triggered:</strong> ${escHtml(triggerReason)}
         </p>
       </div>
 
