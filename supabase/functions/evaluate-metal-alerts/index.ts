@@ -472,7 +472,7 @@ function buildEmailBody(params: {
       <!-- Trigger Reason -->
       <div style="padding:16px 24px;background:#f8fafc;border-top:1px solid #e5e7eb;">
         <p style="margin:0;font-size:13px;color:#6b7280;">
-          <strong>Why this triggered:</strong> ${triggerReason}
+          <strong>Why this triggered:</strong> ${escHtml(triggerReason)}
         </p>
       </div>
 
