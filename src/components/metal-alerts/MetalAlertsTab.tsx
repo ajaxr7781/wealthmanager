@@ -678,7 +678,7 @@ export function MetalAlertsTab({ metalType, metalLabel, totals }: MetalAlertsTab
           </DialogHeader>
           <div
             className="border rounded-lg overflow-hidden"
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }}
           />
         </DialogContent>
       </Dialog>
