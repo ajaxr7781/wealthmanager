@@ -134,7 +134,7 @@ export function LiveMetalPrices({ prices, isLoading, onRefresh, isRefreshing }: 
                     1 USD = {formatNumber(settings?.usd_to_aed_rate || forexRates?.USD_AED || 3.6725, 4)} AED
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    1 INR = {formatNumber(settings?.inr_to_aed_rate || forexRates?.INR_AED || 0.044, 4)} AED
+                    1 AED = {formatNumber(1 / (settings?.inr_to_aed_rate || forexRates?.INR_AED || 0.044), 4)} INR
                   </p>
                 </div>
               </div>
