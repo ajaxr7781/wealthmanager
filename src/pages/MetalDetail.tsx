@@ -276,19 +276,19 @@ export default function MetalDetail() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                CAGR
+                XIRR
                 <Tooltip>
                   <TooltipTrigger><HelpCircle className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
-                  <TooltipContent>Compound Annual Growth Rate</TooltipContent>
+                  <TooltipContent>Extended Internal Rate of Return (annualized)</TooltipContent>
                 </Tooltip>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {totals.cagr !== null ? (
+              {xirrPct !== null ? (
                 <p className={cn("text-xl sm:text-2xl font-bold",
-                  totals.cagr > 12 ? "text-positive" : totals.cagr > 6 ? "text-warning" : "text-destructive"
+                  xirrPct > 12 ? "text-positive" : xirrPct > 6 ? "text-warning" : "text-destructive"
                 )}>
-                  {totals.cagr >= 0 ? '+' : ''}{totals.cagr.toFixed(1)}%
+                  {xirrPct >= 0 ? '+' : ''}{xirrPct.toFixed(1)}%
                 </p>
               ) : (
                 <p className="text-lg text-muted-foreground">—</p>
