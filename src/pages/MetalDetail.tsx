@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings, useUpdateAsset } from '@/hooks/useAssets';
@@ -6,6 +6,7 @@ import { useLatestPrices } from '@/hooks/usePrices';
 import { useAllAssetTransactions, useCreateAssetTransaction } from '@/hooks/useAssetTransactions';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
+import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Coins, HelpCircle, ChevronRight, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { parseISO, format } from 'date-fns';
 import { MetalAlertsTab } from '@/components/metal-alerts/MetalAlertsTab';
 
 const METAL_LABELS: Record<string, string> = {
@@ -43,11 +44,16 @@ export default function MetalDetail() {
 
   const metalAssetIds = useMemo(() => new Set(metalAssets.map(a => a.id)), [metalAssets]);
 
-  const metalTransactions = useMemo(
-    () => (allTransactions || [])
-      .filter(t => metalAssetIds.has(t.asset_id) && t.transaction_type === 'BUY')
-      .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date)),
+  const allMetalTransactions = useMemo(
+    () => (allTransactions || []).filter(t => metalAssetIds.has(t.asset_id)),
     [allTransactions, metalAssetIds]
+  );
+
+  const metalTransactions = useMemo(
+    () => allMetalTransactions
+      .filter(t => t.transaction_type === 'BUY')
+      .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date)),
+    [allMetalTransactions]
   );
 
   const isLoading = assetsLoading || txLoading;
@@ -132,18 +138,23 @@ export default function MetalDetail() {
     const pl = totalValue - totalInvested;
     const plPct = totalInvested > 0 ? (pl / totalInvested) * 100 : 0;
 
-    let cagr: number | null = null;
-    if (metalAssets.length > 0 && totalInvested > 0 && totalValue > 0) {
-      const dates = metalAssets.map(a => parseISO(a.purchase_date));
-      const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
-      const years = differenceInDays(new Date(), earliest) / 365.25;
-      if (years > 0) {
-        cagr = (Math.pow(totalValue / totalInvested, 1 / years) - 1) * 100;
+    return { totalInvested, totalValue, pl, plPct, totalQtyOz };
+  }, [metalAssets, prices, inrToAed]);
+
+  // XIRR computation
+  const computedXirr = useComputedXirr(allMetalTransactions, totals.totalValue);
+  const saveXirr = useSaveXirr();
+  const xirrPct = computedXirr !== null ? computedXirr * 100 : null;
+
+  // Persist XIRR to primary asset
+  useEffect(() => {
+    if (primaryAsset && computedXirr !== null) {
+      const currentStored = primaryAsset.xirr_value ? Number(primaryAsset.xirr_value) : null;
+      if (currentStored === null || Math.abs((currentStored - computedXirr)) > 0.0001) {
+        saveXirr.mutate({ assetId: primaryAsset.id, xirr: computedXirr });
       }
     }
-
-    return { totalInvested, totalValue, pl, plPct, totalQtyOz, cagr };
-  }, [metalAssets, prices, inrToAed]);
+  }, [primaryAsset?.id, computedXirr]);
 
   const fmtAed = (v: number) => formatAed(v, { decimals: 0 });
 
@@ -255,19 +266,19 @@ export default function MetalDetail() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                CAGR
+                XIRR
                 <Tooltip>
                   <TooltipTrigger><HelpCircle className="h-3 w-3 text-muted-foreground" /></TooltipTrigger>
-                  <TooltipContent>Compound Annual Growth Rate</TooltipContent>
+                  <TooltipContent>Extended Internal Rate of Return (annualized)</TooltipContent>
                 </Tooltip>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {totals.cagr !== null ? (
+              {xirrPct !== null ? (
                 <p className={cn("text-xl sm:text-2xl font-bold",
-                  totals.cagr > 12 ? "text-positive" : totals.cagr > 6 ? "text-warning" : "text-destructive"
+                  xirrPct > 12 ? "text-positive" : xirrPct > 6 ? "text-warning" : "text-destructive"
                 )}>
-                  {totals.cagr >= 0 ? '+' : ''}{totals.cagr.toFixed(1)}%
+                  {xirrPct >= 0 ? '+' : ''}{xirrPct.toFixed(1)}%
                 </p>
               ) : (
                 <p className="text-lg text-muted-foreground">—</p>
