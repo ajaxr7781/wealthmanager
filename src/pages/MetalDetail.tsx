@@ -151,6 +151,21 @@ export default function MetalDetail() {
     return { totalInvested, totalValue, pl, plPct, totalQtyOz, cagr };
   }, [metalAssets, prices, inrToAed]);
 
+  // XIRR computation
+  const computedXirr = useComputedXirr(allMetalTransactions, totals.totalValue);
+  const saveXirr = useSaveXirr();
+  const xirrPct = computedXirr !== null ? computedXirr * 100 : null;
+
+  // Persist XIRR to primary asset
+  useEffect(() => {
+    if (primaryAsset && computedXirr !== null) {
+      const currentStored = primaryAsset.xirr_value ? Number(primaryAsset.xirr_value) : null;
+      if (currentStored === null || Math.abs((currentStored - computedXirr)) > 0.0001) {
+        saveXirr.mutate({ assetId: primaryAsset.id, xirr: computedXirr });
+      }
+    }
+  }, [primaryAsset?.id, computedXirr]);
+
   const fmtAed = (v: number) => formatAed(v, { decimals: 0 });
 
   if (isLoading) {
