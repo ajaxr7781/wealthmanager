@@ -44,11 +44,16 @@ export default function MetalDetail() {
 
   const metalAssetIds = useMemo(() => new Set(metalAssets.map(a => a.id)), [metalAssets]);
 
-  const metalTransactions = useMemo(
-    () => (allTransactions || [])
-      .filter(t => metalAssetIds.has(t.asset_id) && t.transaction_type === 'BUY')
-      .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date)),
+  const allMetalTransactions = useMemo(
+    () => (allTransactions || []).filter(t => metalAssetIds.has(t.asset_id)),
     [allTransactions, metalAssetIds]
+  );
+
+  const metalTransactions = useMemo(
+    () => allMetalTransactions
+      .filter(t => t.transaction_type === 'BUY')
+      .sort((a, b) => b.transaction_date.localeCompare(a.transaction_date)),
+    [allMetalTransactions]
   );
 
   const isLoading = assetsLoading || txLoading;
