@@ -400,6 +400,10 @@ serve(async (req) => {
   }
 });
 
+function escHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function buildEmailBody(params: {
   metalLabel: string;
   currentPrice: number;
@@ -409,8 +413,8 @@ function buildEmailBody(params: {
 }): string {
   const { metalLabel, currentPrice, portfolio, rule, triggerReason } = params;
   const actionColor = rule.suggested_action === 'buy' ? '#22c55e' : rule.suggested_action === 'sell' ? '#ef4444' : '#f59e0b';
-  const actionLabel = rule.suggested_action.toUpperCase();
-  const amountLabel = `${rule.suggested_amount_value} ${rule.suggested_amount_type.toUpperCase()}`;
+  const actionLabel = escHtml(rule.suggested_action.toUpperCase());
+  const amountLabel = `${rule.suggested_amount_value} ${escHtml(rule.suggested_amount_type.toUpperCase())}`;
 
   return `
 <!DOCTYPE html>
