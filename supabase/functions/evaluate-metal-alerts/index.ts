@@ -425,8 +425,8 @@ function buildEmailBody(params: {
     <div style="background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
       <!-- Header -->
       <div style="background:linear-gradient(135deg,#1e293b,#334155);padding:24px;color:white;">
-        <h1 style="margin:0;font-size:20px;">⚡ ${metalLabel} Alert</h1>
-        <p style="margin:8px 0 0;opacity:0.8;font-size:14px;">${rule.rule_name}</p>
+        <h1 style="margin:0;font-size:20px;">⚡ ${escHtml(metalLabel)} Alert</h1>
+        <p style="margin:8px 0 0;opacity:0.8;font-size:14px;">${escHtml(rule.rule_name)}</p>
       </div>
       
       <!-- Action Badge -->
