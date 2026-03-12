@@ -18,7 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Plus, Coins, HelpCircle, ChevronRight, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { parseISO, format } from 'date-fns';
 import { MetalAlertsTab } from '@/components/metal-alerts/MetalAlertsTab';
 
 const METAL_LABELS: Record<string, string> = {
