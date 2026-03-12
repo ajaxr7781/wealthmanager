@@ -58,6 +58,21 @@ export default function MetalDetail() {
 
   const isLoading = assetsLoading || txLoading;
 
+  // XIRR computation
+  const xirrCurrentValue = useMemo(() => totals?.totalValue || 0, [totals]);
+  const computedXirr = useComputedXirr(allMetalTransactions, xirrCurrentValue);
+  const saveXirr = useSaveXirr();
+
+  // Persist XIRR to primary asset
+  useEffect(() => {
+    if (primaryAsset && computedXirr !== null && computedXirr !== undefined) {
+      const currentStored = primaryAsset.xirr_value ? Number(primaryAsset.xirr_value) : null;
+      if (currentStored === null || Math.abs((currentStored - computedXirr)) > 0.0001) {
+        saveXirr.mutate({ assetId: primaryAsset.id, xirr: computedXirr });
+      }
+    }
+  }, [primaryAsset?.id, computedXirr]);
+
   const createTx = useCreateAssetTransaction();
   const updateAsset = useUpdateAsset();
   const [addOpen, setAddOpen] = useState(false);
