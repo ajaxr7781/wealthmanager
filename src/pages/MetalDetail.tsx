@@ -6,6 +6,7 @@ import { useLatestPrices } from '@/hooks/usePrices';
 import { useAllAssetTransactions, useCreateAssetTransaction } from '@/hooks/useAssetTransactions';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
+import { useComputedXirr, useSaveXirr } from '@/hooks/useXirrCalculation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
