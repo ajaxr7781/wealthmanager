@@ -86,7 +86,7 @@ export default function PreferencesSettings() {
                   onChange={(e) => setInrToAed(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  1 INR = {inrToAed} AED
+                  1 AED = {(1 / (parseFloat(inrToAed) || 0.044)).toFixed(4)} INR
                 </p>
               </div>
             </div>
