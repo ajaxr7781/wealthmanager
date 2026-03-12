@@ -138,17 +138,7 @@ export default function MetalDetail() {
     const pl = totalValue - totalInvested;
     const plPct = totalInvested > 0 ? (pl / totalInvested) * 100 : 0;
 
-    let cagr: number | null = null;
-    if (metalAssets.length > 0 && totalInvested > 0 && totalValue > 0) {
-      const dates = metalAssets.map(a => parseISO(a.purchase_date));
-      const earliest = new Date(Math.min(...dates.map(d => d.getTime())));
-      const years = differenceInDays(new Date(), earliest) / 365.25;
-      if (years > 0) {
-        cagr = (Math.pow(totalValue / totalInvested, 1 / years) - 1) * 100;
-      }
-    }
-
-    return { totalInvested, totalValue, pl, plPct, totalQtyOz, cagr };
+    return { totalInvested, totalValue, pl, plPct, totalQtyOz };
   }, [metalAssets, prices, inrToAed]);
 
   // XIRR computation
