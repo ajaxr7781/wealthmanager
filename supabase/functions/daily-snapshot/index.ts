@@ -11,16 +11,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization') ?? ''
-    const cronSecret = Deno.env.get('CRON_SECRET')
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    const isCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`
-    const isServiceRole = authHeader === `Bearer ${serviceKey}`
-    const hasBearer = authHeader.startsWith('Bearer ')
-
-    if (!isCronAuth && !isServiceRole && !hasBearer) {
+    // This function is called by pg_cron or authenticated users
+    // verify_jwt is false in config.toml, so we just need a bearer token
+    const authHeader = req.headers.get('Authorization') ?? ''
+    if (!authHeader.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
