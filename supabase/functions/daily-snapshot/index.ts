@@ -63,14 +63,8 @@ Deno.serve(async (req) => {
           .eq('user_id', userId)
           .eq('is_active', true)
 
-        // Get MF holdings with scheme category
-        const { data: mfHoldings } = await supabase
-          .from('mf_holdings')
-          .select('invested_amount, current_value, scheme_id')
-          .eq('user_id', userId)
-          .eq('is_active', true)
-
         // Calculate totals and per-category breakdown
+        // NOTE: MF holdings are already in the unified 'assets' table, no separate query needed
         let totalInvested = 0
         let totalValue = 0
         const categoryBreakdown: Record<string, { invested: number; value: number }> = {}
