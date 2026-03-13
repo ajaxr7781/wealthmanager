@@ -104,6 +104,7 @@ export function useUnifiedRefresh() {
       queryClient.invalidateQueries({ queryKey: ['latest-prices'] });
       queryClient.invalidateQueries({ queryKey: ['mf-holdings'] });
       queryClient.invalidateQueries({ queryKey: ['mf-schemes'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-snapshots'] });
 
       const refreshed: string[] = [];
       if (result.metals) refreshed.push('Metals');
