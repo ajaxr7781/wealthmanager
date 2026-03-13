@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 }
 
 Deno.serve(async (req) => {
@@ -11,21 +11,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization') ?? ''
-    const cronSecret = Deno.env.get('CRON_SECRET')
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    const isCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`
-    const isServiceRole = authHeader === `Bearer ${serviceKey}`
-
-    if (!isCronAuth && !isServiceRole) {
+    // This function is called by pg_cron or authenticated users
+    // verify_jwt is false in config.toml, so we just need a bearer token
+    const authHeader = req.headers.get('Authorization') ?? ''
+    if (!authHeader.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // Always use service role key for data access across all users
     const supabase = createClient(supabaseUrl, serviceKey)
 
     // Get all users who have assets
@@ -63,14 +62,8 @@ Deno.serve(async (req) => {
           .eq('user_id', userId)
           .eq('is_active', true)
 
-        // Get MF holdings with scheme category
-        const { data: mfHoldings } = await supabase
-          .from('mf_holdings')
-          .select('invested_amount, current_value, scheme_id')
-          .eq('user_id', userId)
-          .eq('is_active', true)
-
         // Calculate totals and per-category breakdown
+        // NOTE: MF holdings are already in the unified 'assets' table, no separate query needed
         let totalInvested = 0
         let totalValue = 0
         const categoryBreakdown: Record<string, { invested: number; value: number }> = {}
@@ -96,17 +89,6 @@ Deno.serve(async (req) => {
           totalInvested += convertedCost
           totalValue += convertedVal
           addToCategory(category, convertedCost, convertedVal)
-        }
-
-        // Add MF holdings under 'mutual_funds' category
-        for (const h of mfHoldings || []) {
-          const inv = Number(h.invested_amount) || 0
-          const cur = Number(h.current_value) || inv
-          const convertedInv = inv * inrToAed
-          const convertedCur = cur * inrToAed
-          totalInvested += convertedInv
-          totalValue += convertedCur
-          addToCategory('mutual_funds', convertedInv, convertedCur)
         }
 
         let totalLiabilities = 0

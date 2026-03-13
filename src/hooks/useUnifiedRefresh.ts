@@ -84,8 +84,13 @@ export function useUnifiedRefresh() {
         }
       }
 
-      // TODO: Add NAV refresh for mutual funds when implemented
-      // For now, just invalidate MF queries
+      // Trigger daily snapshot to capture current portfolio state
+      try {
+        await supabase.functions.invoke('daily-snapshot');
+      } catch (e) {
+        console.error('Snapshot trigger failed:', e);
+      }
+
       result.nav = true;
 
       return result;
@@ -99,6 +104,7 @@ export function useUnifiedRefresh() {
       queryClient.invalidateQueries({ queryKey: ['latest-prices'] });
       queryClient.invalidateQueries({ queryKey: ['mf-holdings'] });
       queryClient.invalidateQueries({ queryKey: ['mf-schemes'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio-snapshots'] });
 
       const refreshed: string[] = [];
       if (result.metals) refreshed.push('Metals');
