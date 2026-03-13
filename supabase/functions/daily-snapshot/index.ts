@@ -92,17 +92,6 @@ Deno.serve(async (req) => {
           addToCategory(category, convertedCost, convertedVal)
         }
 
-        // Add MF holdings under 'mutual_funds' category
-        for (const h of mfHoldings || []) {
-          const inv = Number(h.invested_amount) || 0
-          const cur = Number(h.current_value) || inv
-          const convertedInv = inv * inrToAed
-          const convertedCur = cur * inrToAed
-          totalInvested += convertedInv
-          totalValue += convertedCur
-          addToCategory('mutual_funds', convertedInv, convertedCur)
-        }
-
         let totalLiabilities = 0
         for (const l of liabilities || []) {
           const out = Number(l.outstanding) || 0
