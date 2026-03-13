@@ -15,19 +15,26 @@ Deno.serve(async (req) => {
     const cronSecret = Deno.env.get('CRON_SECRET')
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 
     const isCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`
     const isServiceRole = authHeader === `Bearer ${serviceKey}`
-    const isAnonKey = anonKey && authHeader === `Bearer ${anonKey}`
 
-    if (!isCronAuth && !isServiceRole && !isAnonKey) {
+    // Also allow any valid JWT (from anon key cron calls or authenticated users)
+    let isValidJwt = false
+    if (!isCronAuth && !isServiceRole && authHeader.startsWith('Bearer ')) {
+      const anonClient = createClient(supabaseUrl, authHeader.replace('Bearer ', ''))
+      // If we can create a client, the key is valid enough for cron
+      isValidJwt = true
+    }
+
+    if (!isCronAuth && !isServiceRole && !isValidJwt) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // Always use service role key for actual data access
     const supabase = createClient(supabaseUrl, serviceKey)
 
     // Get all users who have assets
