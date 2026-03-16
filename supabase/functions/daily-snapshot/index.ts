@@ -123,16 +123,18 @@ Deno.serve(async (req) => {
 
         if (upsertError) throw upsertError
         results.push({ user_id: userId, status: 'ok' })
-      } catch (e) {
-        results.push({ user_id: userId, status: `error: ${e.message}` })
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        results.push({ user_id: userId, status: `error: ${msg}` })
       }
     }
 
     return new Response(JSON.stringify({ date: today, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error)
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
