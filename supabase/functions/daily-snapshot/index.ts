@@ -123,8 +123,9 @@ Deno.serve(async (req) => {
 
         if (upsertError) throw upsertError
         results.push({ user_id: userId, status: 'ok' })
-      } catch (e) {
-        results.push({ user_id: userId, status: `error: ${e.message}` })
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        results.push({ user_id: userId, status: `error: ${msg}` })
       }
     }
 
