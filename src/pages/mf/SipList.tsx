@@ -449,6 +449,7 @@ export default function SipListPage() {
                             {sip.sip_amount && <span>Monthly: {fmtINR(Number(sip.sip_amount))}</span>}
                             {sip.sip_day_of_month && <span>Day: {sip.sip_day_of_month}</span>}
                             {sip.sip_start_date && <span>Started: {format(new Date(sip.sip_start_date), 'MMM yyyy')}</span>}
+                            {lastPaymentMap[sip.id] && <span>Last Payment: {format(new Date(lastPaymentMap[sip.id]!), 'dd MMM yyyy')}</span>}
                             {sip.folio_no && <span>Folio: {sip.folio_no}</span>}
                           </div>
                         </div>
