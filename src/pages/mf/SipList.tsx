@@ -102,7 +102,7 @@ export default function SipListPage() {
   const BUY_TYPES = ['BUY', 'PURCHASE', 'SWITCH_IN', 'SIP', 'SIP_INSTALLMENT', 'DEPOSIT'];
   const SELL_TYPES = ['SELL', 'REDEEM', 'SWITCH_OUT'];
 
-  // Compute XIRR per SIP
+  // Compute XIRR per SIP + last payment date
   const xirrMap = useMemo(() => {
     const map: Record<string, number | null> = {};
     if (!allSipTxs) return map;
@@ -125,6 +125,24 @@ export default function SipListPage() {
       if (cashflows.length === 0) { map[sip.id] = null; continue; }
       cashflows.push({ date: new Date(), amount: currentValue });
       map[sip.id] = calculateXIRR(cashflows);
+    }
+    return map;
+  }, [allSipTxs, sips]);
+
+  // Last payment date per SIP
+  const lastPaymentMap = useMemo(() => {
+    const map: Record<string, string | null> = {};
+    if (!allSipTxs) return map;
+    for (const sip of sips) {
+      const paymentTxs = allSipTxs.filter(
+        t => t.asset_id === sip.id && BUY_TYPES.includes(t.transaction_type)
+      );
+      if (paymentTxs.length === 0) { map[sip.id] = null; continue; }
+      const latest = paymentTxs.reduce((max, tx) =>
+        tx.transaction_date > max ? tx.transaction_date : max,
+        paymentTxs[0].transaction_date
+      );
+      map[sip.id] = latest;
     }
     return map;
   }, [allSipTxs, sips]);
