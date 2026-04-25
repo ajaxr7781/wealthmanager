@@ -58,6 +58,22 @@ export function useCreateLiabilityPayment() {
   });
 }
 
+export function useUpdateLiabilityPayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: Partial<LiabilityPaymentFormData> & { id: string }) => {
+      const { error } = await supabase.from('liability_payments').update(data).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['liability-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      toast.success('Payment updated');
+    },
+    onError: (e: Error) => toast.error('Failed: ' + e.message),
+  });
+}
+
 export function useDeleteLiabilityPayment() {
   const queryClient = useQueryClient();
   return useMutation({
