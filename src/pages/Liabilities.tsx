@@ -64,8 +64,8 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <ScrollArea className="max-h-[60vh] pr-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2">
         <div className="grid gap-4 sm:grid-cols-2 p-1">
           <div><Label>Name</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
           <div>
@@ -94,7 +94,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
           </div>
         </div>
         <div className="mt-4 p-1"><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} /></div>
-      </ScrollArea>
+      </div>
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
         <Button type="submit">{initial ? 'Update' : 'Add'} Liability</Button>
@@ -218,7 +218,8 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
           ) : !payments?.length ? (
             <p className="text-center text-muted-foreground py-8">No payments recorded yet</p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
@@ -265,6 +266,7 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </ScrollArea>
       </DialogContent>
