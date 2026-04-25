@@ -292,7 +292,7 @@ export default function LiabilitiesPage() {
                     <TableHead className="text-right">Rate</TableHead>
                     <TableHead className="text-right">EMI</TableHead>
                     <TableHead>Next Due</TableHead>
-                    <TableHead className="w-28"></TableHead>
+                    <TableHead className="w-36"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
