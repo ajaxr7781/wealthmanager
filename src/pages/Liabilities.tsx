@@ -94,7 +94,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
           </div>
         </div>
         <div className="mt-4 p-1"><Label>Notes</Label><Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} /></div>
-      </ScrollArea>
+      </div>
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
         <Button type="submit">{initial ? 'Update' : 'Add'} Liability</Button>
