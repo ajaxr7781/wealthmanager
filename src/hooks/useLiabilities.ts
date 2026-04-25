@@ -17,6 +17,7 @@ export interface Liability {
   currency: string;
   notes: string | null;
   is_active: boolean;
+  tenure_months: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +33,7 @@ export interface LiabilityFormData {
   linked_asset_id?: string;
   currency?: string;
   notes?: string;
+  tenure_months?: number;
 }
 
 export function useLiabilities() {
