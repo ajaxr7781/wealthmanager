@@ -110,41 +110,115 @@ function PaymentDialog({ liability, open, onOpenChange }: {
   onOpenChange: (o: boolean) => void;
 }) {
   const updateLiability = useUpdateLiability();
+  const createPayment = useCreateLiabilityPayment();
   const [amount, setAmount] = useState('');
+  const [principal, setPrincipal] = useState('');
+  const [interest, setInterest] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
 
-  const handlePay = (e: React.FormEvent) => {
+  const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
     const payAmt = Number(amount);
     if (!payAmt || payAmt <= 0) return;
-    const newOutstanding = Math.max(0, liability.outstanding - payAmt);
-    updateLiability.mutate({
-      id: liability.id,
-      outstanding: newOutstanding,
-      notes: notes
-        ? `${liability.notes ? liability.notes + '\n' : ''}Payment of ${payAmt} on ${new Date().toISOString().slice(0, 10)}. ${notes}`
-        : liability.notes,
+    const principalAmt = principal ? Number(principal) : payAmt;
+    const newOutstanding = Math.max(0, liability.outstanding - principalAmt);
+
+    await createPayment.mutateAsync({
+      liability_id: liability.id,
+      payment_date: paymentDate,
+      amount: payAmt,
+      principal_component: principal ? Number(principal) : undefined,
+      interest_component: interest ? Number(interest) : undefined,
+      notes: notes || undefined,
     });
+    updateLiability.mutate({ id: liability.id, outstanding: newOutstanding });
     onOpenChange(false);
-    setAmount('');
-    setNotes('');
+    setAmount(''); setPrincipal(''); setInterest(''); setNotes('');
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader><DialogTitle>Record Payment</DialogTitle></DialogHeader>
-        <form onSubmit={handlePay} className="space-y-4">
+        <form onSubmit={handlePay} className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Current outstanding: <span className="font-semibold text-foreground">{formatCurrency(liability.outstanding)}</span>
+            Outstanding: <span className="font-semibold text-foreground">{formatCurrency(liability.outstanding)}</span>
           </p>
-          <div><Label>Payment Amount</Label><Input type="number" min={0.01} step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required autoFocus /></div>
+          <div><Label>Payment Date</Label><Input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required /></div>
+          <div><Label>Total Amount</Label><Input type="number" min={0.01} step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required autoFocus /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><Label className="text-xs">Principal</Label><Input type="number" min={0} step="0.01" value={principal} onChange={e => setPrincipal(e.target.value)} placeholder="Optional" /></div>
+            <div><Label className="text-xs">Interest</Label><Input type="number" min={0} step="0.01" value={interest} onChange={e => setInterest(e.target.value)} placeholder="Optional" /></div>
+          </div>
+          <p className="text-xs text-muted-foreground">If principal is blank, total amount reduces outstanding.</p>
           <div><Label>Notes (optional)</Label><Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Jan 2026 EMI" /></div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit">Record Payment</Button>
           </div>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Dialog showing all payments made against a liability */
+function PaymentHistoryDialog({ liability, open, onOpenChange }: {
+  liability: Liability;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const { data: payments, isLoading } = useLiabilityPayments(liability.id);
+  const deletePayment = useDeleteLiabilityPayment();
+  const total = payments?.reduce((s, p) => s + Number(p.amount), 0) ?? 0;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Payment History — {liability.name}</DialogTitle>
+        </DialogHeader>
+        <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+          <span>Total paid: <span className="font-semibold text-foreground">{formatCurrency(total)}</span></span>
+          <span>{payments?.length ?? 0} payment{(payments?.length ?? 0) === 1 ? '' : 's'}</span>
+        </div>
+        <ScrollArea className="flex-1 pr-2">
+          {isLoading ? (
+            <p className="text-center text-muted-foreground py-8">Loading…</p>
+          ) : !payments?.length ? (
+            <p className="text-center text-muted-foreground py-8">No payments recorded yet</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Principal</TableHead>
+                  <TableHead className="text-right">Interest</TableHead>
+                  <TableHead>Notes</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map(p => (
+                  <TableRow key={p.id}>
+                    <TableCell className="whitespace-nowrap">{format(new Date(p.payment_date), 'dd MMM yyyy')}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(p.amount)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{p.principal_component != null ? formatCurrency(p.principal_component) : '—'}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{p.interest_component != null ? formatCurrency(p.interest_component) : '—'}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{p.notes || '—'}</TableCell>
+                    <TableCell>
+                      <Button size="icon" variant="ghost" onClick={() => deletePayment.mutate(p.id)} title="Delete">
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
