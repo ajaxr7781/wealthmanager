@@ -57,6 +57,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
       outstanding: Number(form.outstanding) || 0,
       interest_rate: form.interest_rate ? Number(form.interest_rate) : undefined,
       emi: form.emi ? Number(form.emi) : undefined,
+      tenure_months: form.tenure_months ? Number(form.tenure_months) : undefined,
       next_due_date: form.next_due_date || undefined,
       currency: form.currency,
       notes: form.notes || undefined,
