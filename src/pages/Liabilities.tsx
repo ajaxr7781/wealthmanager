@@ -341,6 +341,17 @@ export default function LiabilitiesPage() {
           onOpenChange={(o) => { if (!o) setPayingLiability(undefined); }}
         />
       )}
+
+      {/* Payment history dialog */}
+      {historyLiability && (
+        <PaymentHistoryDialog
+          liability={historyLiability}
+          open={!!historyLiability}
+          onOpenChange={(o) => { if (!o) setHistoryLiability(undefined); }}
+        />
+      )}
     </AppLayout>
+  );
+}
   );
 }
