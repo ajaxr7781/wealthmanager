@@ -218,7 +218,8 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
           ) : !payments?.length ? (
             <p className="text-center text-muted-foreground py-8">No payments recorded yet</p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
