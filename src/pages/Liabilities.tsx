@@ -355,9 +355,9 @@ export default function LiabilitiesPage() {
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
                   ) : !liabilities?.length ? (
-                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No liabilities yet</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No liabilities yet</TableCell></TableRow>
                   ) : liabilities.map(l => (
                     <TableRow key={l.id}>
                       <TableCell className="font-medium whitespace-nowrap">{l.name}</TableCell>
@@ -366,6 +366,7 @@ export default function LiabilitiesPage() {
                       <TableCell className="text-right text-destructive font-medium">{formatCurrency(l.outstanding)}</TableCell>
                       <TableCell className="text-right">{l.interest_rate ? `${l.interest_rate}%` : '—'}</TableCell>
                       <TableCell className="text-right">{l.emi ? formatCurrency(l.emi) : '—'}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{l.tenure_months ? `${l.tenure_months} mo` : '—'}</TableCell>
                       <TableCell className="whitespace-nowrap">{l.next_due_date || '—'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
