@@ -42,6 +42,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
     outstanding: numStr(initial?.outstanding),
     interest_rate: numStr(initial?.interest_rate),
     emi: numStr(initial?.emi),
+    tenure_months: numStr(initial?.tenure_months),
     next_due_date: initial?.next_due_date || '',
     currency: initial?.currency || 'AED',
     notes: initial?.notes || '',
