@@ -15,6 +15,7 @@ import { useLiabilities, useCreateLiability, useUpdateLiability, useDeleteLiabil
 import { useLiabilityPayments, useCreateLiabilityPayment, useDeleteLiabilityPayment, useUpdateLiabilityPayment, type LiabilityPayment } from '@/hooks/useLiabilityPayments';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
+import { LiabilityAnalysis } from '@/components/liabilities/LiabilityAnalysis';
 
 const LIABILITY_TYPES = [
   { value: 'mortgage', label: 'Mortgage', icon: Home },
