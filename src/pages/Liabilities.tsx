@@ -64,8 +64,8 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <ScrollArea className="max-h-[60vh] pr-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto pr-2 -mr-2">
         <div className="grid gap-4 sm:grid-cols-2 p-1">
           <div><Label>Name</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required /></div>
           <div>
