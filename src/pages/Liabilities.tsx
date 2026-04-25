@@ -266,6 +266,7 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </ScrollArea>
       </DialogContent>
