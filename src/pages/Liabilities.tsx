@@ -15,6 +15,7 @@ import { useLiabilities, useCreateLiability, useUpdateLiability, useDeleteLiabil
 import { useLiabilityPayments, useCreateLiabilityPayment, useDeleteLiabilityPayment, useUpdateLiabilityPayment, type LiabilityPayment } from '@/hooks/useLiabilityPayments';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
+import { LiabilityAnalysis } from '@/components/liabilities/LiabilityAnalysis';
 
 const LIABILITY_TYPES = [
   { value: 'mortgage', label: 'Mortgage', icon: Home },
@@ -42,6 +43,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
     outstanding: numStr(initial?.outstanding),
     interest_rate: numStr(initial?.interest_rate),
     emi: numStr(initial?.emi),
+    tenure_months: numStr(initial?.tenure_months),
     next_due_date: initial?.next_due_date || '',
     currency: initial?.currency || 'AED',
     notes: initial?.notes || '',
@@ -56,6 +58,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
       outstanding: Number(form.outstanding) || 0,
       interest_rate: form.interest_rate ? Number(form.interest_rate) : undefined,
       emi: form.emi ? Number(form.emi) : undefined,
+      tenure_months: form.tenure_months ? Number(form.tenure_months) : undefined,
       next_due_date: form.next_due_date || undefined,
       currency: form.currency,
       notes: form.notes || undefined,
@@ -81,6 +84,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
           <div><Label>Outstanding</Label><Input type="number" min={0} step="0.01" value={form.outstanding} onChange={e => setForm(p => ({ ...p, outstanding: e.target.value }))} required /></div>
           <div><Label>Interest Rate (%)</Label><Input type="number" min={0} step="0.01" value={form.interest_rate} onChange={e => setForm(p => ({ ...p, interest_rate: e.target.value }))} placeholder="Optional" /></div>
           <div><Label>EMI / Monthly Payment</Label><Input type="number" min={0} step="0.01" value={form.emi} onChange={e => setForm(p => ({ ...p, emi: e.target.value }))} placeholder="Optional" /></div>
+          <div><Label>Tenure (months)</Label><Input type="number" min={0} step="1" value={form.tenure_months} onChange={e => setForm(p => ({ ...p, tenure_months: e.target.value }))} placeholder="e.g. 60" /></div>
           <div><Label>Next Due Date</Label><Input type="date" value={form.next_due_date} onChange={e => setForm(p => ({ ...p, next_due_date: e.target.value }))} /></div>
           <div>
             <Label>Currency</Label>
@@ -329,10 +333,13 @@ export default function LiabilitiesPage() {
           </Card>
         </div>
 
+        {/* Liability analysis & projections */}
+        <LiabilityAnalysis />
+
         {/* Table - scrollable on mobile */}
         <Card>
           <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-[700px]">
+              <Table className="min-w-[780px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
@@ -341,15 +348,16 @@ export default function LiabilitiesPage() {
                     <TableHead className="text-right">Outstanding</TableHead>
                     <TableHead className="text-right">Rate</TableHead>
                     <TableHead className="text-right">EMI</TableHead>
+                    <TableHead className="text-right">Tenure</TableHead>
                     <TableHead>Next Due</TableHead>
                     <TableHead className="w-36"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading…</TableCell></TableRow>
                   ) : !liabilities?.length ? (
-                    <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No liabilities yet</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No liabilities yet</TableCell></TableRow>
                   ) : liabilities.map(l => (
                     <TableRow key={l.id}>
                       <TableCell className="font-medium whitespace-nowrap">{l.name}</TableCell>
@@ -358,6 +366,7 @@ export default function LiabilitiesPage() {
                       <TableCell className="text-right text-destructive font-medium">{formatCurrency(l.outstanding)}</TableCell>
                       <TableCell className="text-right">{l.interest_rate ? `${l.interest_rate}%` : '—'}</TableCell>
                       <TableCell className="text-right">{l.emi ? formatCurrency(l.emi) : '—'}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{l.tenure_months ? `${l.tenure_months} mo` : '—'}</TableCell>
                       <TableCell className="whitespace-nowrap">{l.next_due_date || '—'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
