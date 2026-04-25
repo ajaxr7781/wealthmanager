@@ -1,0 +1,1 @@
+ALTER TABLE public.liabilities ADD COLUMN IF NOT EXISTS tenure_months integer;

@@ -606,6 +606,7 @@ export type Database = {
           notes: string | null
           outstanding: number
           principal: number
+          tenure_months: number | null
           type: string
           updated_at: string
           user_id: string
@@ -623,6 +624,7 @@ export type Database = {
           notes?: string | null
           outstanding?: number
           principal?: number
+          tenure_months?: number | null
           type?: string
           updated_at?: string
           user_id: string
@@ -640,6 +642,7 @@ export type Database = {
           notes?: string | null
           outstanding?: number
           principal?: number
+          tenure_months?: number | null
           type?: string
           updated_at?: string
           user_id?: string
