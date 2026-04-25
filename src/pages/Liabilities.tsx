@@ -314,6 +314,9 @@ export default function LiabilitiesPage() {
                           <Button size="icon" variant="ghost" title="Record Payment" onClick={() => setPayingLiability(l)}>
                             <Wallet className="h-4 w-4 text-primary" />
                           </Button>
+                          <Button size="icon" variant="ghost" title="Payment History" onClick={() => setHistoryLiability(l)}>
+                            <History className="h-4 w-4" />
+                          </Button>
                           <Button size="icon" variant="ghost" title="Edit" onClick={() => { setEditing(l); setDialogOpen(true); }}>
                             <Edit className="h-4 w-4" />
                           </Button>
