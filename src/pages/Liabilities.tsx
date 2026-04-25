@@ -83,6 +83,7 @@ function LiabilityForm({ onSubmit, initial, onClose }: {
           <div><Label>Outstanding</Label><Input type="number" min={0} step="0.01" value={form.outstanding} onChange={e => setForm(p => ({ ...p, outstanding: e.target.value }))} required /></div>
           <div><Label>Interest Rate (%)</Label><Input type="number" min={0} step="0.01" value={form.interest_rate} onChange={e => setForm(p => ({ ...p, interest_rate: e.target.value }))} placeholder="Optional" /></div>
           <div><Label>EMI / Monthly Payment</Label><Input type="number" min={0} step="0.01" value={form.emi} onChange={e => setForm(p => ({ ...p, emi: e.target.value }))} placeholder="Optional" /></div>
+          <div><Label>Tenure (months)</Label><Input type="number" min={0} step="1" value={form.tenure_months} onChange={e => setForm(p => ({ ...p, tenure_months: e.target.value }))} placeholder="e.g. 60" /></div>
           <div><Label>Next Due Date</Label><Input type="date" value={form.next_due_date} onChange={e => setForm(p => ({ ...p, next_due_date: e.target.value }))} /></div>
           <div>
             <Label>Currency</Label>
