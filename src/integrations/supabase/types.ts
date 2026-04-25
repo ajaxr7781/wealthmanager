@@ -654,6 +654,53 @@ export type Database = {
           },
         ]
       }
+      liability_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          interest_component: number | null
+          liability_id: string
+          notes: string | null
+          payment_date: string
+          principal_component: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          interest_component?: number | null
+          liability_id: string
+          notes?: string | null
+          payment_date?: string
+          principal_component?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          interest_component?: number | null
+          liability_id?: string
+          notes?: string | null
+          payment_date?: string
+          principal_component?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liability_payments_liability_id_fkey"
+            columns: ["liability_id"]
+            isOneToOne: false
+            referencedRelation: "liabilities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metal_alert_events: {
         Row: {
           created_at: string
