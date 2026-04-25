@@ -333,10 +333,13 @@ export default function LiabilitiesPage() {
           </Card>
         </div>
 
+        {/* Liability analysis & projections */}
+        <LiabilityAnalysis />
+
         {/* Table - scrollable on mobile */}
         <Card>
           <CardContent className="p-0 overflow-x-auto">
-              <Table className="min-w-[700px]">
+              <Table className="min-w-[780px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
@@ -345,6 +348,7 @@ export default function LiabilitiesPage() {
                     <TableHead className="text-right">Outstanding</TableHead>
                     <TableHead className="text-right">Rate</TableHead>
                     <TableHead className="text-right">EMI</TableHead>
+                    <TableHead className="text-right">Tenure</TableHead>
                     <TableHead>Next Due</TableHead>
                     <TableHead className="w-36"></TableHead>
                   </TableRow>
