@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Trash2, Edit, CreditCard, Home, Car, Landmark, Wallet, History } from 'lucide-react';
 import { useLiabilities, useCreateLiability, useUpdateLiability, useDeleteLiability, type LiabilityFormData, type Liability } from '@/hooks/useLiabilities';
-import { useLiabilityPayments, useCreateLiabilityPayment, useDeleteLiabilityPayment } from '@/hooks/useLiabilityPayments';
+import { useLiabilityPayments, useCreateLiabilityPayment, useDeleteLiabilityPayment, useUpdateLiabilityPayment, type LiabilityPayment } from '@/hooks/useLiabilityPayments';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
 
