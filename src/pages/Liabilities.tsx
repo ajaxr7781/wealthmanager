@@ -232,6 +232,7 @@ export default function LiabilitiesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Liability | undefined>();
   const [payingLiability, setPayingLiability] = useState<Liability | undefined>();
+  const [historyLiability, setHistoryLiability] = useState<Liability | undefined>();
 
   const totalOutstanding = liabilities?.reduce((s, l) => s + Number(l.outstanding), 0) ?? 0;
   const totalEmi = liabilities?.reduce((s, l) => s + Number(l.emi || 0), 0) ?? 0;
