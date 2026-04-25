@@ -171,7 +171,36 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
 }) {
   const { data: payments, isLoading } = useLiabilityPayments(liability.id);
   const deletePayment = useDeleteLiabilityPayment();
+  const updatePayment = useUpdateLiabilityPayment();
   const total = payments?.reduce((s, p) => s + Number(p.amount), 0) ?? 0;
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ payment_date: string; amount: string; principal_component: string; interest_component: string; notes: string }>({
+    payment_date: '', amount: '', principal_component: '', interest_component: '', notes: '',
+  });
+
+  const startEdit = (p: LiabilityPayment) => {
+    setEditingId(p.id);
+    setEditForm({
+      payment_date: p.payment_date,
+      amount: String(p.amount),
+      principal_component: p.principal_component != null ? String(p.principal_component) : '',
+      interest_component: p.interest_component != null ? String(p.interest_component) : '',
+      notes: p.notes || '',
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    await updatePayment.mutateAsync({
+      id: editingId,
+      payment_date: editForm.payment_date,
+      amount: Number(editForm.amount) || 0,
+      principal_component: editForm.principal_component ? Number(editForm.principal_component) : undefined,
+      interest_component: editForm.interest_component ? Number(editForm.interest_component) : undefined,
+      notes: editForm.notes || undefined,
+    });
+    setEditingId(null);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -197,11 +226,25 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
                   <TableHead className="text-right">Principal</TableHead>
                   <TableHead className="text-right">Interest</TableHead>
                   <TableHead>Notes</TableHead>
-                  <TableHead className="w-10"></TableHead>
+                  <TableHead className="w-20"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payments.map(p => (
+                {payments.map(p => editingId === p.id ? (
+                  <TableRow key={p.id}>
+                    <TableCell><Input type="date" className="h-8" value={editForm.payment_date} onChange={e => setEditForm(f => ({ ...f, payment_date: e.target.value }))} /></TableCell>
+                    <TableCell><Input type="number" step="0.01" className="h-8 text-right" value={editForm.amount} onChange={e => setEditForm(f => ({ ...f, amount: e.target.value }))} /></TableCell>
+                    <TableCell><Input type="number" step="0.01" className="h-8 text-right" value={editForm.principal_component} onChange={e => setEditForm(f => ({ ...f, principal_component: e.target.value }))} placeholder="—" /></TableCell>
+                    <TableCell><Input type="number" step="0.01" className="h-8 text-right" value={editForm.interest_component} onChange={e => setEditForm(f => ({ ...f, interest_component: e.target.value }))} placeholder="—" /></TableCell>
+                    <TableCell><Input className="h-8" value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))} /></TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={saveEdit} title="Save"><Check className="h-3.5 w-3.5 text-positive" /></Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingId(null)} title="Cancel"><X className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
                   <TableRow key={p.id}>
                     <TableCell className="whitespace-nowrap">{format(new Date(p.payment_date), 'dd MMM yyyy')}</TableCell>
                     <TableCell className="text-right font-medium">{formatCurrency(p.amount)}</TableCell>
@@ -209,9 +252,14 @@ function PaymentHistoryDialog({ liability, open, onOpenChange }: {
                     <TableCell className="text-right text-muted-foreground">{p.interest_component != null ? formatCurrency(p.interest_component) : '—'}</TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{p.notes || '—'}</TableCell>
                     <TableCell>
-                      <Button size="icon" variant="ghost" onClick={() => deletePayment.mutate(p.id)} title="Delete">
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => startEdit(p)} title="Edit">
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => deletePayment.mutate(p.id)} title="Delete">
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
