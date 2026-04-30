@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { deriveAprFromSchedule } from '@/lib/liabilityCalculations';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -115,11 +116,39 @@ function PaymentDialog({ liability, open, onOpenChange }: {
 }) {
   const updateLiability = useUpdateLiability();
   const createPayment = useCreateLiabilityPayment();
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(liability.emi ? String(liability.emi) : '');
   const [principal, setPrincipal] = useState('');
   const [interest, setInterest] = useState('');
+  const [manualOverride, setManualOverride] = useState(false);
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
+
+  // Determine the effective monthly interest rate. Prefer APR derived from
+  // the bank's schedule (handles flat-rate quotes), fall back to the quoted rate.
+  const monthlyRate = useMemo(() => {
+    const principal0 = Number(liability.principal) || 0;
+    const emi = Number(liability.emi) || 0;
+    const tenure = Number(liability.tenure_months) || 0;
+    const quoted = Number(liability.interest_rate) || 0;
+    const apr = (emi && tenure && principal0 > 0) ? deriveAprFromSchedule(principal0, emi, tenure) : null;
+    const annualPct = apr ?? quoted;
+    return annualPct ? annualPct / 100 / 12 : 0;
+  }, [liability.principal, liability.emi, liability.tenure_months, liability.interest_rate]);
+
+  // Auto-calculate principal & interest whenever amount changes (unless user edits manually).
+  useEffect(() => {
+    if (manualOverride) return;
+    const payAmt = Number(amount);
+    if (!payAmt || payAmt <= 0) {
+      setPrincipal('');
+      setInterest('');
+      return;
+    }
+    const interestAmt = Math.min(payAmt, liability.outstanding * monthlyRate);
+    const principalAmt = Math.max(0, payAmt - interestAmt);
+    setInterest(interestAmt ? interestAmt.toFixed(2) : '');
+    setPrincipal(principalAmt ? principalAmt.toFixed(2) : '');
+  }, [amount, monthlyRate, liability.outstanding, manualOverride]);
 
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +167,7 @@ function PaymentDialog({ liability, open, onOpenChange }: {
     });
     updateLiability.mutate({ id: liability.id, outstanding: newOutstanding });
     onOpenChange(false);
-    setAmount(''); setPrincipal(''); setInterest(''); setNotes('');
+    setAmount(''); setPrincipal(''); setInterest(''); setNotes(''); setManualOverride(false);
   };
 
   return (
@@ -152,10 +181,16 @@ function PaymentDialog({ liability, open, onOpenChange }: {
           <div><Label>Payment Date</Label><Input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required /></div>
           <div><Label>Total Amount</Label><Input type="number" min={0.01} step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required autoFocus /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label className="text-xs">Principal</Label><Input type="number" min={0} step="0.01" value={principal} onChange={e => setPrincipal(e.target.value)} placeholder="Optional" /></div>
-            <div><Label className="text-xs">Interest</Label><Input type="number" min={0} step="0.01" value={interest} onChange={e => setInterest(e.target.value)} placeholder="Optional" /></div>
+            <div><Label className="text-xs">Principal</Label><Input type="number" min={0} step="0.01" value={principal} onChange={e => { setManualOverride(true); setPrincipal(e.target.value); }} placeholder="Auto" /></div>
+            <div><Label className="text-xs">Interest</Label><Input type="number" min={0} step="0.01" value={interest} onChange={e => { setManualOverride(true); setInterest(e.target.value); }} placeholder="Auto" /></div>
           </div>
-          <p className="text-xs text-muted-foreground">If principal is blank, total amount reduces outstanding.</p>
+          <p className="text-xs text-muted-foreground">
+            {manualOverride
+              ? 'Manual split — values won\'t auto-recalculate.'
+              : monthlyRate > 0
+                ? 'Auto-split using outstanding × monthly rate. Edit either field to override.'
+                : 'Set an interest rate on this liability to auto-split principal & interest.'}
+          </p>
           <div><Label>Notes (optional)</Label><Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g. Jan 2026 EMI" /></div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
