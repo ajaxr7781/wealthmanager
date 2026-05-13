@@ -72,15 +72,32 @@ function generateInstallments(
 }
 
 export default function SipListPage() {
-  const { data: allAssets, isLoading } = useAssets();
+  const { data: allAssets, isLoading, isFetching, refetch } = useAssets();
   const updateAsset = useUpdateAsset();
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const refreshNav = useRefreshMfNav();
   const [stoppingId, setStoppingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBackfillLoading, setBulkBackfillLoading] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+
+  const handleRefresh = async () => {
+    const schemeIds = (allAssets?.filter(a => a.asset_type === 'sip' && a.scheme_id).map(a => a.scheme_id as string)) || [];
+    try {
+      if (schemeIds.length > 0) {
+        await refreshNav.mutateAsync(schemeIds);
+      }
+    } catch {}
+    await Promise.all([
+      refetch(),
+      queryClient.invalidateQueries({ queryKey: ['sip-transactions-for-xirr'] }),
+      queryClient.invalidateQueries({ queryKey: ['asset-transactions'] }),
+      queryClient.invalidateQueries({ queryKey: ['all-asset-transactions'] }),
+    ]);
+    toast.success('SIP summary refreshed');
+  };
 
   // Filter to SIP assets
   const sips = allAssets?.filter(a => a.asset_type === 'sip') || [];
