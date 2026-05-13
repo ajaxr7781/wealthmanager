@@ -334,7 +334,19 @@ export default function SipListPage() {
                 )}
                 Backfill Selected ({selectedIds.size})
               </Button>
-            )}
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isFetching || refreshNav.isPending}
+              title="Refresh SIP summary and latest NAV"
+            >
+              {(isFetching || refreshNav.isPending) ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Refresh
+            </Button>
             <Button asChild>
               <Link to="/assets/new">
                 <Plus className="h-4 w-4 mr-2" />
