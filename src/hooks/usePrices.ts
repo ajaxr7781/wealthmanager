@@ -56,17 +56,27 @@ export function usePriceHistory(instrumentSymbol: 'XAU' | 'XAG') {
   return useQuery({
     queryKey: ['price-history', instrumentSymbol],
     queryFn: async () => {
+      // Fetch most recent rows first (PostgREST caps at 1000) then reverse to ascending.
       const { data, error } = await supabase
         .from('price_snapshots')
         .select('*')
         .eq('instrument_symbol', instrumentSymbol)
-        .order('as_of', { ascending: true });
+        .order('as_of', { ascending: false })
+        .limit(1000);
 
       if (error) throw error;
-      return (data || []).map(p => ({
-        ...p,
-        price_aed_per_oz: Number(p.price_aed_per_oz),
-      })) as PriceSnapshot[];
+
+      // Downsample to the latest snapshot per day for a cleaner chart.
+      const byDay = new Map<string, PriceSnapshot>();
+      for (const p of data || []) {
+        const day = new Date(p.as_of).toISOString().slice(0, 10);
+        if (!byDay.has(day)) {
+          byDay.set(day, { ...p, price_aed_per_oz: Number(p.price_aed_per_oz) } as PriceSnapshot);
+        }
+      }
+      return Array.from(byDay.values()).sort(
+        (a, b) => new Date(a.as_of).getTime() - new Date(b.as_of).getTime()
+      );
     },
   });
 }
