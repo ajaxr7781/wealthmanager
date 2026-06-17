@@ -77,6 +77,7 @@ export default function HoldingsByCategory() {
   const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [bankFilter, setBankFilter] = useState<string>('all');
+  const [showHistorical, setShowHistorical] = useState(false);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
