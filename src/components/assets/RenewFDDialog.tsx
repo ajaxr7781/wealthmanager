@@ -358,7 +358,11 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
                 max="100"
                 value={interestRate}
                 onChange={(e) => setInterestRate(e.target.value)}
+                aria-invalid={!!validation.errors.rate}
               />
+              {validation.errors.rate && (
+                <p className="text-xs text-destructive">{validation.errors.rate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="renew-tenure">Tenure (months) *</Label>
@@ -366,9 +370,15 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
                 id="renew-tenure"
                 type="number"
                 min="1"
+                max="600"
+                step="1"
                 value={tenureMonths}
                 onChange={(e) => setTenureMonths(e.target.value)}
+                aria-invalid={!!validation.errors.tenure}
               />
+              {validation.errors.tenure && (
+                <p className="text-xs text-destructive">{validation.errors.tenure}</p>
+              )}
             </div>
           </div>
 
@@ -378,15 +388,33 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
               <Input
                 id="renew-start"
                 type="date"
+                min={asset.purchase_date || undefined}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                aria-invalid={!!validation.errors.startDate}
               />
+              {validation.errors.startDate && (
+                <p className="text-xs text-destructive">{validation.errors.startDate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Maturity date</Label>
               <Input value={newMaturityDate} readOnly className="bg-muted" />
             </div>
           </div>
+
+          {validation.warnings.length > 0 && (
+            <Alert variant="default" className="border-warning/40 bg-warning/5">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription>
+                <ul className="list-disc pl-4 space-y-1 text-xs">
+                  {validation.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="renew-notes">Notes (optional)</Label>
