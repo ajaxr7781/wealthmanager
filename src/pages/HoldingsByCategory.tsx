@@ -137,7 +137,7 @@ export default function HoldingsByCategory() {
     return category.asset_types.filter(t => categoryAssets.some(a => a.asset_type_code === t.code));
   }, [category, categoryAssets]);
 
-  const today = startOfDay(new Date());
+  const today = useMemo(() => startOfDay(new Date()), []);
 
   // Filter assets
   const filteredAssets = useMemo(() => {
