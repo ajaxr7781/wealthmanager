@@ -148,6 +148,9 @@ export interface AssetFormData {
   sip_status?: string;
   folio_no?: string;
   units_held?: number;
+  parent_asset_id?: string;
+  renewal_chain_id?: string;
+  lifecycle_status?: string;
 }
 
 export interface PortfolioOverview {
