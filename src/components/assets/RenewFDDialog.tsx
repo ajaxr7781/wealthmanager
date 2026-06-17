@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, addMonths, parseISO, differenceInMonths } from 'date-fns';
+import { format, addMonths, parseISO, differenceInMonths, differenceInDays, isValid } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { calculateMaturityAmount } from '@/lib/fdCalculations';
 import { useCreateAsset, useUpdateAsset } from '@/hooks/useAssets';
 import type { Asset } from '@/types/assets';
@@ -96,16 +98,120 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
     });
   }, [newPrincipal, interestRate, startDate, newMaturityDate]);
 
+  const RATE_MIN = 0.1;
+  const RATE_MAX = 20;
+  const TENURE_MIN = 1;
+  const TENURE_MAX = 600; // 50 years
+  const MIN_PRINCIPAL = 100;
+  const FUTURE_START_WARN_DAYS = 90;
+
+  const validation = useMemo(() => {
+    const errors: Record<string, string> = {};
+    const warnings: string[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Maturity status of source FD
+    if (asset.maturity_date) {
+      const md = parseISO(asset.maturity_date);
+      if (isValid(md) && md > today) {
+        const daysLeft = differenceInDays(md, today);
+        warnings.push(
+          `Original FD has not matured yet (${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining). Premature renewal may incur a penalty and reduce the effective maturity amount.`
+        );
+      }
+    } else {
+      warnings.push('Original FD has no maturity date on record. Verify the rollover amount manually.');
+    }
+
+    // Principal
+    if (!(newPrincipal > 0)) {
+      errors.principal = 'Renewal amount must be greater than 0.';
+    } else if (newPrincipal < MIN_PRINCIPAL) {
+      errors.principal = `Renewal amount must be at least ${asset.currency} ${MIN_PRINCIPAL}.`;
+    }
+
+    if (mode === 'custom') {
+      const amt = parseFloat(customAmount);
+      if (isNaN(amt)) {
+        errors.principal = 'Enter a valid amount.';
+      } else if (amt <= 0) {
+        errors.principal = 'Amount must be greater than 0.';
+      } else if (amt > oldMaturityAmount + 0.005) {
+        errors.principal = `Cannot exceed maturity amount (${asset.currency} ${oldMaturityAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}).`;
+      } else if (amt < MIN_PRINCIPAL) {
+        errors.principal = `Amount must be at least ${asset.currency} ${MIN_PRINCIPAL}.`;
+      }
+    }
+
+    // Interest rate
+    const rate = parseFloat(interestRate);
+    if (interestRate === '' || isNaN(rate)) {
+      errors.rate = 'Interest rate is required.';
+    } else if (rate < RATE_MIN || rate > RATE_MAX) {
+      errors.rate = `Rate must be between ${RATE_MIN}% and ${RATE_MAX}% p.a.`;
+    } else if (oldRate && rate < oldRate * 0.5) {
+      warnings.push(`New rate (${rate}%) is much lower than the previous rate (${oldRate}%). Confirm this is intentional.`);
+    }
+
+    // Tenure
+    const months = parseInt(tenureMonths);
+    if (!tenureMonths || isNaN(months)) {
+      errors.tenure = 'Tenure is required.';
+    } else if (!Number.isInteger(months) || months < TENURE_MIN) {
+      errors.tenure = `Tenure must be a whole number of months (min ${TENURE_MIN}).`;
+    } else if (months > TENURE_MAX) {
+      errors.tenure = `Tenure cannot exceed ${TENURE_MAX} months (${TENURE_MAX / 12} years).`;
+    }
+
+    // Start date
+    if (!startDate) {
+      errors.startDate = 'Start date is required.';
+    } else {
+      const sd = parseISO(startDate);
+      if (!isValid(sd)) {
+        errors.startDate = 'Invalid date.';
+      } else {
+        if (asset.purchase_date && sd < parseISO(asset.purchase_date)) {
+          errors.startDate = 'Start date cannot be before the original purchase date.';
+        }
+        if (asset.maturity_date) {
+          const md = parseISO(asset.maturity_date);
+          const earlyDays = differenceInDays(md, sd);
+          if (earlyDays > 0) {
+            warnings.push(`Start date is ${earlyDays} day${earlyDays === 1 ? '' : 's'} before original maturity — this is a premature renewal.`);
+          }
+        }
+        const futureDays = differenceInDays(sd, today);
+        if (futureDays > FUTURE_START_WARN_DAYS) {
+          warnings.push(`Start date is ${futureDays} days in the future. Most banks require renewal within 14 days of maturity.`);
+        }
+      }
+    }
+
+    // Maturity date consistency
+    if (newMaturityDate && startDate) {
+      const sd = parseISO(startDate);
+      const nm = parseISO(newMaturityDate);
+      if (nm <= sd) {
+        errors.tenure = errors.tenure || 'Maturity date must be after start date.';
+      }
+    }
+
+    return { errors, warnings, isValid: Object.keys(errors).length === 0 };
+  }, [
+    mode, customAmount, interestRate, tenureMonths, startDate, newMaturityDate,
+    newPrincipal, oldMaturityAmount, oldRate, asset.currency, asset.maturity_date, asset.purchase_date,
+  ]);
+
   const canSubmit =
-    newPrincipal > 0 &&
-    parseFloat(interestRate) > 0 &&
-    !!startDate &&
-    !!newMaturityDate &&
+    validation.isValid &&
+    !!projectedMaturity &&
     !createAsset.isPending &&
     !updateAsset.isPending;
 
   const handleRenew = async () => {
-    if (!canSubmit || !projectedMaturity) return;
+    if (!canSubmit || !projectedMaturity || !validation.isValid) return;
 
     const rate = parseFloat(interestRate);
     const baseName = asset.asset_name.replace(/\s*\(Renewed.*\)$/i, '');
@@ -230,9 +336,14 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
                 type="number"
                 min="0"
                 max={oldMaturityAmount}
+                step="0.01"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
+                aria-invalid={!!validation.errors.principal}
               />
+              {validation.errors.principal && (
+                <p className="text-xs text-destructive">{validation.errors.principal}</p>
+              )}
             </div>
           )}
 
@@ -247,7 +358,11 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
                 max="100"
                 value={interestRate}
                 onChange={(e) => setInterestRate(e.target.value)}
+                aria-invalid={!!validation.errors.rate}
               />
+              {validation.errors.rate && (
+                <p className="text-xs text-destructive">{validation.errors.rate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="renew-tenure">Tenure (months) *</Label>
@@ -255,9 +370,15 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
                 id="renew-tenure"
                 type="number"
                 min="1"
+                max="600"
+                step="1"
                 value={tenureMonths}
                 onChange={(e) => setTenureMonths(e.target.value)}
+                aria-invalid={!!validation.errors.tenure}
               />
+              {validation.errors.tenure && (
+                <p className="text-xs text-destructive">{validation.errors.tenure}</p>
+              )}
             </div>
           </div>
 
@@ -267,15 +388,33 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
               <Input
                 id="renew-start"
                 type="date"
+                min={asset.purchase_date || undefined}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                aria-invalid={!!validation.errors.startDate}
               />
+              {validation.errors.startDate && (
+                <p className="text-xs text-destructive">{validation.errors.startDate}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Maturity date</Label>
               <Input value={newMaturityDate} readOnly className="bg-muted" />
             </div>
           </div>
+
+          {validation.warnings.length > 0 && (
+            <Alert variant="default" className="border-warning/40 bg-warning/5">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription>
+                <ul className="list-disc pl-4 space-y-1 text-xs">
+                  {validation.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="renew-notes">Notes (optional)</Label>
