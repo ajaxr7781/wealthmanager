@@ -44,7 +44,7 @@ const IconMap: Record<string, typeof Coins> = {
   Package,
 };
 
-type SortKey = 'name' | 'value' | 'pl' | 'date';
+type SortKey = 'name' | 'value' | 'pl' | 'date' | 'maturity';
 type SortDir = 'asc' | 'desc';
 
 export default function HoldingsByCategory() {
