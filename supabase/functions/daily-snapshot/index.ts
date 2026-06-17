@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { authenticateRequest } from '../_shared/auth.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,10 +15,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    // This function is called by pg_cron or authenticated users
-    // verify_jwt is false in config.toml, so we just need a bearer token
-    const authHeader = req.headers.get('Authorization') ?? ''
-    if (!authHeader.startsWith('Bearer ')) {
+    // Validate caller: end-user JWT or service-role/cron token.
+    const auth = await authenticateRequest(req)
+    if (!auth.ok) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -27,14 +27,17 @@ Deno.serve(async (req) => {
     // Always use service role key for data access across all users
     const supabase = createClient(supabaseUrl, serviceKey)
 
-    // Get all users who have assets
-    const { data: users, error: usersError } = await supabase
-      .from('assets')
-      .select('user_id')
-    
-    if (usersError) throw usersError
-
-    const uniqueUserIds = [...new Set((users || []).map(u => u.user_id))]
+    // Service-role/cron callers process all users; end users only their own.
+    let uniqueUserIds: string[]
+    if (auth.isService) {
+      const { data: users, error: usersError } = await supabase
+        .from('assets')
+        .select('user_id')
+      if (usersError) throw usersError
+      uniqueUserIds = [...new Set((users || []).map(u => u.user_id))]
+    } else {
+      uniqueUserIds = [auth.userId!]
+    }
     const today = new Date().toISOString().split('T')[0]
     const results: { user_id: string; status: string }[] = []
 

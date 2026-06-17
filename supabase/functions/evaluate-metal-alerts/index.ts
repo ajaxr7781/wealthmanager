@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authenticateRequest } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -73,13 +74,25 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Require authentication. Users may only evaluate their own rules.
+  // Service-role/cron callers may evaluate all users (or a specific user_id).
+  const auth = await authenticateRequest(req);
+  if (!auth.ok) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
-    const targetUserId = body.user_id;
+    // End users are always scoped to their own user_id; only service-role callers
+    // may target a different user or evaluate all users.
+    const targetUserId = auth.isService ? body.user_id : auth.userId;
     const marketSession = getMarketSession();
 
     console.log(`Evaluating metal alerts — session: ${marketSession.label}`);
