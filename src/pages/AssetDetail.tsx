@@ -51,6 +51,7 @@ import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
 import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
 import { RenewFDDialog } from '@/components/assets/RenewFDDialog';
+import { RenewalChainTimeline } from '@/components/assets/RenewalChainTimeline';
 import { Calculator } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import {
@@ -541,6 +542,13 @@ export default function AssetDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Renewal Chain Timeline (for FDs that have been renewed) */}
+        {asset.asset_type === 'fixed_deposit' && (
+          <div className="mt-6">
+            <RenewalChainTimeline asset={asset} />
+          </div>
+        )}
 
         {/* Transactions */}
         <div className="mt-6">

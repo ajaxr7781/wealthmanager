@@ -99,6 +99,10 @@ export interface Asset {
   folio_no: string | null;
   units_held: number | null;
   xirr_value: number | null;
+  // Renewal chain (FDs etc.)
+  parent_asset_id: string | null;
+  renewal_chain_id: string | null;
+  lifecycle_status: string;
   sip_amount: number | null;
   sip_day_of_month: number | null;
   sip_start_date: string | null;
@@ -144,6 +148,9 @@ export interface AssetFormData {
   sip_status?: string;
   folio_no?: string;
   units_held?: number;
+  parent_asset_id?: string;
+  renewal_chain_id?: string;
+  lifecycle_status?: string;
 }
 
 export interface PortfolioOverview {

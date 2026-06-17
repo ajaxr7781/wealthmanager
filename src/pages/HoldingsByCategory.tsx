@@ -21,7 +21,9 @@ import {
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, X, SlidersHorizontal, Search } from 'lucide-react';
+import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, X, SlidersHorizontal, Search, History } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
@@ -77,6 +79,7 @@ export default function HoldingsByCategory() {
   const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [bankFilter, setBankFilter] = useState<string>('all');
+  const [showHistorical, setShowHistorical] = useState(false);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -118,7 +121,17 @@ export default function HoldingsByCategory() {
   };
 
   const category = categories?.find(c => c.code === categoryCode);
-  const categoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
+  const allCategoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
+  const historicalCount = useMemo(
+    () => allCategoryAssets.filter(a => a.lifecycle_status === 'renewed' || a.lifecycle_status === 'closed' || a.lifecycle_status === 'prematurely_closed').length,
+    [allCategoryAssets]
+  );
+  const categoryAssets = useMemo(
+    () => showHistorical
+      ? allCategoryAssets
+      : allCategoryAssets.filter(a => !a.lifecycle_status || a.lifecycle_status === 'active' || a.lifecycle_status === 'matured'),
+    [allCategoryAssets, showHistorical]
+  );
 
   const fmtAed = (value: number) => formatAed(value, { decimals: 0 });
 
@@ -296,13 +309,17 @@ export default function HoldingsByCategory() {
 
   const CategoryIcon = IconMap[category.icon || 'Package'] || Package;
 
-  // Calculate category totals
-  const totalInvested = categoryAssets.reduce((sum, a) => {
+  // Summary totals always reflect only active/matured (avoid double-counting renewed)
+  const activeAssets = useMemo(
+    () => allCategoryAssets.filter(a => !a.lifecycle_status || a.lifecycle_status === 'active' || a.lifecycle_status === 'matured'),
+    [allCategoryAssets]
+  );
+  const totalInvested = activeAssets.reduce((sum, a) => {
     const cost = Number(a.total_cost);
     return sum + convertToAed(cost, a.currency);
   }, 0);
-  
-  const totalValue = categoryAssets.reduce((sum, a) => {
+
+  const totalValue = activeAssets.reduce((sum, a) => {
     const value = getAssetCurrentValue(a);
     return sum + convertToAed(value, a.currency);
   }, 0);
@@ -533,9 +550,27 @@ export default function HoldingsByCategory() {
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Showing {filteredAssets.length} of {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Showing {filteredAssets.length} of {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
+                    {!showHistorical && historicalCount > 0 && (
+                      <span className="ml-1">· {historicalCount} renewed/closed hidden</span>
+                    )}
+                  </p>
+                  {historicalCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <History className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Label htmlFor="show-historical" className="text-xs cursor-pointer">
+                        Show renewed & closed history
+                      </Label>
+                      <Switch
+                        id="show-historical"
+                        checked={showHistorical}
+                        onCheckedChange={setShowHistorical}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {sortedAssets.length === 0 ? (
