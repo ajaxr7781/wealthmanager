@@ -9,16 +9,24 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, X, SlidersHorizontal, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { differenceInDays, parseISO, format, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import {
   Landmark,
   TrendingUp,
