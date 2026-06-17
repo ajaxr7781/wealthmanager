@@ -54,6 +54,7 @@ const IconMap: Record<string, typeof Coins> = {
 
 type SortKey = 'name' | 'value' | 'pl' | 'date' | 'maturity';
 type SortDir = 'asc' | 'desc';
+type MaturityFilter = 'all' | 'active' | 'matured' | 'upcoming_7' | 'upcoming_30' | 'upcoming_90';
 
 export default function HoldingsByCategory() {
   const { categoryCode } = useParams<{ categoryCode: string }>();
