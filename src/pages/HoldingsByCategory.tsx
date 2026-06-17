@@ -9,16 +9,24 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, X, SlidersHorizontal, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { differenceInDays, parseISO, format, isAfter, startOfDay } from 'date-fns';
 import {
   Landmark,
   TrendingUp,
@@ -46,6 +54,7 @@ const IconMap: Record<string, typeof Coins> = {
 
 type SortKey = 'name' | 'value' | 'pl' | 'date' | 'maturity';
 type SortDir = 'asc' | 'desc';
+type MaturityFilter = 'all' | 'active' | 'matured' | 'upcoming_7' | 'upcoming_30' | 'upcoming_90';
 
 export default function HoldingsByCategory() {
   const { categoryCode } = useParams<{ categoryCode: string }>();
@@ -61,6 +70,13 @@ export default function HoldingsByCategory() {
 
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [currencyFilter, setCurrencyFilter] = useState<'all' | 'AED' | 'INR'>('all');
+  const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [bankFilter, setBankFilter] = useState<string>('all');
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -110,9 +126,58 @@ export default function HoldingsByCategory() {
     return currency === 'INR' ? value * inrToAed : value;
   };
 
+  // Filter options derived from category assets
+  const bankOptions = useMemo(() => {
+    const banks = new Set(categoryAssets.map(a => a.bank_name).filter(Boolean) as string[]);
+    return Array.from(banks).sort();
+  }, [categoryAssets]);
+
+  const typeOptions = useMemo(() => {
+    if (!category) return [];
+    return category.asset_types.filter(t => categoryAssets.some(a => a.asset_type_code === t.code));
+  }, [category, categoryAssets]);
+
+  const today = useMemo(() => startOfDay(new Date()), []);
+
+  // Filter assets
+  const filteredAssets = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    return categoryAssets.filter(a => {
+      if (normalizedSearch) {
+        const haystack = [
+          a.asset_name,
+          a.bank_name,
+          a.instrument_name,
+          a.broker_platform,
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(normalizedSearch)) return false;
+      }
+      if (currencyFilter !== 'all' && a.currency !== currencyFilter) return false;
+      if (typeFilter !== 'all' && a.asset_type_code !== typeFilter) return false;
+      if (bankFilter !== 'all' && a.bank_name !== bankFilter) return false;
+      if (maturityFilter !== 'all') {
+        if (a.maturity_date) {
+          const maturityDate = startOfDay(parseISO(a.maturity_date));
+          const isMatured = !isAfter(maturityDate, today);
+          const daysUntil = differenceInDays(maturityDate, today);
+          switch (maturityFilter) {
+            case 'active': return !isMatured;
+            case 'matured': return isMatured;
+            case 'upcoming_7': return !isMatured && daysUntil <= 7;
+            case 'upcoming_30': return !isMatured && daysUntil <= 30;
+            case 'upcoming_90': return !isMatured && daysUntil <= 90;
+          }
+        } else {
+          return maturityFilter === 'active';
+        }
+      }
+      return true;
+    });
+  }, [categoryAssets, search, currencyFilter, typeFilter, bankFilter, maturityFilter, today]);
+
   // Sorted assets for non-PM view
   const sortedAssets = useMemo(() => {
-    const list = [...categoryAssets];
+    const list = [...filteredAssets];
     list.sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -139,7 +204,16 @@ export default function HoldingsByCategory() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return list;
-  }, [categoryAssets, sortKey, sortDir, inrToAed, prices]);
+  }, [filteredAssets, sortKey, sortDir, inrToAed, prices]);
+
+  const hasActiveFilters = search || currencyFilter !== 'all' || maturityFilter !== 'all' || typeFilter !== 'all' || bankFilter !== 'all';
+  const clearFilters = () => {
+    setSearch('');
+    setCurrencyFilter('all');
+    setMaturityFilter('all');
+    setTypeFilter('all');
+    setBankFilter('all');
+  };
 
   // Category-level CAGR
   const categoryCagr = useMemo(() => {
@@ -390,7 +464,90 @@ export default function HoldingsByCategory() {
                 })}
               </div>
             ) : (
-              <div>
+            <div>
+              {/* Filter bar */}
+              <div className="mb-4 flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by name, bank..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Select value={currencyFilter} onValueChange={(v) => setCurrencyFilter(v as 'all' | 'AED' | 'INR')}>
+                    <SelectTrigger className="w-full sm:w-[140px]">
+                      <SelectValue placeholder="Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Currencies</SelectItem>
+                      <SelectItem value="AED">AED</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={maturityFilter} onValueChange={(v) => setMaturityFilter(v as MaturityFilter)}>
+                    <SelectTrigger className="w-full sm:w-[160px]">
+                      <SelectValue placeholder="Maturity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="matured">Matured</SelectItem>
+                      <SelectItem value="upcoming_7">Matures ≤ 7 days</SelectItem>
+                      <SelectItem value="upcoming_30">Matures ≤ 30 days</SelectItem>
+                      <SelectItem value="upcoming_90">Matures ≤ 90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {typeOptions.length > 1 && (
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="w-full sm:w-[150px]">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {typeOptions.map(t => (
+                          <SelectItem key={t.code} value={t.code}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {bankOptions.length > 0 && (
+                    <Select value={bankFilter} onValueChange={setBankFilter}>
+                      <SelectTrigger className="w-full sm:w-[150px]">
+                        <SelectValue placeholder="Bank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Banks</SelectItem>
+                        {bankOptions.map(b => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearFilters} className="self-start">
+                      <X className="h-4 w-4 mr-1" />
+                      Clear
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Showing {filteredAssets.length} of {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+
+              {sortedAssets.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">No holdings match your filters.</p>
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    <X className="h-4 w-4 mr-1" />
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <div>
                 {/* Sort headers */}
                 <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
                   <button onClick={() => toggleSort('name')} className="flex items-center hover:text-foreground transition-colors text-left">
@@ -516,6 +673,8 @@ export default function HoldingsByCategory() {
                 </div>
               </div>
             )}
+          </div>
+        )}
           </CardContent>
         </Card>
       </div>
