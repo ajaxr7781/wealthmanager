@@ -464,7 +464,90 @@ export default function HoldingsByCategory() {
                 })}
               </div>
             ) : (
-              <div>
+            <div>
+              {/* Filter bar */}
+              <div className="mb-4 flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by name, bank..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <Select value={currencyFilter} onValueChange={(v) => setCurrencyFilter(v as 'all' | 'AED' | 'INR')}>
+                    <SelectTrigger className="w-full sm:w-[140px]">
+                      <SelectValue placeholder="Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Currencies</SelectItem>
+                      <SelectItem value="AED">AED</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={maturityFilter} onValueChange={(v) => setMaturityFilter(v as MaturityFilter)}>
+                    <SelectTrigger className="w-full sm:w-[160px]">
+                      <SelectValue placeholder="Maturity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="matured">Matured</SelectItem>
+                      <SelectItem value="upcoming_7">Matures ≤ 7 days</SelectItem>
+                      <SelectItem value="upcoming_30">Matures ≤ 30 days</SelectItem>
+                      <SelectItem value="upcoming_90">Matures ≤ 90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {typeOptions.length > 1 && (
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="w-full sm:w-[150px]">
+                        <SelectValue placeholder="Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {typeOptions.map(t => (
+                          <SelectItem key={t.code} value={t.code}>{t.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {bankOptions.length > 0 && (
+                    <Select value={bankFilter} onValueChange={setBankFilter}>
+                      <SelectTrigger className="w-full sm:w-[150px]">
+                        <SelectValue placeholder="Bank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Banks</SelectItem>
+                        {bankOptions.map(b => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {hasActiveFilters && (
+                    <Button variant="ghost" size="sm" onClick={clearFilters} className="self-start">
+                      <X className="h-4 w-4 mr-1" />
+                      Clear
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Showing {filteredAssets.length} of {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+
+              {sortedAssets.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">No holdings match your filters.</p>
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    <X className="h-4 w-4 mr-1" />
+                    Clear Filters
+                  </Button>
+                </div>
+              ) : (
+                <div>
                 {/* Sort headers */}
                 <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
                   <button onClick={() => toggleSort('name')} className="flex items-center hover:text-foreground transition-colors text-left">
