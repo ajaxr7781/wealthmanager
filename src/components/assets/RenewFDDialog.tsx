@@ -211,7 +211,7 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
     !updateAsset.isPending;
 
   const handleRenew = async () => {
-    if (!canSubmit || !projectedMaturity) return;
+    if (!canSubmit || !projectedMaturity || !validation.isValid) return;
 
     const rate = parseFloat(interestRate);
     const baseName = asset.asset_name.replace(/\s*\(Renewed.*\)$/i, '');
