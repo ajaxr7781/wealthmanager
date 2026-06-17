@@ -336,9 +336,14 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
                 type="number"
                 min="0"
                 max={oldMaturityAmount}
+                step="0.01"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
+                aria-invalid={!!validation.errors.principal}
               />
+              {validation.errors.principal && (
+                <p className="text-xs text-destructive">{validation.errors.principal}</p>
+              )}
             </div>
           )}
 
