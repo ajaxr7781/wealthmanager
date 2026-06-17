@@ -42,6 +42,7 @@ import {
   HelpCircle,
   ChevronRight,
   Home,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
@@ -49,6 +50,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
 import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
+import { RenewFDDialog } from '@/components/assets/RenewFDDialog';
 import { Calculator } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import {
@@ -85,6 +87,7 @@ export default function AssetDetail() {
   const { data: transactions } = useAssetTransactions(id);
   const deleteAsset = useDeleteAsset();
   const [learnOpen, setLearnOpen] = useState(false);
+  const [renewOpen, setRenewOpen] = useState(false);
   const { convert, format: fmtCurrency } = useCurrency();
 
   const isSipOrMf = asset?.asset_type === 'sip' || asset?.asset_type === 'mutual_fund';
@@ -237,7 +240,13 @@ export default function AssetDetail() {
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              {asset.asset_type === 'fixed_deposit' && (
+                <Button variant="default" size="sm" onClick={() => setRenewOpen(true)}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Renew FD
+                </Button>
+              )}
               <Link to={`/asset/${id}/edit`}>
                 <Button variant="outline" size="sm">
                   <Pencil className="h-4 w-4 mr-2" />
@@ -395,6 +404,10 @@ export default function AssetDetail() {
             { heading: 'P/L', content: 'Profit or Loss = Current Value - Total Cost. Percentage is relative to initial investment.' },
           ]}
         />
+
+        {asset.asset_type === 'fixed_deposit' && (
+          <RenewFDDialog open={renewOpen} onOpenChange={setRenewOpen} asset={asset} />
+        )}
 
         {/* Details */}
         <Card className="shadow-luxury">
