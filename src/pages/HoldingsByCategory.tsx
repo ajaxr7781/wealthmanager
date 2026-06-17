@@ -309,13 +309,17 @@ export default function HoldingsByCategory() {
 
   const CategoryIcon = IconMap[category.icon || 'Package'] || Package;
 
-  // Calculate category totals
-  const totalInvested = categoryAssets.reduce((sum, a) => {
+  // Summary totals always reflect only active/matured (avoid double-counting renewed)
+  const activeAssets = useMemo(
+    () => allCategoryAssets.filter(a => !a.lifecycle_status || a.lifecycle_status === 'active' || a.lifecycle_status === 'matured'),
+    [allCategoryAssets]
+  );
+  const totalInvested = activeAssets.reduce((sum, a) => {
     const cost = Number(a.total_cost);
     return sum + convertToAed(cost, a.currency);
   }, 0);
-  
-  const totalValue = categoryAssets.reduce((sum, a) => {
+
+  const totalValue = activeAssets.reduce((sum, a) => {
     const value = getAssetCurrentValue(a);
     return sum + convertToAed(value, a.currency);
   }, 0);

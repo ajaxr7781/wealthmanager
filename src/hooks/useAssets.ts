@@ -152,7 +152,10 @@ export function usePortfolioOverview() {
 
       if (assetsResult.error) throw assetsResult.error;
 
-      const assets = (assetsResult.data || []) as Asset[];
+      const assets = ((assetsResult.data || []) as Asset[]).filter(a => {
+        const s = (a as any).lifecycle_status;
+        return !s || s === 'active' || s === 'matured';
+      });
       const categories = categoriesResult.data || [];
 
       if (assets.length === 0) return null;
