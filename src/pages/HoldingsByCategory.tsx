@@ -71,6 +71,13 @@ export default function HoldingsByCategory() {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
+  // Filters
+  const [search, setSearch] = useState('');
+  const [currencyFilter, setCurrencyFilter] = useState<'all' | 'AED' | 'INR'>('all');
+  const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [bankFilter, setBankFilter] = useState<string>('all');
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
