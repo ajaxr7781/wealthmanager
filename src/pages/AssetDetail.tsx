@@ -98,10 +98,26 @@ export default function AssetDetail() {
   const storedXirr = asset?.xirr_value != null ? Number(asset.xirr_value) : null;
   const xirrChanged = computedXirr !== null && (storedXirr === null || Math.abs(computedXirr - storedXirr) > 0.0001);
 
+  const location = useLocation();
+
+  const getParentLink = () => {
+    const fromSip = location.state?.from === 'sip' || asset?.asset_type === 'sip';
+    const fromMf = location.state?.from === 'mf' || asset?.asset_type === 'mutual_fund';
+    if (fromSip) return { path: '/mf/sips', label: 'SIP Management' };
+    if (fromMf) return { path: '/mf/holdings', label: 'MF Holdings' };
+    const lastUrl = typeof window !== 'undefined' ? sessionStorage.getItem('lastHoldingsUrl') : null;
+    const lastCat = typeof window !== 'undefined' ? sessionStorage.getItem('lastHoldingsCategory') : null;
+    if (lastUrl && lastCat && asset?.category_code && lastCat === asset.category_code) {
+      return { path: lastUrl, label: 'Holdings' };
+    }
+    if (asset?.category_code) return { path: `/holdings/category/${asset.category_code}`, label: 'Holdings' };
+    return { path: '/portfolio', label: 'Portfolio' };
+  };
+
   const handleDelete = async () => {
     if (!id) return;
     await deleteAsset.mutateAsync(id);
-    navigate('/portfolio');
+    navigate(getParentLink().path);
   };
 
   const formatCurrencyVal = (value: number, currency: string = 'AED') => {
@@ -178,16 +194,6 @@ export default function AssetDetail() {
     ? (Math.pow(currentValue / totalCost, 1 / years) - 1) * 100
     : null;
 
-  // Get parent page info for breadcrumb
-  const location = useLocation();
-  const fromSip = location.state?.from === 'sip' || asset?.asset_type === 'sip';
-  const fromMf = location.state?.from === 'mf' || asset?.asset_type === 'mutual_fund';
-  
-  const getParentLink = () => {
-    if (fromSip) return { path: '/mf/sips', label: 'SIP Management' };
-    if (fromMf) return { path: '/mf/holdings', label: 'MF Holdings' };
-    return { path: '/portfolio', label: 'Portfolio' };
-  };
   const parent = getParentLink();
 
   return (

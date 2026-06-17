@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useMemo, useEffect } from 'react';
+import { useParams, Link, useSearchParams, useLocation } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAssets, useUserSettings } from '@/hooks/useAssets';
 import { useAllAssetTransactions } from '@/hooks/useAssetTransactions';
@@ -70,25 +70,49 @@ export default function HoldingsByCategory() {
   const { formatAed } = useCurrency();
   const isLoading = assetsLoading || categoriesLoading;
 
-  const [sortKey, setSortKey] = useState<SortKey>('date');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Filters
-  const [search, setSearch] = useState('');
-  const [currencyFilter, setCurrencyFilter] = useState<'all' | 'AED' | 'INR'>('all');
-  const [maturityFilter, setMaturityFilter] = useState<MaturityFilter>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [bankFilter, setBankFilter] = useState<string>('all');
-  const [showHistorical, setShowHistorical] = useState(false);
+  const sortKey = (searchParams.get('sort') as SortKey) || 'date';
+  const sortDir = (searchParams.get('dir') as SortDir) || 'desc';
+  const search = searchParams.get('q') || '';
+  const currencyFilter = (searchParams.get('cur') as 'all' | 'AED' | 'INR') || 'all';
+  const maturityFilter = (searchParams.get('mat') as MaturityFilter) || 'all';
+  const typeFilter = searchParams.get('type') || 'all';
+  const bankFilter = searchParams.get('bank') || 'all';
+  const showHistorical = searchParams.get('hist') === '1';
+
+  const updateParam = (key: string, val: string, defaultVal: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (!val || val === defaultVal) next.delete(key);
+      else next.set(key, val);
+      return next;
+    }, { replace: true });
+  };
+  const setSearch = (v: string) => updateParam('q', v, '');
+  const setCurrencyFilter = (v: 'all' | 'AED' | 'INR') => updateParam('cur', v, 'all');
+  const setMaturityFilter = (v: MaturityFilter) => updateParam('mat', v, 'all');
+  const setTypeFilter = (v: string) => updateParam('type', v, 'all');
+  const setBankFilter = (v: string) => updateParam('bank', v, 'all');
+  const setShowHistorical = (v: boolean) => updateParam('hist', v ? '1' : '', '');
 
   const toggleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortKey(key);
-      setSortDir(key === 'name' ? 'asc' : 'desc');
-    }
+    const newDir = sortKey === key ? (sortDir === 'asc' ? 'desc' : 'asc') : (key === 'name' ? 'asc' : 'desc');
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('sort', key);
+      next.set('dir', newDir);
+      return next;
+    }, { replace: true });
   };
+
+  // Persist last filtered holdings URL so AssetDetail can return here.
+  useEffect(() => {
+    if (!categoryCode) return;
+    sessionStorage.setItem('lastHoldingsUrl', location.pathname + location.search);
+    sessionStorage.setItem('lastHoldingsCategory', categoryCode);
+  }, [location.pathname, location.search, categoryCode]);
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
