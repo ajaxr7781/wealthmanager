@@ -471,10 +471,16 @@ export default function HoldingsByCategory() {
                         <p className="text-sm text-muted-foreground">
                           {format(parseISO(asset.purchase_date), 'dd MMM yyyy')}
                         </p>
-                        {asset.maturity_date && (
-                          <p className="text-[11px] text-muted-foreground">
-                            Mat: {format(parseISO(asset.maturity_date), 'dd MMM yyyy')}
+                      </div>
+
+                      {/* Maturity Date (desktop) */}
+                      <div className="hidden sm:block">
+                        {asset.maturity_date ? (
+                          <p className="text-sm text-muted-foreground">
+                            {format(parseISO(asset.maturity_date), 'dd MMM yyyy')}
                           </p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">—</p>
                         )}
                       </div>
 
