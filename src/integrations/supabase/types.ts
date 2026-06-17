@@ -361,18 +361,21 @@ export type Database = {
           instrument_name: string | null
           interest_rate: number | null
           is_current_value_manual: boolean | null
+          lifecycle_status: string
           location: string | null
           maturity_amount: number | null
           maturity_date: string | null
           metal_type: string | null
           nav_or_price: number | null
           notes: string | null
+          parent_asset_id: string | null
           portfolio_id: string | null
           principal: number | null
           purchase_date: string
           purchase_price_per_unit: number | null
           quantity: number | null
           quantity_unit: string | null
+          renewal_chain_id: string | null
           rental_income_monthly: number | null
           scheme_id: string | null
           sip_amount: number | null
@@ -404,18 +407,21 @@ export type Database = {
           instrument_name?: string | null
           interest_rate?: number | null
           is_current_value_manual?: boolean | null
+          lifecycle_status?: string
           location?: string | null
           maturity_amount?: number | null
           maturity_date?: string | null
           metal_type?: string | null
           nav_or_price?: number | null
           notes?: string | null
+          parent_asset_id?: string | null
           portfolio_id?: string | null
           principal?: number | null
           purchase_date: string
           purchase_price_per_unit?: number | null
           quantity?: number | null
           quantity_unit?: string | null
+          renewal_chain_id?: string | null
           rental_income_monthly?: number | null
           scheme_id?: string | null
           sip_amount?: number | null
@@ -447,18 +453,21 @@ export type Database = {
           instrument_name?: string | null
           interest_rate?: number | null
           is_current_value_manual?: boolean | null
+          lifecycle_status?: string
           location?: string | null
           maturity_amount?: number | null
           maturity_date?: string | null
           metal_type?: string | null
           nav_or_price?: number | null
           notes?: string | null
+          parent_asset_id?: string | null
           portfolio_id?: string | null
           principal?: number | null
           purchase_date?: string
           purchase_price_per_unit?: number | null
           quantity?: number | null
           quantity_unit?: string | null
+          renewal_chain_id?: string | null
           rental_income_monthly?: number | null
           scheme_id?: string | null
           sip_amount?: number | null
@@ -474,6 +483,13 @@ export type Database = {
           xirr_value?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "assets_parent_asset_id_fkey"
+            columns: ["parent_asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assets_portfolio_id_fkey"
             columns: ["portfolio_id"]
