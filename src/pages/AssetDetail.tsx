@@ -87,6 +87,7 @@ export default function AssetDetail() {
   const { data: transactions } = useAssetTransactions(id);
   const deleteAsset = useDeleteAsset();
   const [learnOpen, setLearnOpen] = useState(false);
+  const [renewOpen, setRenewOpen] = useState(false);
   const { convert, format: fmtCurrency } = useCurrency();
 
   const isSipOrMf = asset?.asset_type === 'sip' || asset?.asset_type === 'mutual_fund';
