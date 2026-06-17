@@ -119,7 +119,17 @@ export default function HoldingsByCategory() {
   };
 
   const category = categories?.find(c => c.code === categoryCode);
-  const categoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
+  const allCategoryAssets = useMemo(() => assets?.filter(a => a.category_code === categoryCode) || [], [assets, categoryCode]);
+  const historicalCount = useMemo(
+    () => allCategoryAssets.filter(a => a.lifecycle_status === 'renewed' || a.lifecycle_status === 'closed' || a.lifecycle_status === 'prematurely_closed').length,
+    [allCategoryAssets]
+  );
+  const categoryAssets = useMemo(
+    () => showHistorical
+      ? allCategoryAssets
+      : allCategoryAssets.filter(a => !a.lifecycle_status || a.lifecycle_status === 'active' || a.lifecycle_status === 'matured'),
+    [allCategoryAssets, showHistorical]
+  );
 
   const fmtAed = (value: number) => formatAed(value, { decimals: 0 });
 
