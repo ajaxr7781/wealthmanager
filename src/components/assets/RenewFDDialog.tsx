@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, addMonths, parseISO, differenceInMonths } from 'date-fns';
+import { format, addMonths, parseISO, differenceInMonths, differenceInDays, isValid } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { calculateMaturityAmount } from '@/lib/fdCalculations';
 import { useCreateAsset, useUpdateAsset } from '@/hooks/useAssets';
 import type { Asset } from '@/types/assets';
