@@ -21,7 +21,9 @@ import {
 import {
   Tooltip, TooltipContent, TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, X, SlidersHorizontal, Search } from 'lucide-react';
+import { Plus, ChevronRight, ArrowLeft, Coins, HelpCircle, ArrowUpDown, ArrowUp, ArrowDown, X, SlidersHorizontal, Search, History } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
@@ -544,9 +546,27 @@ export default function HoldingsByCategory() {
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Showing {filteredAssets.length} of {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">
+                    Showing {filteredAssets.length} of {categoryAssets.length} holding{categoryAssets.length !== 1 ? 's' : ''}
+                    {!showHistorical && historicalCount > 0 && (
+                      <span className="ml-1">· {historicalCount} renewed/closed hidden</span>
+                    )}
+                  </p>
+                  {historicalCount > 0 && (
+                    <div className="flex items-center gap-2">
+                      <History className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Label htmlFor="show-historical" className="text-xs cursor-pointer">
+                        Show renewed & closed history
+                      </Label>
+                      <Switch
+                        id="show-historical"
+                        checked={showHistorical}
+                        onCheckedChange={setShowHistorical}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {sortedAssets.length === 0 ? (
