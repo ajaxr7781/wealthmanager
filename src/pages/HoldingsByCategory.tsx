@@ -130,6 +130,11 @@ export default function HoldingsByCategory() {
           cmp = pctA - pctB; break;
         }
         case 'date': cmp = a.purchase_date.localeCompare(b.purchase_date); break;
+        case 'maturity': {
+          const ma = a.maturity_date || '9999-12-31';
+          const mb = b.maturity_date || '9999-12-31';
+          cmp = ma.localeCompare(mb); break;
+        }
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
