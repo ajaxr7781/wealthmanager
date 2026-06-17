@@ -223,7 +223,9 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
         ? ` Renewed amount: ${asset.currency} ${newPrincipal.toLocaleString(undefined, { maximumFractionDigits: 2 })} (of maturity ${asset.currency} ${oldMaturityAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}).`
         : ' Full maturity amount rolled over.';
 
-    // 1. Create the new (renewed) FD
+    const chainId = asset.renewal_chain_id || asset.id;
+
+    // 1. Create the new (renewed) FD as next link in chain
     const created = await createAsset.mutateAsync({
       asset_type: 'fixed_deposit',
       asset_type_code: asset.asset_type_code || 'fixed_deposit',
@@ -237,6 +239,9 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
       maturity_date: newMaturityDate,
       maturity_amount: Math.round(projectedMaturity),
       total_cost: newPrincipal,
+      parent_asset_id: asset.id,
+      renewal_chain_id: chainId,
+      lifecycle_status: 'active',
       notes: [
         `Renewed from "${asset.asset_name}" (ID: ${asset.id}).`,
         payoutNote.trim(),
@@ -244,7 +249,7 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
       ].filter(Boolean).join(' '),
     });
 
-    // 2. Mark the original FD as closed/renewed
+    // 2. Mark the original FD as renewed (kept for full audit trail)
     const closureNote = `Renewed on ${format(parseISO(startDate), 'dd MMM yyyy')} into "${newName}".${payoutNote}`;
     const mergedNotes = [asset.notes, closureNote].filter(Boolean).join('\n\n');
 
@@ -253,6 +258,8 @@ export function RenewFDDialog({ open, onOpenChange, asset }: RenewFDDialogProps)
       notes: mergedNotes,
       current_value: oldMaturityAmount,
       is_current_value_manual: true,
+      lifecycle_status: 'renewed',
+      renewal_chain_id: chainId,
     });
 
     onOpenChange(false);
