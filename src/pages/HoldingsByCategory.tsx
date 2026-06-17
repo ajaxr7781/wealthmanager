@@ -673,6 +673,8 @@ export default function HoldingsByCategory() {
                 </div>
               </div>
             )}
+          </div>
+        )}
           </CardContent>
         </Card>
       </div>
