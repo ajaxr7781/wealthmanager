@@ -405,6 +405,10 @@ export default function AssetDetail() {
           ]}
         />
 
+        {asset.asset_type === 'fixed_deposit' && (
+          <RenewFDDialog open={renewOpen} onOpenChange={setRenewOpen} asset={asset} />
+        )}
+
         {/* Details */}
         <Card className="shadow-luxury">
           <CardHeader>
