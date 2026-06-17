@@ -42,6 +42,7 @@ import {
   HelpCircle,
   ChevronRight,
   Home,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getEffectiveFDValue, getFDStatus } from '@/lib/fdCalculations';
@@ -49,6 +50,7 @@ import { differenceInDays, parseISO } from 'date-fns';
 import { LearnMoreDialog } from '@/components/shared/LearnMoreDialog';
 import { LiquidityBadge } from '@/components/portfolio/LiquidityBreakdown';
 import { AssetTransactionSection } from '@/components/assets/AssetTransactionSection';
+import { RenewFDDialog } from '@/components/assets/RenewFDDialog';
 import { Calculator } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import {
