@@ -392,12 +392,15 @@ export default function HoldingsByCategory() {
             ) : (
               <div>
                 {/* Sort headers */}
-                <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
+                <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
                   <button onClick={() => toggleSort('name')} className="flex items-center hover:text-foreground transition-colors text-left">
                     Asset <SortIcon col="name" />
                   </button>
                   <button onClick={() => toggleSort('date')} className="flex items-center hover:text-foreground transition-colors text-left">
                     Purchase Date <SortIcon col="date" />
+                  </button>
+                  <button onClick={() => toggleSort('maturity')} className="flex items-center hover:text-foreground transition-colors text-left">
+                    Maturity Date <SortIcon col="maturity" />
                   </button>
                   <button onClick={() => toggleSort('value')} className="flex items-center justify-end hover:text-foreground transition-colors">
                     Value <SortIcon col="value" />
@@ -425,7 +428,7 @@ export default function HoldingsByCategory() {
                     <Link
                       key={asset.id}
                       to={`/asset/${asset.id}`}
-                      className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_28px] gap-1 sm:gap-2 items-center px-4 py-3 hover:bg-muted/40 transition-colors group"
+                      className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_28px] gap-1 sm:gap-2 items-center px-4 py-3 hover:bg-muted/40 transition-colors group"
                     >
                       {/* Name + icon */}
                       <div className="flex items-center gap-3 min-w-0">
