@@ -27,14 +27,17 @@ Deno.serve(async (req) => {
     // Always use service role key for data access across all users
     const supabase = createClient(supabaseUrl, serviceKey)
 
-    // Get all users who have assets
-    const { data: users, error: usersError } = await supabase
-      .from('assets')
-      .select('user_id')
-    
-    if (usersError) throw usersError
-
-    const uniqueUserIds = [...new Set((users || []).map(u => u.user_id))]
+    // Service-role/cron callers process all users; end users only their own.
+    let uniqueUserIds: string[]
+    if (auth.isService) {
+      const { data: users, error: usersError } = await supabase
+        .from('assets')
+        .select('user_id')
+      if (usersError) throw usersError
+      uniqueUserIds = [...new Set((users || []).map(u => u.user_id))]
+    } else {
+      uniqueUserIds = [auth.userId!]
+    }
     const today = new Date().toISOString().split('T')[0]
     const results: { user_id: string; status: string }[] = []
 
