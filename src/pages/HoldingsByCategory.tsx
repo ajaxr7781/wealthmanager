@@ -44,7 +44,7 @@ const IconMap: Record<string, typeof Coins> = {
   Package,
 };
 
-type SortKey = 'name' | 'value' | 'pl' | 'date';
+type SortKey = 'name' | 'value' | 'pl' | 'date' | 'maturity';
 type SortDir = 'asc' | 'desc';
 
 export default function HoldingsByCategory() {
@@ -130,6 +130,11 @@ export default function HoldingsByCategory() {
           cmp = pctA - pctB; break;
         }
         case 'date': cmp = a.purchase_date.localeCompare(b.purchase_date); break;
+        case 'maturity': {
+          const ma = a.maturity_date || '9999-12-31';
+          const mb = b.maturity_date || '9999-12-31';
+          cmp = ma.localeCompare(mb); break;
+        }
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -387,12 +392,15 @@ export default function HoldingsByCategory() {
             ) : (
               <div>
                 {/* Sort headers */}
-                <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
+                <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_28px] gap-2 px-4 py-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground rounded-t-lg">
                   <button onClick={() => toggleSort('name')} className="flex items-center hover:text-foreground transition-colors text-left">
                     Asset <SortIcon col="name" />
                   </button>
                   <button onClick={() => toggleSort('date')} className="flex items-center hover:text-foreground transition-colors text-left">
                     Purchase Date <SortIcon col="date" />
+                  </button>
+                  <button onClick={() => toggleSort('maturity')} className="flex items-center hover:text-foreground transition-colors text-left">
+                    Maturity Date <SortIcon col="maturity" />
                   </button>
                   <button onClick={() => toggleSort('value')} className="flex items-center justify-end hover:text-foreground transition-colors">
                     Value <SortIcon col="value" />
@@ -420,7 +428,7 @@ export default function HoldingsByCategory() {
                     <Link
                       key={asset.id}
                       to={`/asset/${asset.id}`}
-                      className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_28px] gap-1 sm:gap-2 items-center px-4 py-3 hover:bg-muted/40 transition-colors group"
+                      className="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr_1fr_28px] gap-1 sm:gap-2 items-center px-4 py-3 hover:bg-muted/40 transition-colors group"
                     >
                       {/* Name + icon */}
                       <div className="flex items-center gap-3 min-w-0">
@@ -463,10 +471,16 @@ export default function HoldingsByCategory() {
                         <p className="text-sm text-muted-foreground">
                           {format(parseISO(asset.purchase_date), 'dd MMM yyyy')}
                         </p>
-                        {asset.maturity_date && (
-                          <p className="text-[11px] text-muted-foreground">
-                            Mat: {format(parseISO(asset.maturity_date), 'dd MMM yyyy')}
+                      </div>
+
+                      {/* Maturity Date (desktop) */}
+                      <div className="hidden sm:block">
+                        {asset.maturity_date ? (
+                          <p className="text-sm text-muted-foreground">
+                            {format(parseISO(asset.maturity_date), 'dd MMM yyyy')}
                           </p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">—</p>
                         )}
                       </div>
 
