@@ -126,9 +126,58 @@ export default function HoldingsByCategory() {
     return currency === 'INR' ? value * inrToAed : value;
   };
 
+  // Filter options derived from category assets
+  const bankOptions = useMemo(() => {
+    const banks = new Set(categoryAssets.map(a => a.bank_name).filter(Boolean) as string[]);
+    return Array.from(banks).sort();
+  }, [categoryAssets]);
+
+  const typeOptions = useMemo(() => {
+    if (!category) return [];
+    return category.asset_types.filter(t => categoryAssets.some(a => a.asset_type_code === t.code));
+  }, [category, categoryAssets]);
+
+  const today = startOfDay(new Date());
+
+  // Filter assets
+  const filteredAssets = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    return categoryAssets.filter(a => {
+      if (normalizedSearch) {
+        const haystack = [
+          a.asset_name,
+          a.bank_name,
+          a.instrument_name,
+          a.broker_platform,
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(normalizedSearch)) return false;
+      }
+      if (currencyFilter !== 'all' && a.currency !== currencyFilter) return false;
+      if (typeFilter !== 'all' && a.asset_type_code !== typeFilter) return false;
+      if (bankFilter !== 'all' && a.bank_name !== bankFilter) return false;
+      if (maturityFilter !== 'all') {
+        if (a.maturity_date) {
+          const maturityDate = startOfDay(parseISO(a.maturity_date));
+          const isMatured = !isAfter(maturityDate, today);
+          const daysUntil = differenceInDays(maturityDate, today);
+          switch (maturityFilter) {
+            case 'active': return !isMatured;
+            case 'matured': return isMatured;
+            case 'upcoming_7': return !isMatured && daysUntil <= 7;
+            case 'upcoming_30': return !isMatured && daysUntil <= 30;
+            case 'upcoming_90': return !isMatured && daysUntil <= 90;
+          }
+        } else {
+          return maturityFilter === 'active';
+        }
+      }
+      return true;
+    });
+  }, [categoryAssets, search, currencyFilter, typeFilter, bankFilter, maturityFilter, today]);
+
   // Sorted assets for non-PM view
   const sortedAssets = useMemo(() => {
-    const list = [...categoryAssets];
+    const list = [...filteredAssets];
     list.sort((a, b) => {
       let cmp = 0;
       switch (sortKey) {
@@ -155,7 +204,16 @@ export default function HoldingsByCategory() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return list;
-  }, [categoryAssets, sortKey, sortDir, inrToAed, prices]);
+  }, [filteredAssets, sortKey, sortDir, inrToAed, prices]);
+
+  const hasActiveFilters = search || currencyFilter !== 'all' || maturityFilter !== 'all' || typeFilter !== 'all' || bankFilter !== 'all';
+  const clearFilters = () => {
+    setSearch('');
+    setCurrencyFilter('all');
+    setMaturityFilter('all');
+    setTypeFilter('all');
+    setBankFilter('all');
+  };
 
   // Category-level CAGR
   const categoryCagr = useMemo(() => {
