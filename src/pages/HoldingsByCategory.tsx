@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 import { getColorClass } from '@/types/assetConfig';
 import { getEffectiveFDValue } from '@/lib/fdCalculations';
 import { DEFAULT_INR_TO_AED, OUNCE_TO_GRAM } from '@/types/assets';
-import { differenceInDays, parseISO, format, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { differenceInDays, parseISO, format, isAfter, startOfDay } from 'date-fns';
 import {
   Landmark,
   TrendingUp,
