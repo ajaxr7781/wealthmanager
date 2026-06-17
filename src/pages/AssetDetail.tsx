@@ -194,16 +194,6 @@ export default function AssetDetail() {
     ? (Math.pow(currentValue / totalCost, 1 / years) - 1) * 100
     : null;
 
-  // Get parent page info for breadcrumb
-  const location = useLocation();
-  const fromSip = location.state?.from === 'sip' || asset?.asset_type === 'sip';
-  const fromMf = location.state?.from === 'mf' || asset?.asset_type === 'mutual_fund';
-  
-  const getParentLink = () => {
-    if (fromSip) return { path: '/mf/sips', label: 'SIP Management' };
-    if (fromMf) return { path: '/mf/holdings', label: 'MF Holdings' };
-    return { path: '/portfolio', label: 'Portfolio' };
-  };
   const parent = getParentLink();
 
   return (
