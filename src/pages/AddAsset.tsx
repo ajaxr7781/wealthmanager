@@ -649,9 +649,11 @@ export default function AddAsset() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="sip_frequency">SIP Frequency</Label>
+                          <Label htmlFor="sip_frequency">
+                            {selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance' ? 'Premium Frequency' : 'SIP Frequency'}
+                          </Label>
                           <Select
-                            value={formData.sip_frequency || 'monthly'}
+                            value={formData.sip_frequency || (selectedTypeCode === 'ulip' ? 'quarterly' : 'monthly')}
                             onValueChange={(value) => updateForm({ sip_frequency: value })}
                           >
                             <SelectTrigger>
@@ -661,15 +663,30 @@ export default function AddAsset() {
                               <SelectItem value="weekly">Weekly</SelectItem>
                               <SelectItem value="monthly">Monthly</SelectItem>
                               <SelectItem value="quarterly">Quarterly</SelectItem>
+                              <SelectItem value="half_yearly">Half-Yearly</SelectItem>
+                              <SelectItem value="yearly">Yearly</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
+                      {(selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance') && (
+                        <div className="space-y-2">
+                          <Label htmlFor="maturity_date">Policy Maturity Date</Label>
+                          <Input
+                            id="maturity_date"
+                            type="date"
+                            value={formData.maturity_date || ''}
+                            onChange={(e) => updateForm({ maturity_date: e.target.value })}
+                          />
+                        </div>
+                      )}
                       <div className="space-y-2">
-                        <Label htmlFor="folio_no">Folio Number (optional)</Label>
+                        <Label htmlFor="folio_no">
+                          {selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance' ? 'Policy Number' : 'Folio Number (optional)'}
+                        </Label>
                         <Input
                           id="folio_no"
-                          placeholder="e.g. 10277286"
+                          placeholder={selectedTypeCode === 'ulip' ? 'e.g. 330713072' : 'e.g. 10277286'}
                           value={formData.folio_no || ''}
                           onChange={(e) => updateForm({ folio_no: e.target.value })}
                         />
