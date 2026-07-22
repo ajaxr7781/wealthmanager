@@ -585,7 +585,9 @@ export default function AddAsset() {
                     <div className="space-y-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label htmlFor="sip_amount">Monthly SIP Amount</Label>
+                          <Label htmlFor="sip_amount">
+                            {selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance' ? 'Premium Amount' : 'Monthly SIP Amount'}
+                          </Label>
                           <Input
                             id="sip_amount"
                             type="number"
