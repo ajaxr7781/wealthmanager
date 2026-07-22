@@ -67,6 +67,8 @@ const CODE_TO_LEGACY_TYPE: Record<string, AssetType> = {
   nps: 'mutual_fund',
   business: 'shares',
   loans_given: 'fixed_deposit',
+  ulip: 'mutual_fund',
+  savings_protection_insurance: 'mutual_fund',
 };
 
 // Get quantity units based on asset type
