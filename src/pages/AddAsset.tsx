@@ -67,6 +67,8 @@ const CODE_TO_LEGACY_TYPE: Record<string, AssetType> = {
   nps: 'mutual_fund',
   business: 'shares',
   loans_given: 'fixed_deposit',
+  ulip: 'mutual_fund',
+  savings_protection_insurance: 'mutual_fund',
 };
 
 // Get quantity units based on asset type
@@ -541,8 +543,8 @@ export default function AddAsset() {
                 />
               )}
 
-              {/* Stocks / Mutual Funds / SIP / Crypto */}
-              {['stocks', 'mutual_fund', 'sip', 'crypto', 'nps'].includes(selectedTypeCode || '') && (
+              {/* Stocks / Mutual Funds / SIP / Crypto / ULIP */}
+              {['stocks', 'mutual_fund', 'sip', 'crypto', 'nps', 'ulip', 'savings_protection_insurance'].includes(selectedTypeCode || '') && (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="instrument_name">
@@ -579,11 +581,13 @@ export default function AddAsset() {
                       />
                     </div>
                   </div>
-                  {selectedTypeCode === 'sip' && (
+                  {(selectedTypeCode === 'sip' || selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance') && (
                     <div className="space-y-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                          <Label htmlFor="sip_amount">Monthly SIP Amount</Label>
+                          <Label htmlFor="sip_amount">
+                            {selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance' ? 'Premium Amount' : 'Monthly SIP Amount'}
+                          </Label>
                           <Input
                             id="sip_amount"
                             type="number"
@@ -645,9 +649,11 @@ export default function AddAsset() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="sip_frequency">SIP Frequency</Label>
+                          <Label htmlFor="sip_frequency">
+                            {selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance' ? 'Premium Frequency' : 'SIP Frequency'}
+                          </Label>
                           <Select
-                            value={formData.sip_frequency || 'monthly'}
+                            value={formData.sip_frequency || (selectedTypeCode === 'ulip' ? 'quarterly' : 'monthly')}
                             onValueChange={(value) => updateForm({ sip_frequency: value })}
                           >
                             <SelectTrigger>
@@ -657,15 +663,30 @@ export default function AddAsset() {
                               <SelectItem value="weekly">Weekly</SelectItem>
                               <SelectItem value="monthly">Monthly</SelectItem>
                               <SelectItem value="quarterly">Quarterly</SelectItem>
+                              <SelectItem value="half_yearly">Half-Yearly</SelectItem>
+                              <SelectItem value="yearly">Yearly</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                       </div>
+                      {(selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance') && (
+                        <div className="space-y-2">
+                          <Label htmlFor="maturity_date">Policy Maturity Date</Label>
+                          <Input
+                            id="maturity_date"
+                            type="date"
+                            value={formData.maturity_date || ''}
+                            onChange={(e) => updateForm({ maturity_date: e.target.value })}
+                          />
+                        </div>
+                      )}
                       <div className="space-y-2">
-                        <Label htmlFor="folio_no">Folio Number (optional)</Label>
+                        <Label htmlFor="folio_no">
+                          {selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance' ? 'Policy Number' : 'Folio Number (optional)'}
+                        </Label>
                         <Input
                           id="folio_no"
-                          placeholder="e.g. 10277286"
+                          placeholder={selectedTypeCode === 'ulip' ? 'e.g. 330713072' : 'e.g. 10277286'}
                           value={formData.folio_no || ''}
                           onChange={(e) => updateForm({ folio_no: e.target.value })}
                         />
