@@ -581,7 +581,7 @@ export default function AddAsset() {
                       />
                     </div>
                   </div>
-                  {selectedTypeCode === 'sip' && (
+                  {(selectedTypeCode === 'sip' || selectedTypeCode === 'ulip' || selectedTypeCode === 'savings_protection_insurance') && (
                     <div className="space-y-4">
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
