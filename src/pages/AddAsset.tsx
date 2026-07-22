@@ -543,8 +543,8 @@ export default function AddAsset() {
                 />
               )}
 
-              {/* Stocks / Mutual Funds / SIP / Crypto */}
-              {['stocks', 'mutual_fund', 'sip', 'crypto', 'nps'].includes(selectedTypeCode || '') && (
+              {/* Stocks / Mutual Funds / SIP / Crypto / ULIP */}
+              {['stocks', 'mutual_fund', 'sip', 'crypto', 'nps', 'ulip', 'savings_protection_insurance'].includes(selectedTypeCode || '') && (
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="instrument_name">
